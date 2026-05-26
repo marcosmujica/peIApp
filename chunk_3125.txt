@@ -1,0 +1,50 @@
+<USER_REQUEST>
+aun no se ve el dasjboard principal y sale este error al hacer el back installHook.js:1 The action 'GO_BACK' was not handled by any navigator.
+
+Is there any screen to go back to?
+
+This is a development-only warning and won't be shown in production.
+overrideMethod @ installHook.js:1
+(anónimo) @ C:\trabajos\test\test13\app\node_modules\@react-navigation\core\lib\module\BaseNavigationContainer.js:335
+latestCallback @ C:\trabajos\test\test13\app\node_modules\use-latest-callback\lib\src\index.js:21
+(anónimo) @ C:\trabajos\test\test13\app\node_modules\@react-navigation\core\lib\module\useNavigationBuilder.js:540
+latestCallback @ C:\trabajos\test\test13\app\node_modules\use-latest-callback\lib\src\index.js:21
+(anónimo) @ C:\trabajos\test\test13\app\node_modules\@react-navigation\core\lib\module\useNavigationHelpers.js:29
+(anónimo) @ C:\trabajos\test\test13\app\node_modules\@react-navigation\core\lib\module\useNavigationCache.js:83
+(anónimo) @ C:\trabajos\test\test13\app\node_modules\@react-navigation\core\lib\module\useNavigationCache.js:111
+(anónimo) @ C:\trabajos\test\test13\app\node_modules\@react-navigation\core\lib\module\useNavigationCache.js:97
+(anónimo) @ C:\trabajos\test\test13\app\node_modules\@react-navigation\core\lib\module\useNavigationCache.js:109
+onPress @ C:\trabajos\test\test13\app\src\screens\main\DashboardScreen.tsx:157
+(anónimo) @ C:\trabajos\test\test13\app\node_modules\react-native-web\dist\modules\usePressEvents\PressResponder.js:314
+executeDispatch @ C:\trabajos\test\test13\app\node_modules\react-dom\cjs\react-dom-client.development.js:19116
+runWithFiberInDEV @ C:\trabajos\test\test13\app\node_modules\react-dom\cjs\react-dom-client.development.js:871
+processDispatchQueue @ C:\trabajos\test\test13\app\node_modules\react-dom\cjs\react-dom-client.development.js:19166
+(anónimo) @ C:\trabajos\test\test13\app\node_modules\react-dom\cjs\react-dom-client.development.js:19767
+batchedUpdates$1 @ C:\trabajos\test\test13\app\node_modules\react-dom\cjs\react-dom-client.development.js:
+<truncated 4595 bytes>
+\react-dom-client.development.js:18924
+processRootScheduleInMicrotask @ C:\trabajos\test\test13\app\node_modules\react-dom\cjs\react-dom-client.development.js:18840
+(anónimo) @ C:\trabajos\test\test13\app\node_modules\react-dom\cjs\react-dom-client.development.js:18991
+postMessage
+schedulePerformWorkUntilDeadline @ C:\trabajos\test\test13\app\node_modules\scheduler\cjs\scheduler.development.js:225
+performWorkUntilDeadline @ C:\trabajos\test\test13\app\node_modules\scheduler\cjs\scheduler.development.js:81
+postMessage
+schedulePerformWorkUntilDeadline @ C:\trabajos\test\test13\app\node_modules\scheduler\cjs\scheduler.development.js:225
+(anónimo) @ C:\trabajos\test\test13\app\node_modules\scheduler\cjs\scheduler.development.js:344
+scheduleTaskForRootDuringMicrotask @ C:\trabajos\test\test13\app\node_modules\react-dom\cjs\react-dom-client.development.js:18924
+processRootScheduleInMicrotask @ C:\trabajos\test\test13\app\node_modules\react-dom\cjs\react-dom-client.development.js:18840
+(anónimo) @ C:\trabajos\test\test13\app\node_modules\react-dom\cjs\react-dom-client.development.js:18991
+postMessage
+schedulePerformWorkUntilDeadline @ C:\trabajos\test\test13\app\node_modules\scheduler\cjs\scheduler.development.js:225
+performWorkUntilDeadline @ C:\trabajos\test\test13\app\node_modules\scheduler\cjs\scheduler.development.js:81
+postMessage
+schedulePerformWorkUntilDeadline @ C:\trabajos\test\test13\app\node_modules\scheduler\cjs\scheduler.development.js:225
+(anónimo) @ C:\trabajos\test\test13\app\node_modules\scheduler\cjs\scheduler.development.js:344
+scheduleTaskForRootDuringMicrotask @ C:\trabajos\test\test13\app\node_modules\react-dom\cjs\react-dom-client.development.js:18924
+processRootScheduleInMicrotask @ C:\trabajos\test\test13\app\node_modules\react-dom\cjs\react-dom-client.development.js:18840
+(anónimo) @ C:\trabajos\test\test13\app\node_modules\react-dom\cjs\react-dom-client.development.js:18991
+
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-05-25T19:49:30-03:00.
+</ADDITIONAL_METADATA>

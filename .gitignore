@@ -1,0 +1,25 @@
+# Dependencias
+node_modules/
+
+# Uploads y archivos subidos
+uploads/
+
+# Logs
+*.log
+
+# Variables de entorno
+.env
+.env.*
+
+# Expo / React Native
+.expo/
+dist/
+web-build/
+
+# Mac / Windows
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/

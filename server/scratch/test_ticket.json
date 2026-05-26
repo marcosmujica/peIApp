@@ -1,0 +1,9 @@
+{
+  "amount": 100,
+  "currency": "UYU",
+  "description": "Test with contact",
+  "type": "income",
+  "dueDate": "2026-05-10T12:00:00Z",
+  "toUser": "+59898922325",
+  "walletId": "24a2f0ce-ae4c-4c26-9bd0-d19cf18d4385"
+}

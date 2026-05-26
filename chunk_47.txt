@@ -1,0 +1,47 @@
+<USER_REQUEST>
+C:\trabajos\test\test13\app\src\api\wallets.api.ts:50  GET http://localhost:3000/wallets/mine net::ERR_CONNECTION_REFUSED
+dispatchXhrRequest @ C:\trabajos\test\test13\app\node_modules\axios\lib\adapters\xhr.js:220
+(anónimo) @ C:\trabajos\test\test13\app\node_modules\axios\lib\adapters\xhr.js:16
+dispatchRequest @ C:\trabajos\test\test13\app\node_modules\axios\lib\core\dispatchRequest.js:48
+Promise.then
+_request @ C:\trabajos\test\test13\app\node_modules\axios\lib\core\Axios.js:180
+request @ C:\trabajos\test\test13\app\node_modules\axios\lib\core\Axios.js:41
+(anónimo) @ C:\trabajos\test\test13\app\node_modules\axios\lib\core\Axios.js:228
+wrap @ C:\trabajos\test\test13\app\node_modules\axios\lib\helpers\bind.js:12
+getMyWallets @ C:\trabajos\test\test13\app\src\api\wallets.api.ts:50
+(anónimo) @ C:\trabajos\test\test13\app\src\screens\main\DashboardScreen.tsx:68
+await in (anónimo)
+(anónimo) @ C:\trabajos\test\test13\app\src\screens\main\DashboardScreen.tsx:90
+callback @ C:\trabajos\test\test13\app\node_modules\@react-navigation\core\lib\module\useFocusEffect.js:24
+(anónimo) @ C:\trabajos\test\test13\app\node_modules\@react-navigation\core\lib\module\useFocusEffect.js:43
+react_stack_bottom_frame @ C:\trabajos\test\test13\app\node_modules\react-dom\cjs\react-dom-client.development.js:25989
+runWithFiberInDEV @ C:\trabajos\test\test13\app\node_modules\react-dom\cjs\react-dom-client.development.js:871
+commitHookEffectListMount @ C:\trabajos\test\test13\app\node_modules\react-dom\cjs\react-dom-client.development.js:13249
+commitHookPassiveMountEffects @ C:\trabajos\test\test13\app\node_modules\react-dom\cjs\react-dom-client.development.js:13336
+commitPassiveMountOnFiber @ C:\trabajos\test\test13\app\node_modules\react-dom\cjs\react-dom-client.development.js:15484
+recursivelyTraversePassiveMountEffects @ C:\trabajos\test\test13\app\node_modules\react-dom\cjs\react-dom-client.development.js:15439
+commitPassiveMountOnFiber @ C:\trabajos\test\test13\app\node_modules\react-dom\cjs\react-dom-client.development
+<truncated 45215 bytes>
+les\react-dom\cjs\react-dom-client.development.js:16504
+performWorkOnRootViaSchedulerTask @ C:\trabajos\test\test13\app\node_modules\react-dom\cjs\react-dom-client.development.js:18957
+performWorkUntilDeadline @ C:\trabajos\test\test13\app\node_modules\scheduler\cjs\scheduler.development.js:45
+<App>
+(anónimo) @ C:\trabajos\test\test13\app\node_modules\react\cjs\react-jsx-runtime.development.js:335
+(anónimo) @ C:\trabajos\test\test13\app\node_modules\react-native-css-interop\dist\runtime\wrap-jsx.js:20
+WithDevTools @ C:\trabajos\test\test13\app\node_modules\expo\src\launch\withDevTools.web.tsx:11
+react_stack_bottom_frame @ C:\trabajos\test\test13\app\node_modules\react-dom\cjs\react-dom-client.development.js:25904
+renderWithHooks @ C:\trabajos\test\test13\app\node_modules\react-dom\cjs\react-dom-client.development.js:7662
+updateFunctionComponent @ C:\trabajos\test\test13\app\node_modules\react-dom\cjs\react-dom-client.development.js:10166
+beginWork @ C:\trabajos\test\test13\app\node_modules\react-dom\cjs\react-dom-client.development.js:11778
+runWithFiberInDEV @ C:\trabajos\test\test13\app\node_modules\react-dom\cjs\react-dom-client.development.js:871
+performUnitOfWork @ C:\trabajos\test\test13\app\node_modules\react-dom\cjs\react-dom-client.development.js:17641
+workLoopSync @ C:\trabajos\test\test13\app\node_modules\react-dom\cjs\react-dom-client.development.js:17469
+renderRootSync @ C:\trabajos\test\test13\app\node_modules\react-dom\cjs\react-dom-client.development.js:17450
+performWorkOnRoot @ C:\trabajos\test\test13\app\node_modules\react-dom\cjs\react-dom-client.development.js:16504
+performWorkOnRootViaSchedulerTask @ C:\trabajos\test\test13\app\node_modules\react-dom\cjs\react-dom-client.development.js:18957
+performWorkUntilDeadline @ C:\trabajos\test\test13\app\node_modules\scheduler\cjs\scheduler.development.js:45
+<withDevTools(App)>
+(anónimo) @ C:\
+<truncated 51496 bytes>
+
+NOTE: The output was truncated because it was too long. Use a more targeted query or a smaller range to get the information you need.

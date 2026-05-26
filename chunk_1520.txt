@@ -1,0 +1,49 @@
+Created At: 2026-05-22T21:32:38Z
+Completed At: 2026-05-22T21:32:39Z
+
+				The command completed successfully.
+				Output:
+				
+app\src\screens\main\ContactDetailScreen.tsx:15:import { getSmartAvatarUrl, getSmartDisplayName } from 
+'@/utils/userDisplay';
+app\src\screens\main\ContactDetailScreen.tsx:26:  const name = getSmartDisplayName(phoneNumber, initialName);
+app\src\screens\main\DashboardScreen.tsx:8:import { getSmartDisplayName, getSmartAvatarUrl } from 
+'@/utils/userDisplay';
+app\src\screens\main\DashboardScreen.tsx:726:                      subtitle={`${otherPartyPhone ? 
+getSmartDisplayName(otherPartyPhone) + ' � ' : ''}${new Date(item.dueDate && item.dueDate !== '' ? item.dueDate : 
+item.createdAt).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })}`}
+app\src\screens\movements\AddMovementScreen.tsx:44:import { getSmartDisplayName, getSmartAvatarUrl } from 
+'@/utils/userDisplay';
+app\src\screens\movements\AddMovementScreen.tsx:482:            setAssignedContacts([{ name: 
+getSmartDisplayName(phone, t.toUserDisplayName || t.contactName || phone), phone }]);
+app\src\screens\movements\AddMovementScreen.tsx:1681:                       oppName = 
+getSmartDisplayName(assignedContacts[0].phone, assignedContacts[0].name);
+app\src\screens\movements\AddMovementScreen.tsx:1690:                     oppName = getSmartDisplayName(ticketOwnerId 
+|| '', ownerInfo?.displayName || 'Propietario');
+app\src\screens\wallets\AddWalletStep2Screen.tsx:16:import { getSmartDisplayName } from '@/utils/userDisplay';
+app\src\screens\wallets\AddWalletStep2Screen.tsx:236:                    const displayName = 
+getSmartDisplayName(item.userId, item.displayName);
+app\src\screens\wallets\SplitWalletScreen.tsx:25:import { getSmartDisplayName, getSmartAvatarUrl } from 
+'@/utils/userDisplay';
+app\src\screens\wallets\SplitWalletScreen.tsx:282:          const displayName = getSmartDisplayName(mb.userId, 
+mb.displayName);
+app\src\screens\wallets\SplitWalletScreen.tsx:314:            const fromName = getSmartDisplayName(s.fromId, 
+s.fromName);
+app\src\screens\wallets\SplitWalletScreen.tsx:315:            const toName = getSmartDisplayName(s.toId, s.toName);
+app\src\screens\wallets\UnifiedAddWalletScreen.tsx:10:import { getSmartDisplayName } from '@/utils/userDisplay';
+app\src\screens\wallets\UnifiedAddWalletScreen.tsx:360:                    const displayName = 
+getSmartDisplayName(m.userId, m.displayName);
+app\src\screens\wallets\WalletDetailsScreen.tsx:21:import { getSmartDisplayName, getSmartAvatarUrl } from 
+'@/utils/userDisplay';
+app\src\screens\wallets\WalletDetailsScreen.tsx:487:                      const displayName = 
+getSmartDisplayName(member.userId, member.displayName);
+app\src\screens\wallets\WalletDetailsScreen.tsx:724:                            const subtitle = `${otherPartyPhone ? 
+getSmartDisplayName(otherPartyPhone) + ' � ' : ''}${new Date(ticket.dueDate && ticket.dueDate !== '' ? ticket.dueDate 
+: ticket.createdAt).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })}`;
+app\src\screens\wallets\WalletSettingsScreen.tsx:31:import { getSmartDisplayName, getSmartAvatarUrl } from 
+'@/utils/userDisplay';
+app\src\screens\wallets\WalletSettingsScreen.tsx:567:                    const displayName = 
+getSmartDisplayName(item.userId, item.displayName);
+
+
+

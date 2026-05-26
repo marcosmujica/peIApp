@@ -1,0 +1,61 @@
+Created At: 2026-05-21T02:46:53Z
+Completed At: 2026-05-21T02:46:54Z
+
+				The command completed successfully.
+				Output:
+				
+app\src\components\ui\SectionHeader.tsx:7: * SectionHeader - "Mis billeteras" / "Transacciones Pendientes" style.
+app\src\navigation\MainTabNavigator.tsx:21:  Billeteras: { screen?: string; params?: any } | undefined;
+app\src\navigation\MainTabNavigator.tsx:71:              if (route.name === 'Billeteras') {
+app\src\navigation\MainTabNavigator.tsx:72:                navigation.navigate('Billeteras', { screen: 'WalletsMain' 
+});
+app\src\navigation\MainTabNavigator.tsx:82:            case "Billeteras": icon = <IconWallet focused={isFocused} />; 
+break;
+app\src\navigation\MainTabNavigator.tsx:115:      <Tab.Screen name="Billeteras" component={WalletsNavigator} />
+app\src\screens\calendar\CalendarScreen.tsx:179:              {selectedWalletId ? wallets.find(w => w.id === 
+selectedWalletId)?.name || '...' : 'Todas las billeteras'}
+app\src\screens\calendar\CalendarScreen.tsx:319:                data={[{ id: null, name: 'Todas las billeteras' } as 
+any, ...wallets]}
+app\src\screens\history\HistoryScreen.tsx:236:              {selectedWalletId ? wallets.find(w => w.id === 
+selectedWalletId)?.name || '...' : 'Billeteras'}
+app\src\screens\history\HistoryScreen.tsx:349:              <Typography variant="headingH3" 
+style={styles.modalTitle}>Billeteras</Typography>
+app\src\screens\history\HistoryScreen.tsx:351:                data={[{ id: null, name: 'Todas las billeteras' } as 
+any, ...wallets]}
+app\src\screens\main\ContactsScreen.tsx:200:                Aparecer�n aqu� cuando compartas billeteras o env�es 
+tickets.
+app\src\screens\main\DashboardScreen.tsx:174:      items.push({ id: 'neg', text: `Ten�s ${negWallets.length} 
+billeteras con saldo negativo.`, negative: true });
+app\src\screens\main\DashboardScreen.tsx:422:                        navigation.navigate('Billeteras', { screen: 
+'WalletDetails', params: { walletId: insight.walletId } } as any);
+app\src\screens
+<truncated 2272 bytes>
+reen.tsx:351:                data={[{ id: null, name: 'Todas las billeteras' } as 
+any, ...wallets]}
+app\src\screens\movements\AddMovementScreen.tsx:2381:              <Text style={{ fontSize: 20, fontFamily: 
+FontFamily.bold, color: '#000000' }}>Billeteras</Text>
+app\src\screens\movements\QuickEntryScreen.tsx:260:              <Typography variant="headingH3" style={{ 
+marginBottom: 20 }}>Billeteras</Typography>
+app\src\screens\movements\RecurringTicketsScreen.tsx:170:              {selectedWalletId ? wallets.find(w => w.id === 
+selectedWalletId)?.name || '...' : 'Todas las billeteras'}
+app\src\screens\movements\RecurringTicketsScreen.tsx:221:              <Text 
+style={styles.modalTitle}>Billeteras</Text>
+app\src\screens\movements\RecurringTicketsScreen.tsx:223:                data={[{ id: null, name: 'Todas las 
+billeteras' } as any, ...wallets]}
+app\src\screens\onboarding\BusinessTypeScreen.tsx:59:          Estamos configurando tus billeteras para darte la mejor 
+experiencia, por favor aguarda...
+app\src\screens\onboarding\WalletsSummaryScreen.tsx:77:          Basado en el perfil que nos comentaste, hemos creado 
+un entorno de billeteras a tu medida:
+app\src\screens\wallets\AddWalletStep2Screen.tsx:501:                Alert.alert('DEBUG', 'Paso 4: Obteniendo 
+billeteras locales...');
+app\src\screens\wallets\TransferScreen.tsx:255:                  <Text style={styles.emptyText}>No tienes otras 
+billeteras con esta misma moneda.</Text>
+app\src\screens\wallets\WalletDetailsScreen.tsx:607:              <Text style={styles.quickActionLabel}>Transferir 
+entre billeteras / Ajustar el saldo </Text>
+app\src\screens\wallets\WalletSettingsScreen.tsx:209:        screen: 'Billeteras',
+app\src\screens\wallets\WalletsScreen.tsx:168:              <Typography variant="headingH2">Billeteras</Typography>
+app\src\screens\wallets\WalletsScreen.tsx:170:                {filteredWallets.length} billeteras
+app\src\screens\welcome\WelcomeCarouselScreen.tsx:43:        title: 'Billeteras para\ncompartir',
+
+
+

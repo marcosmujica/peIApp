@@ -1,0 +1,55 @@
+Created At: 2026-05-21T18:58:39Z
+Completed At: 2026-05-21T18:58:40Z
+
+				The command completed successfully.
+				Output:
+				<truncated 32 lines>
+  app\src\components\ui\TransactionItem.tsx:41:  amount,
+  app\src\components\ui\TransactionItem.tsx:42:  currency = 'UYU',
+  app\src\components\ui\TransactionItem.tsx:43:  iconName = "document-text",
+> app\src\screens\calendar\CalendarScreen.tsx:23:import { TransactionItem } from '@/components/ui';
+  app\src\screens\calendar\CalendarScreen.tsx:24:import { getRubroLabel, getRubroIcon } from '@/constants/rubros';
+  app\src\screens\calendar\CalendarScreen.tsx:25:
+  app\src\screens\calendar\CalendarScreen.tsx:26:
+  app\src\screens\calendar\CalendarScreen.tsx:27:const parseDateLiteral = (dateStr: string | Date | undefined | null) 
+=> {
+  app\src\screens\calendar\CalendarScreen.tsx:28:  if (!dateStr) return null;
+> app\src\screens\calendar\CalendarScreen.tsx:254:            <TransactionItem
+  app\src\screens\calendar\CalendarScreen.tsx:255:              key={item.id}
+  app\src\screens\calendar\CalendarScreen.tsx:256:              title={item.description || getRubroLabel(item.type === 
+'income' ? item.rubroIncome : item.rubroExpense, item.type)}
+  app\src\screens\calendar\CalendarScreen.tsx:257:              subtitle={item.type === 'income' ? 'Cobro' : 'Pago'}
+  app\src\screens\calendar\CalendarScreen.tsx:258:              amount={`$${item.amount.toLocaleString('es-AR')}`}
+  app\src\screens\calendar\CalendarScreen.tsx:259:              iconName={getRubroIcon(item.type === 'income' ? 
+item.rubroIncome : item.rubroExpense, item.type) as any}
+> app\src\screens\calendar\CalendarScreen.tsx:266:              style={styles.transactionItem}
+  app\src\screens\calendar\CalendarScreen.tsx:267:            />
+  app\src\screens\calendar\CalendarScreen.tsx:268:          ))}
+  app\src\screens\calendar\CalendarScreen.tsx:269:          
+  app\src\screens\calendar\CalendarScreen.tsx:270:          {displayedTickets.filter(t => parseDateLiteral(t.dueDate) 
+=== selectedDay.g
+<truncated 4191 bytes>
+               title={item.description || 
+getRubroLabel(item.rubro || (item.type === 'income' ? item.rubroIncome : item.rubroExpense), item.type, (item as 
+any).globalType)}
+  app\src\screens\main\DashboardScreen.tsx:727:                      subtitle={`${item.toUser ? 
+getContactNameStatic(item.toUser, item.toUser) + ' � ' : ''}${new Date(item.dueDate && item.dueDate !== '' ? 
+item.dueDate : item.createdAt).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })}`}
+  app\src\screens\main\DashboardScreen.tsx:728:                      amount={`$${item.amount.toLocaleString('es-AR')}`}
+  app\src\screens\main\DashboardScreen.tsx:729:                      currency={item.currency || 'UYU'}
+> app\src\screens\wallets\WalletDetailsScreen.tsx:26:import { TransactionItem } from '@/components/ui/TransactionItem';
+  app\src\screens\wallets\WalletDetailsScreen.tsx:27:import { Badge } from '@/components/ui/Badge';
+  app\src\screens\wallets\WalletDetailsScreen.tsx:28:import { SectionHeader } from '@/components/ui/SectionHeader';
+  app\src\screens\wallets\WalletDetailsScreen.tsx:29:import { Card } from '@/components/ui/Card';
+  app\src\screens\wallets\WalletDetailsScreen.tsx:30:import { Avatar } from '@/components/ui/Avatar';
+  app\src\screens\wallets\WalletDetailsScreen.tsx:31:import { getRubroLabel, getRubroIcon } from '@/constants/rubros';
+> app\src\screens\wallets\WalletDetailsScreen.tsx:721:                              <TransactionItem
+  app\src\screens\wallets\WalletDetailsScreen.tsx:722:                                key={ticket.id}
+  app\src\screens\wallets\WalletDetailsScreen.tsx:723:                                title={title}
+  app\src\screens\wallets\WalletDetailsScreen.tsx:724:                                subtitle={subtitle}
+  app\src\screens\wallets\WalletDetailsScreen.tsx:725:                                
+amount={`$${ticket.amount.toLocaleString('es-AR')}`}
+  app\src\screens\wallets\WalletDetailsScreen.tsx:726:                                currency={ticket.currency}
+
+
+

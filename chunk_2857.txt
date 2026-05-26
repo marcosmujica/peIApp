@@ -1,0 +1,44 @@
+Created At: 2026-05-25T17:47:14Z
+Completed At: 2026-05-25T17:47:14Z
+
+				The command completed successfully.
+				Output:
+				
+app\src\components\dashboard\RecentMovementsPanel.tsx:6:import { getRubroIcon, getRubroLabel } from 
+'@/constants/rubros';
+app\src\components\dashboard\RecentMovementsPanel.tsx:65:                  title={item.description || 
+getRubroLabel(item.rubro || (item.type === 'income' ? item.rubroIncome : item.rubroExpense), item.type, (item as 
+any).globalType)}
+app\src\components\wallet\DashboardPanels.tsx:156:import { getRubroLabel, getRubroIcon } from '@/constants/rubros';
+app\src\components\wallet\DashboardPanels.tsx:188:        label: getRubroLabel(id, 'expense'),
+app\src\screens\calendar\CalendarScreen.tsx:24:import { getRubroLabel, getRubroIcon } from '@/constants/rubros';
+app\src\screens\calendar\CalendarScreen.tsx:256:              title={item.description || getRubroLabel(item.type === 
+'income' ? item.rubroIncome : item.rubroExpense, item.type)}
+app\src\screens\history\HistoryScreen.tsx:22:import { getRubroLabel, getRubroIcon } from '@/constants/rubros';
+app\src\screens\history\HistoryScreen.tsx:325:                  title={item.description || getRubroLabel(item.type === 
+'income' ? item.rubroIncome : item.rubroExpense, item.type, item.globalType)}
+app\src\screens\main\ContactDetailScreen.tsx:13:import { getRubroLabel, getRubroIcon } from '@/constants/rubros';
+app\src\screens\main\ContactDetailScreen.tsx:89:                title={item.description || getRubroLabel(item.rubro || 
+(item.type === 'income' ? item.rubroIncome : item.rubroExpense), item.type)}
+app\src\screens\main\DashboardScreen.tsx:16:import { getRubroIcon, getRubroLabel } from '@/constants/rubros';
+app\src\screens\main\DashboardScreen.tsx:726:                      title={item.description || getRubroLabel(item.rubro 
+|| (item.type === 'income' ? item.rubroIncome : item.rubroExpense), item.type, (item as any).globalType)}
+app\src\screens\movements\AddMovementScreen.tsx:48:import { GENERAL_RUBROS_GASTOS, GENERAL_RUBROS_INGRESOS, 
+WALLET_RUBROS_MAP, getRubroLabel, getPartitionedRubros } from '@/constants/rubros';
+app\src\screens\movements\AddMovementScreen.tsx:1267:            `dY'� ${parsed.currency || ''} 
+$${Number(parsed.amount || 0).toLocaleString('es-AR')}${parsed.rubro ? ` (${getRubroLabel(parsed.rubro, 'income')})` : 
+''}` : null,
+app\src\screens\movements\EditRecurringTicketScreen.tsx:28:import { getRubroLabel, GENERAL_RUBROS_INGRESOS, 
+GENERAL_RUBROS_GASTOS, WALLET_RUBROS_MAP, getPartitionedRubros } from '@/constants/rubros';
+app\src\screens\movements\EditRecurringTicketScreen.tsx:262:  const rubroLabel  = getRubroLabel(rubro || undefined, 
+item.type, item.globalType);
+app\src\screens\movements\QuickEntryScreen.tsx:24:import { GENERAL_RUBROS_GASTOS, WALLET_RUBROS_MAP, getRubroLabel, 
+getPartitionedRubros } from '@/constants/rubros';
+app\src\screens\movements\QuickEntryScreen.tsx:121:        const categoryLabel = getRubroLabel(rubroId, 'expense');
+app\src\screens\wallets\WalletDetailsScreen.tsx:32:import { getRubroLabel, getRubroIcon } from '@/constants/rubros';
+app\src\screens\wallets\WalletDetailsScreen.tsx:722:                            const title = ticket.description || 
+getRubroLabel(ticket.rubro || (ticket.type === 'income' ? ticket.rubroIncome : ticket.rubroExpense), ticket.type, 
+ticket.globalType);
+
+
+

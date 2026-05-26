@@ -1,0 +1,1 @@
+ALTER TABLE users ADD COLUMN daily_reports_enabled BOOLEAN DEFAULT true; ALTER TABLE users ADD COLUMN monthly_reports_enabled BOOLEAN DEFAULT true; ALTER TABLE users ADD COLUMN transaction_notifications_enabled BOOLEAN DEFAULT true;
