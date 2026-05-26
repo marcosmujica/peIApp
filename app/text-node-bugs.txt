@@ -1,0 +1,41 @@
+﻿
+src\screens\movements\AddMovementScreen.tsx:405:    if (attachmentUri && (attachmentUri.startsWith('file://') || attachmentUri.startsWith('content://') || attachmentUri.startsWith('blob:'))) {
+src\screens\movements\AddMovementScreen.tsx:679:      if (payAttachment && (payAttachment.startsWith('file://') || payAttachment.startsWith('content://') || payAttachment.startsWith('blob:'))) {
+src\screens\movements\AddMovementScreen.tsx:777:          {ticketId && (
+src\screens\movements\AddMovementScreen.tsx:786:          {isOwner && (
+src\screens\movements\AddMovementScreen.tsx:834:          {ticketId && status === 'pending' && (
+src\screens\movements\AddMovementScreen.tsx:842:        {!!ticketId && (
+src\screens\movements\AddMovementScreen.tsx:866:            {(toUserId !== null || assignedContacts.length > 0) && (
+src\screens\movements\AddMovementScreen.tsx:893:          {ticketId && (() => {
+src\screens\movements\AddMovementScreen.tsx:967:          {ticketId && (status === 'pending' || status === 'completed' || status === 'cancelled') && (
+src\screens\movements\AddMovementScreen.tsx:971:                {status === 'pending' && (
+src\screens\movements\AddMovementScreen.tsx:1067:                {comment && (
+src\screens\movements\AddMovementScreen.tsx:1081:                {paymentMethod && (
+src\screens\movements\AddMovementScreen.tsx:1095:                {paymentProcedure && (
+src\screens\movements\AddMovementScreen.tsx:1109:                 {attachmentUri && (
+src\screens\movements\AddMovementScreen.tsx:1158:                {isPredicting && (
+src\screens\movements\AddMovementScreen.tsx:1192:              {!ticketId && (
+src\screens\movements\AddMovementScreen.tsx:1216:                  {assignedContacts.length > 0 && (
+src\screens\movements\AddMovementScreen.tsx:1254:              {!isEdit && (
+src\screens\movements\AddMovementScreen.tsx:1292:              {!isEdit && (
+src\screens\movements\AddMovementScreen.tsx:1382:              {type === 'income' && (
+src\screens\movements\AddMovementScreen.tsx:1414:                {isOwner && (
+src\screens\movements\AddMovementScreen.tsx:1441:                 {attachmentUri && (
+src\screens\movements\AddMovementScreen.tsx:1467:                     {isOwner && (
+src\screens\movements\AddMovementScreen.tsx:1480:          {isEdit && (
+src\screens\movements\AddMovementScreen.tsx:1572:                          {(log.comment || log.attachmentUrl) && (
+src\screens\movements\AddMovementScreen.tsx:1574:                              {log.comment && (
+src\screens\movements\AddMovementScreen.tsx:1579:                              {log.attachmentUrl && (
+src\screens\movements\AddMovementScreen.tsx:1608:                            {amountStr !== '' && (
+src\screens\movements\AddMovementScreen.tsx:1630:        {!!(!isOwner && ticketId) && (
+src\screens\movements\AddMovementScreen.tsx:1644:      {showDatePicker && Platform.OS === 'ios' && (
+src\screens\movements\AddMovementScreen.tsx:1674:      {showDatePicker && Platform.OS !== 'ios' && (
+src\screens\movements\AddMovementScreen.tsx:1771:                      {selectedWalletId === item.id && (
+src\screens\movements\AddMovementScreen.tsx:1805:                      {paymentMethod === item.id && (
+src\screens\movements\AddMovementScreen.tsx:1858:                      {selectedListId === item.id && (
+src\screens\movements\AddMovementScreen.tsx:1896:                {contactSearchText.length > 0 && (
+src\screens\movements\AddMovementScreen.tsx:1935:                  {assignedContacts.some(c => c.phone === item.phone) && (
+src\screens\movements\AddMovementScreen.tsx:1981:                      {selectedRubroId === item.id && (
+src\screens\movements\AddMovementScreen.tsx:2102:                  {payAttachment && (
+
+

@@ -1,0 +1,31 @@
+﻿
+src\screens\movements\AddMov
+ementScreen.tsx:190:  const 
+[ownerRating, 
+setOwnerRating] = 
+useState(0);
+src\screens\movements\AddMov
+ementScreen.tsx:277:        
+  setOwnerRating(t.ownerRati
+ng || 0);
+src\screens\movements\AddMov
+ementScreen.tsx:442:      
+ownerRating: ownerRating || 
+undefined,
+src\screens\movements\AddMov
+ementScreen.tsx:850:        
+            onPress={() => 
+isOwner && 
+setOwnerRating(star)}
+src\screens\movements\AddMov
+ementScreen.tsx:855:        
+              name={star <= 
+ownerRating ? "star" : 
+"star-outline"} 
+src\screens\movements\AddMov
+ementScreen.tsx:857:        
+              color={star 
+<= ownerRating ? 
+"#a4a4a4ff" : "#D4D4D4"} 
+
+

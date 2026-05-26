@@ -1,0 +1,21 @@
+  section: { marginBottom: 32 },
+  label: { fontSize: 14, fontFamily: FontFamily.bold, color: '#171717', marginBottom: 8 },
+  input: {
+    height: 52,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E5E5E5',
+    backgroundColor: '#FAFAFA',
+    paddingHorizontal: 16,
+    fontSize: 16,
+    fontFamily: FontFamily.regular,
+    // @ts-ignore
+    outlineStyle: 'none',
+  },
+  inputSubtitle: {
+    fontSize: 12,
+    fontFamily: FontFamily.medium,
+    color: '#737373',
+    marginBottom: 4,
+    lineHeight: 16,
+  },

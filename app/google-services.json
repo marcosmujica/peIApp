@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "243139062019",
+    "project_id": "peiapp-3f012",
+    "storage_bucket": "peiapp-3f012.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:243139062019:android:3f22cf0727f677c1d72136",
+        "android_client_info": {
+          "package_name": "com.peiapp.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCoW8CnFci5cO71ApuAzrNVt1OPd9PuOFE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
