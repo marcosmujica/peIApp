@@ -19,7 +19,7 @@ import { es } from 'date-fns/locale';
 import { motion, AnimatePresence } from 'framer-motion';
 import './App.css';
 
-const API_BASE = 'http://localhost:3000'; // Adjust as needed for production
+const API_BASE = 'https://api.peiapp.tech'; // Adjust as needed for production
 
 interface Log {
   logId: string;
@@ -302,34 +302,6 @@ function App() {
                 )}
               </div>
 
-              {ticket.logs && ticket.logs.filter(l => l.action === 'payment_received').length > 0 && (
-                <div className="payment-history mt-8">
-                  <h3 className="section-title">Historial de Pagos</h3>
-                  <div className="history-list">
-                    {ticket.logs.filter(l => l.action === 'payment_received').map(log => {
-                      const amountPaidInLog = Number(log.newValue) - Number(log.oldValue);
-                      return (
-                        <div key={log.logId} className="history-item">
-                          <div className="history-main">
-                            <div className="history-info">
-                              <span className="history-amount">{ticket.currency} {formatAmount(amountPaidInLog)}</span>
-                              <span className="history-meta">{log.paymentMethod} • {format(new Date(log.createdAt), "d 'de' MMM", { locale: es })}</span>
-                            </div>
-                            {log.attachmentUrl && (
-                              <a href={log.attachmentUrl} target="_blank" rel="noreferrer" className="attachment-link">
-                                <FileText size={18} />
-                                Comprobante
-                              </a>
-                            )}
-                          </div>
-                          {log.comment && <p className="history-comment">{log.comment}</p>}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
               {isPending && (
                 <div className="actions-grid mt-8">
                   <button onClick={() => setView('pay')} className="btn btn-primary">
@@ -347,6 +319,119 @@ function App() {
               {!isPending && (
                 <div className="mt-8 text-center p-4 bg-muted rounded-xl">
                   <p className="text-muted">Este ticket ya no requiere acciones adicionales.</p>
+                </div>
+              )}
+
+              {/* Historial de Actividad / Log de Acciones */}
+              {ticket.logs && ticket.logs.length > 0 && (
+                <div className="activity-log mt-8">
+                  <h3 className="section-title text-lg font-bold mb-4 flex items-center gap-2" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <FileText size={20} className="text-primary" />
+                    Historial de Actividad
+                  </h3>
+                  <div className="timeline-container mt-4" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    {ticket.logs.map((log) => {
+                      let actionText = '';
+                      let actionIcon = <Clock size={16} className="text-slate-400" />;
+                      
+                      switch (log.action) {
+                        case 'created':
+                        case 'ticket_created':
+                          actionText = 'Ticket creado';
+                          actionIcon = <CheckCircle2 size={16} className="text-primary" />;
+                          break;
+                        case 'payment_received':
+                          const amountPaid = Number(log.newValue) - Number(log.oldValue);
+                          actionText = `Pago registrado: ${ticket.currency} ${formatAmount(amountPaid)}`;
+                          actionIcon = <DollarSign size={16} className="text-success" />;
+                          break;
+                        case 'due_date_changed':
+                        case 'rescheduled':
+                          const formattedDate = log.newValue ? format(new Date(log.newValue.split('T')[0] + 'T12:00:00'), "d 'de' MMM, yyyy", { locale: es }) : '';
+                          actionText = `Fecha de vencimiento cambiada a ${formattedDate}`;
+                          actionIcon = <Calendar size={16} className="text-warning" />;
+                          break;
+                        case 'cancelled':
+                          actionText = 'Ticket cancelado';
+                          actionIcon = <XCircle size={16} className="text-danger" />;
+                          break;
+                        default:
+                          actionText = log.action || 'Acción registrada';
+                      }
+
+                      return (
+                        <div key={log.logId} className="history-item" style={{
+                          background: '#f8fafc',
+                          padding: '16px',
+                          borderRadius: '12px',
+                          border: '1px solid #e2e8f0',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '8px'
+                        }}>
+                          <div className="history-main" style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            flexWrap: 'wrap',
+                            gap: '8px'
+                          }}>
+                            <div className="history-info" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              {actionIcon}
+                              <span className="history-amount" style={{ fontWeight: '600', fontSize: '15px' }}>{actionText}</span>
+                            </div>
+                            <span className="history-meta" style={{ fontSize: '12px', color: '#94a3b8' }}>
+                              {format(new Date(log.createdAt), "d 'de' MMM, HH:mm'hs'", { locale: es })}
+                            </span>
+                          </div>
+
+                          {log.paymentMethod && (
+                            <div style={{ fontSize: '12px', color: '#64748b', fontWeight: '500' }}>
+                              Método: {log.paymentMethod}
+                            </div>
+                          )}
+
+                          {log.comment && (
+                            <p className="history-comment" style={{
+                              margin: '4px 0 0 0',
+                              fontSize: '14px',
+                              color: '#475569',
+                              fontStyle: 'italic',
+                              background: '#ffffff',
+                              padding: '8px 12px',
+                              borderRadius: '8px',
+                              border: '1px solid #f1f5f9'
+                            }}>
+                              "{log.comment}"
+                            </p>
+                          )}
+
+                          {log.attachmentUrl && (
+                            <div style={{ marginTop: '8px' }}>
+                              <a 
+                                href={log.attachmentUrl} 
+                                target="_blank" 
+                                rel="noreferrer" 
+                                className="attachment-link"
+                                style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '6px',
+                                  fontSize: '13px',
+                                  fontWeight: '600',
+                                  color: 'var(--color-primary, #4f46e5)',
+                                  textDecoration: 'none'
+                                }}
+                              >
+                                <FileText size={16} />
+                                Ver Documento Adjunto
+                              </a>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
             </motion.div>
