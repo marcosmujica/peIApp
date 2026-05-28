@@ -67,7 +67,7 @@ const EXPENSES_BUSINESS: { key: string; type: 'expense' }[] = [
   { key: 'tarjetas_credito', type: 'expense' },
   { key: 'prestamos', type: 'expense' },
   { key: 'estacionamientos_peajes', type: 'expense' },
-  { key: 'distribucion_envios', type: 'expense' },
+  { key: 'distribucion_envios', t ype: 'expense' },
   { key: 'retiros_bancarios', type: 'expense' },
 ];
 
@@ -238,6 +238,7 @@ const INCOME_OTHER: { key: string; type: 'income' }[] = [
 // ─── PANELS PER TYPE ─────────────────────────────────────────────────────────
 
 const PERSONAL_PANELS = [
+  'indicador_situacion',
   'resumen_mes',
   'tickets_pendientes',
   'semanas_activas',
@@ -245,41 +246,36 @@ const PERSONAL_PANELS = [
   'proximos_pagos',
   'gastos_por_medio_pago',
   'cobros_por_medio_pago',
-  'indicador_situacion',
+  
 ];
 
 const BUSINESS_PANELS = [
-  'ventas_dia_cantidad',
+  'indicador_situacion',
   'ventas_dia_monto',
   'resumen_mes',
   'tickets_pendientes',
-  'semanas_activas',
-  'gastos_mes',
   'comparativo_ganancias',
   'proximos_pagos',
-  'movimiento_dinero_semanal',
-  'horarios_activos',
-  'gastos_por_medio_pago',
-  'cobros_por_medio_pago',
-  'indicador_situacion',
 ];
 
 const COMMUNITY_PANELS = [
+  'indicador_situacion',
   'resumen_mes',
   'tickets_pendientes',
   'proximos_pagos',
   'gastos_por_medio_pago',
   'cobros_por_medio_pago',
-  'indicador_situacion',
 ];
 
 const SHARED_PANELS = [
+  'indicador_situacion',
   'tickets_pendientes',
   'gastos_mes',
   'proximos_pagos',
 ];
 
 const OTHER_PANELS = [
+  'indicador_situacion',
   'ventas_dia_cantidad',
   'ventas_dia_monto',
   'resumen_mes',
@@ -289,7 +285,6 @@ const OTHER_PANELS = [
   'proximos_pagos',
   'movimiento_dinero_semanal',
   'horarios_activos',
-  'indicador_situacion',
 ];
 
 // ─── QUESTIONS PER TYPE ──────────────────────────────────────────────────────
@@ -344,10 +339,6 @@ export const WALLET_CONFIGS: Record<string, WalletTypeConfig> = {
     defaultCategories: [...EXPENSES_PERSONAL, ...INCOME_PERSONAL],
     defaultPanels: PERSONAL_PANELS,
     defaultQuestions: PERSONAL_QUESTIONS,
-    defaultOrigins: [
-      { name: 'Efectivo', contacts: [] },
-      { name: 'Mi Banco', contacts: [] },
-    ],
   },
   business: {
     type: 'business',

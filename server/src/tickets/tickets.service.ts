@@ -104,7 +104,7 @@ export class TicketsService {
         const fullContent = `${senderName}: ${content}${ticketInfo}${publicLink}`;
         
         this.logger.log(`[sendTicketNotification] SENDING to ${targetUserId}: ${fullContent}`);
-        await this.notificationsService.sendNotification(targetUserId, fullContent, 'peIApp');
+        await this.notificationsService.sendNotification(targetUserId, fullContent, 'peIApp', { ticketId, type: 'ticket' });
       } else {
         this.logger.log(`[sendTicketNotification] SKIP: No target or target is sender. target=${targetUserId}`);
       }
@@ -994,7 +994,7 @@ export class TicketsService {
         const notificationContent = `Nuevo Ticket de ${ownerName}: ${concept} por ${amountStr}${pmSuffix}.${publicLink}`;
         
         console.log(`[internalCreateTicket] Notifying primary recipient ${data.toUser}`);
-        await this.notificationsService.sendNotification(data.toUser, notificationContent, 'peIApp');
+        await this.notificationsService.sendNotification(data.toUser, notificationContent, 'peIApp', { ticketId: savedTicket.ticketId, type: 'ticket' });
       }
     } catch (notifErr) {
       console.error(`[internalCreateTicket] Notification failed:`, notifErr.message);

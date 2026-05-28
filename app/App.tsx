@@ -1,7 +1,7 @@
 import "react-native-gesture-handler";
 import "./global.css";
 import React, { useEffect } from "react";
-import { AppState, AppStateStatus } from 'react-native';
+import { AppState, AppStateStatus, Platform } from 'react-native';
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { AppNavigator } from "@/navigation/AppNavigator";
@@ -17,6 +17,7 @@ import {
 } from "@expo-google-fonts/plus-jakarta-sans";
 import * as SplashScreen from "expo-splash-screen";
 import * as Notifications from 'expo-notifications';
+import { navigationRef } from "@/navigation/navigationRef";
 
 import { GlobalToast } from "@/components/GlobalToast";
 
@@ -88,16 +89,42 @@ export default function App() {
   }, [theme, setColorScheme]);
 
   useEffect(() => {
+    if (Platform.OS === 'web') return;
+
     // Escuchar notificaciones recibidas con la app abierta
     const notificationListener = Notifications.addNotificationReceivedListener(notification => {
       console.log('Notificación recibida:', notification);
     });
 
-    // Escuchar cuando el usuario interactúa con la notificación
+    // Escuchar cuando el usuario interactúa con la notificación (app en primer/segundo plano)
     const responseListener = Notifications.addNotificationResponseReceivedListener(response => {
       console.log('Respuesta a notificación:', response);
-      // Aquí podrías implementar navegación profunda según la data:
-      // const { data } = response.notification.request.content;
+      const data = response.notification.request.content.data;
+      if (data && data.ticketId) {
+        if (navigationRef.isReady()) {
+          navigationRef.navigate('AddMovementModal', { ticketId: data.ticketId });
+        } else {
+          setTimeout(() => {
+            if (navigationRef.isReady()) {
+              navigationRef.navigate('AddMovementModal', { ticketId: data.ticketId });
+            }
+          }, 1000);
+        }
+      }
+    });
+
+    // Verificar si la app se abrió desde una notificación estando cerrada (cold start)
+    Notifications.getLastNotificationResponseAsync().then(response => {
+      if (response) {
+        const data = response.notification.request.content.data;
+        if (data && data.ticketId) {
+          setTimeout(() => {
+            if (navigationRef.isReady()) {
+              navigationRef.navigate('AddMovementModal', { ticketId: data.ticketId });
+            }
+          }, 1500);
+        }
+      }
     });
 
     return () => {

@@ -6,6 +6,7 @@ import { RootNavigator } from "./RootNavigator";
 import { OnboardingNavigator } from "./OnboardingNavigator";
 import { View, ActivityIndicator } from "react-native";
 import { Colors } from "@/constants/theme";
+import { navigationRef } from "./navigationRef";
 
 export const AppNavigator: React.FC = () => {
   const { token, user, isLoading, hydrate, justFinishedOnboarding, clearJustFinishedOnboarding } = useAuthStore();
@@ -23,7 +24,7 @@ export const AppNavigator: React.FC = () => {
   }
 
   return (
-    <NavigationContainer>
+    <NavigationContainer ref={navigationRef}>
       {!token ? (
         <AuthNavigator />
       ) : user?.needsOnboarding ? (

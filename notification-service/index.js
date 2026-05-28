@@ -203,13 +203,13 @@ app.post('/send', async (req, res) => {
             status = 'logged_only';
         } else {
             try {
-                const messages = [{
-                    to: user.notificationId,
-                    sound: 'default',
-                    title: title || 'PeiApp',
-                    body: content,
-                    data: { userId },
-                }];
+                 const messages = [{
+                     to: user.notificationId,
+                     sound: 'default',
+                     title: title || 'PeiApp',
+                     body: content,
+                     data: { userId, ...(req.body.data || {}) },
+                 }];
                 
                 const chunks = expo.chunkPushNotifications(messages);
                 for (let chunk of chunks) {

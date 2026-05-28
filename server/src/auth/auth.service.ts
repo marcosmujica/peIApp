@@ -112,7 +112,7 @@ export class AuthService {
       user: {
         id: user.userId,
         phoneNumber: user.phone,
-        needsOnboarding: !user.displayName || user.displayName === 'Unknown User',
+        needsOnboarding: !user.defaultWalletId || !user.displayName || user.displayName === 'Unknown User',
         displayName: user.displayName,
         avatarUrl: user.avatarUrl,
         country: user.country,

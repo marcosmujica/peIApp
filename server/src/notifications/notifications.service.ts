@@ -13,7 +13,7 @@ export class NotificationsService {
     private usersService: UsersService,
   ) {}
 
-  async sendNotification(userId: string, content: string, title: string = 'peIApp') {
+  async sendNotification(userId: string, content: string, title: string = 'peIApp', data: any = {}) {
     this.logger.log(`Attempting to notify user ${userId}...`);
     
     try {
@@ -35,7 +35,7 @@ export class NotificationsService {
             title: title,
             body: content,
             sound: 'default',
-            data: { userId, content },
+            data: { userId, content, ...data },
           }),
         });
 
