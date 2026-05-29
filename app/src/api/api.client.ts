@@ -76,6 +76,12 @@ apiClient.interceptors.response.use(
        console.warn('[API Client] 401 Unauthorized detectado. Forzando cierre de sesión.');
        useAuthStore.getState().logout();
     } else if (error.code === 'ECONNABORTED' || error.message?.includes('timeout') || !error.response) {
+       const url = error.config?.url ? `${error.config.baseURL || ''}${error.config.url}` : API_URL;
+       Alert.alert(
+         'Error de Conexión',
+         `No se pudo establecer conexión con el servidor.\n\nURL intentada:\n${url}\n\nPor favor, verifica tu conexión a internet o la configuración del servidor.`,
+         [{ text: 'Aceptar' }]
+       );
        useUIStore.getState().showToast('Sin conexión. Los datos pueden no estar actualizados.', 'warning');
     }
     return Promise.reject(error);

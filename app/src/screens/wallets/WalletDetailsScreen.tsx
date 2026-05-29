@@ -554,7 +554,7 @@ export const WalletDetailsScreen: React.FC<Props> = ({ route, navigation }) => {
 
                 <View style={styles.totalItem}>
                   <View style={[styles.totalLabelRow, { justifyContent: 'flex-end' }]}>
-                    <Text style={styles.totalLabelText}>Pagos que me faltan</Text>
+                    <Text style={styles.totalLabelText}>Me falta pagar</Text>
                   </View>
                   <Text style={[styles.totalAmountText, { color: '#DC2626', textAlign: 'right' }]}>
                     ${totals.pendingExpense.toLocaleString('es-AR')}
@@ -1006,12 +1006,12 @@ export const WalletDetailsScreen: React.FC<Props> = ({ route, navigation }) => {
                     marginBottom: 16, 
                     paddingVertical: 14, 
                     alignItems: 'center', 
-                    backgroundColor: Colors.primary, 
+                    backgroundColor: '#16A34A', 
                     borderRadius: 12,
                     ...Platform.select({
-                      web: { boxShadow: `0px 4px 8px rgba(${parseInt(Colors.primary.slice(1,3), 16)}, ${parseInt(Colors.primary.slice(3,5), 16)}, ${parseInt(Colors.primary.slice(5,7), 16)}, 0.2)` },
+                      web: { boxShadow: '0px 4px 8px rgba(22, 163, 74, 0.2)' },
                       default: {
-                        shadowColor: Colors.primary,
+                        shadowColor: '#16A34A',
                         shadowOffset: { width: 0, height: 4 },
                         shadowOpacity: 0.2,
                         shadowRadius: 8,

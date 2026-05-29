@@ -1,6 +1,6 @@
 {
   "cli": {
-    "version": ">= 5.9.1"
+    "version": ">= 9.0.0"
   },
   "build": {
     "development": {
@@ -8,13 +8,18 @@
       "distribution": "internal"
     },
     "preview": {
+      "distribution": "internal",
       "android": {
         "buildType": "apk"
+      },
+      "env": {
+        "APP_ENV": "production"
       }
     },
-    "production": {}
-  },
-  "submit": {
-    "production": {}
+    "production": {
+      "env": {
+        "APP_ENV": "production"
+      }
+    }
   }
 }

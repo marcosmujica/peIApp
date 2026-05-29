@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -2696,7 +2696,7 @@ export const AddMovementScreen = () => {
                         <Text style={{ color: '#363630', fontFamily: FontFamily.semibold }}>AtrÃ¡s</Text>
                       </TouchableOpacity>
                       <TouchableOpacity 
-                        style={{ flex: 1, backgroundColor: '#363630', borderRadius: 12, paddingVertical: 14, alignItems: 'center' }}
+                        style={{ flex: 1, backgroundColor: '#16A34A', borderRadius: 12, paddingVertical: 14, alignItems: 'center' }}
                         onPress={() => {
                           applyDateChange(date);
                           setDateOptionsModalVisible(false);

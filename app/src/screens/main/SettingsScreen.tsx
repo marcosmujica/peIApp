@@ -414,15 +414,6 @@ export const SettingsScreen: React.FC = () => {
                 multiline={true}
               />
             </View>
-
-            <View style={[styles.inputGroup, { marginTop: 12 }]}>
-              <Text style={styles.label}>Apariencia (Tema)</Text>
-              <Text style={styles.inputDescription}>Selecciona tu modo de vista preferido</Text>
-              <TouchableOpacity style={styles.selectTrigger} onPress={() => openModal('theme')}>
-                <Text style={styles.selectTriggerText}>{selectedThemeName}</Text>
-                <Ionicons name="color-palette-outline" size={18} color="#737373" />
-              </TouchableOpacity>
-            </View>
           </View>
         )}
 

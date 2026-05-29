@@ -382,82 +382,87 @@ export const AddWalletStep2Screen: React.FC<{ onFinish?: (message?: string) => v
         {/* Contact Selection Modal */}
         <Modal visible={isContactModalVisible} animationType="slide" presentationStyle="formSheet">
           <SafeAreaView style={styles.contactModal}>
-            <View style={styles.modalHeaderHeader}>
-              <TouchableOpacity onPress={() => setContactModalVisible(false)}>
-                <Text style={{ fontSize: 15, fontFamily: 'PlusJakarta-Medium', color: Colors.textSecondary }}>Cancelar</Text>
-              </TouchableOpacity>
-              <Text style={styles.modalTitleMain}>Seleccionar Contactos</Text>
-              <TouchableOpacity onPress={confirmContactsSelection}>
-                <Text style={{ fontSize: 15, fontFamily: 'PlusJakarta-Bold', color: Colors.textSecondary }}>Listo</Text>
-              </TouchableOpacity>
-            </View>
-            <View style={{ padding: 16 }}>
-              <View style={styles.searchBarWrapper}>
-                <Ionicons name="search" size={18} color="#A3A3A3" style={{ marginRight: 8 }} />
-                <TextInput
-                  style={styles.searchBar}
-                  placeholder="Buscar por nombre o teléfono..."
-                  value={contactSearchText}
-                  onChangeText={setContactSearchText}
-                  placeholderTextColor="#737373"
-                />
-                {contactSearchText.length > 0 && (
-                  <TouchableOpacity onPress={() => setContactSearchText('')}>
-                    <Ionicons name="close-circle" size={18} color="#A3A3A3" />
-                  </TouchableOpacity>
-                )}
+            <KeyboardAvoidingView 
+              behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
+              style={{ flex: 1 }}
+            >
+              <View style={styles.modalHeaderHeader}>
+                <TouchableOpacity onPress={() => setContactModalVisible(false)}>
+                  <Text style={{ fontSize: 15, fontFamily: 'PlusJakarta-Medium', color: Colors.textSecondary }}>Cancelar</Text>
+                </TouchableOpacity>
+                <Text style={styles.modalTitleMain}>Contactos</Text>
+                <TouchableOpacity onPress={confirmContactsSelection}>
+                  <Text style={{ fontSize: 15, fontFamily: 'PlusJakarta-Bold', color: '#16A34A' }}>Listo</Text>
+                </TouchableOpacity>
               </View>
-            </View>
-
-            {selectedContactsTemp.length > 0 && (
-              <View style={{ paddingHorizontal: 16, paddingBottom: 16 }}>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
-                  {selectedContactsTemp.map(c => (
-                    <TouchableOpacity 
-                      key={c.phone} 
-                      style={styles.selectedChip}
-                      onPress={() => toggleContactSelection(c)}
-                    >
-                      <View style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: '#404040', alignItems: 'center', justifyContent: 'center', marginRight: 6 }}>
-                         <Text style={{ fontSize: 10, color: 'white', fontFamily: 'PlusJakarta-Bold' }}>{c.name.charAt(0)}</Text>
-                      </View>
-                      <Text style={styles.selectedChipText}>{c.name.split(' ')[0]}</Text>
-                      <Ionicons name="close-circle" size={16} color="white" style={{ marginLeft: 4 }} />
+              <View style={{ padding: 16 }}>
+                <View style={styles.searchBarWrapper}>
+                  <Ionicons name="search" size={18} color="#A3A3A3" style={{ marginRight: 8 }} />
+                  <TextInput
+                    style={styles.searchBar}
+                    placeholder="Buscar por nombre o teléfono..."
+                    value={contactSearchText}
+                    onChangeText={setContactSearchText}
+                    placeholderTextColor="#737373"
+                  />
+                  {contactSearchText.length > 0 && (
+                    <TouchableOpacity onPress={() => setContactSearchText('')} style={{ padding: 6 }}>
+                      <Ionicons name="close-circle" size={18} color="#A3A3A3" />
                     </TouchableOpacity>
-                  ))}
-                </ScrollView>
+                  )}
+                </View>
               </View>
-            )}
 
-            <FlatList
-              data={filteredContacts}
-              keyExtractor={item => item.phone}
-              contentContainerStyle={{ paddingHorizontal: 16 }}
-              renderItem={({ item }) => {
-                const isSelected = selectedContactsTemp.some(c => c.phone === item.phone);
-                return (
-                  <TouchableOpacity 
-                    style={styles.contactRow} 
-                    onPress={() => toggleContactSelection(item)}
-                  >
-                    <View style={styles.contactAvatar}>
-                      <Text style={{ fontSize: 16, fontFamily: 'PlusJakarta-Bold', color: '#737373' }}>
-                        {item.name.charAt(0)}
-                      </Text>
-                    </View>
-                    <View style={{ flex: 1 }}>
-                      <Text style={styles.contactName}>{item.name}</Text>
-                      <Text style={styles.contactPhone}>{item.phone}</Text>
-                    </View>
-                    <Ionicons 
-                      name={isSelected ? "checkmark-circle" : "ellipse-outline"} 
-                      size={24} 
-                      color={isSelected ? "#16A34A" : "#D1D5DB"} 
-                    />
-                  </TouchableOpacity>
-                );
-              }}
-            />
+              {selectedContactsTemp.length > 0 && (
+                <View style={{ paddingHorizontal: 16, paddingBottom: 16 }}>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
+                    {selectedContactsTemp.map(c => (
+                      <TouchableOpacity 
+                        key={c.phone} 
+                        style={styles.selectedChip}
+                        onPress={() => toggleContactSelection(c)}
+                      >
+                        <View style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: '#404040', alignItems: 'center', justifyContent: 'center', marginRight: 6 }}>
+                           <Text style={{ fontSize: 10, color: 'white', fontFamily: 'PlusJakarta-Bold' }}>{c.name.charAt(0)}</Text>
+                        </View>
+                        <Text style={styles.selectedChipText}>{c.name.split(' ')[0]}</Text>
+                        <Ionicons name="close-circle" size={16} color="white" style={{ marginLeft: 4 }} />
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </View>
+              )}
+
+              <FlatList
+                data={filteredContacts}
+                keyExtractor={item => item.phone}
+                contentContainerStyle={{ paddingHorizontal: 16 }}
+                renderItem={({ item }) => {
+                  const isSelected = selectedContactsTemp.some(c => c.phone === item.phone);
+                  return (
+                    <TouchableOpacity 
+                      style={styles.contactRow} 
+                      onPress={() => toggleContactSelection(item)}
+                    >
+                      <View style={styles.contactAvatar}>
+                        <Text style={{ fontSize: 16, fontFamily: 'PlusJakarta-Bold', color: '#737373' }}>
+                          {item.name.charAt(0)}
+                        </Text>
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.contactName}>{item.name}</Text>
+                        <Text style={styles.contactPhone}>{item.phone}</Text>
+                      </View>
+                      <Ionicons 
+                        name={isSelected ? "checkmark-circle" : "ellipse-outline"} 
+                        size={24} 
+                        color={isSelected ? "#16A34A" : "#D1D5DB"} 
+                      />
+                    </TouchableOpacity>
+                  );
+                }}
+              />
+            </KeyboardAvoidingView>
           </SafeAreaView>
         </Modal>
 
