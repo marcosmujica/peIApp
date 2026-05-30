@@ -27,7 +27,8 @@ interface ContactInfo {
 const cleanPhone = (p?: string) => {
   if (!p) return '';
   if (p.includes('-') && p.length > 20) return p; // UUID
-  return p.replace(/[^+0-9]/g, '').replace(/^\+/, '');
+  const digits = p.replace(/\D/g, '');
+  return digits.slice(-8); // Comparar solo los últimos 8 dígitos para evitar problemas de prefijos
 };
 
 const MOCK_CONTACTS: ContactInfo[] = [
@@ -135,14 +136,19 @@ export const AddWalletStep2Screen: React.FC<{ onFinish?: (message?: string) => v
   };
 
   const confirmContactsSelection = () => {
-    const newMembers = selectedContactsTemp.map(c => {
-      const isUuid = c.phone.includes('-') && c.phone.length > 20;
-      return { 
-        userId: isUuid ? c.phone : normalizePhone(c.phone), 
-        displayName: c.name, 
-        role: 'member' 
-      };
-    });
+    const newMembers = selectedContactsTemp
+      .map(c => {
+        const isUuid = c.phone.includes('-') && c.phone.length > 20;
+        return { 
+          userId: isUuid ? c.phone : normalizePhone(c.phone), 
+          displayName: c.name, 
+          role: 'member' 
+        };
+      })
+      .filter(nc => {
+        const isOwnerPhone = user?.phoneNumber && cleanPhone(nc.userId) === cleanPhone(user.phoneNumber);
+        return !isOwnerPhone;
+      });
     setMembers(newMembers);
     setContactModalVisible(false);
   };
@@ -152,6 +158,10 @@ export const AddWalletStep2Screen: React.FC<{ onFinish?: (message?: string) => v
   };
 
   const filteredContacts = contactsList.filter(c => {
+    // Evitar mostrar el número del creador/owner en la lista de selección para que no se autoinvite
+    const isOwnerPhone = user?.phoneNumber && cleanPhone(c.phone) === cleanPhone(user.phoneNumber);
+    if (isOwnerPhone) return false;
+
     const searchLower = contactSearchText.toLowerCase();
     const searchDigits = contactSearchText.replace(/\D/g, '');
     

@@ -56,7 +56,8 @@ const CURRENCY_NAMES: Record<string, string> = {
 const cleanPhone = (p?: string) => {
   if (!p) return '';
   if (p.includes('-') && p.length > 20) return p; // UUID
-  return p.replace(/[^+0-9]/g, '').replace(/^\+/, '');
+  const digits = p.replace(/\D/g, '');
+  return digits.slice(-8); // Comparar solo los últimos 8 dígitos para evitar problemas de prefijos
 };
 
 interface Contact { name: string; phoneNumber: string; }

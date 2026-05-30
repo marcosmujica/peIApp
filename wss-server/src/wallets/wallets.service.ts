@@ -197,10 +197,12 @@ export class WalletsService {
 
       if (existingMember) {
         await this.memberRepo.restore({ memberId: existingMember.memberId });
-        await this.memberRepo.update(
-          { memberId: existingMember.memberId },
-          { role: 'operator' },
-        );
+        if (existingMember.role !== 'owner') {
+          await this.memberRepo.update(
+            { memberId: existingMember.memberId },
+            { role: 'operator' },
+          );
+        }
       } else {
         await this.memberRepo.save({
           walletId,

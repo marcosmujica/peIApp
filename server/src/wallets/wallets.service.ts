@@ -235,10 +235,12 @@ export class WalletsService {
       if (existingMember) {
         const wasDeleted = existingMember.deletedAt !== null;
         await this.memberRepo.restore({ memberId: existingMember.memberId });
-        await this.memberRepo.update(
-          { memberId: existingMember.memberId },
-          { role: 'operator' },
-        );
+        if (existingMember.role !== 'owner') {
+          await this.memberRepo.update(
+            { memberId: existingMember.memberId },
+            { role: 'operator' },
+          );
+        }
 
         if (wasDeleted) {
           try {

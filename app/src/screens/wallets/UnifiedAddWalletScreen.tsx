@@ -35,7 +35,8 @@ interface WalletOption {
 const cleanPhone = (p?: string) => {
   if (!p) return '';
   if (p.includes('-') && p.length > 20) return p; // UUID
-  return p.replace(/[^+0-9]/g, '').replace(/^\+/, '');
+  const digits = p.replace(/\D/g, '');
+  return digits.slice(-8); // Comparar solo los últimos 8 dígitos para evitar problemas de prefijos
 };
 
 const TYPES: WalletOption[] = [
@@ -171,15 +172,20 @@ export const UnifiedAddWalletScreen: React.FC<{
   };
 
   const confirmContactsSelection = () => {
-    const newMembers = selectedContactsTemp.map(c => {
-      const phone = c.phoneNumbers?.[0] || '';
-      const isUuid = phone.includes('-') && phone.length > 20;
-      return { 
-        userId: isUuid ? phone : normalizePhone(phone), 
-        displayName: c.name, 
-        role: 'member' 
-      };
-    });
+    const newMembers = selectedContactsTemp
+      .map(c => {
+        const phone = c.phoneNumbers?.[0] || '';
+        const isUuid = phone.includes('-') && phone.length > 20;
+        return { 
+          userId: isUuid ? phone : normalizePhone(phone), 
+          displayName: c.name, 
+          role: 'member' 
+        };
+      })
+      .filter(nc => {
+        const isOwnerPhone = user?.phoneNumber && cleanPhone(nc.userId) === cleanPhone(user.phoneNumber);
+        return !isOwnerPhone;
+      });
     setMembers(newMembers);
     setContactModalVisible(false);
   };
@@ -608,11 +614,16 @@ export const UnifiedAddWalletScreen: React.FC<{
 
               <FlatList
                 data={contactsList.filter(c => {
+                  const phone = c.phoneNumbers?.[0] || '';
+                  // Evitar mostrar el número del creador/owner en la lista de selección para que no se autoinvite
+                  const isOwnerPhone = user?.phoneNumber && cleanPhone(phone) === cleanPhone(user.phoneNumber);
+                  if (isOwnerPhone) return false;
+
                   const searchLower = contactSearchText.toLowerCase();
                   const searchDigits = contactSearchText.replace(/\D/g, '');
                   
                   const nameMatch = c.name.toLowerCase().includes(searchLower);
-                  const phoneMatch = searchDigits.length > 0 && (c.phoneNumbers?.[0] || '').replace(/\D/g, '').includes(searchDigits);
+                  const phoneMatch = searchDigits.length > 0 && phone.replace(/\D/g, '').includes(searchDigits);
                   
                   return nameMatch || phoneMatch;
                 })}

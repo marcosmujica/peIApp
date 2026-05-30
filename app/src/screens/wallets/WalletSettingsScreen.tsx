@@ -38,12 +38,23 @@ interface ContactInfo {
   name: string;
   phone: string;
   imageUri?: string;
+  userId?: string;
 }
 
 const cleanPhone = (p?: string) => {
   if (!p) return '';
   if (p.includes('-') && p.length > 20) return p; // UUID
-  return p.replace(/[^+0-9]/g, '').replace(/^\+/, '');
+  const digits = p.replace(/\D/g, '');
+  return digits.slice(-8); // Comparar solo los últimos 8 dígitos para evitar problemas de prefijos
+};
+
+const getMemberUniqueKey = (m: any) => {
+  if (!m) return '';
+  if (m.phone) return cleanPhone(m.phone);
+  const id = m.userId || '';
+  const isUuid = id.includes('-') && id.length > 20;
+  if (!isUuid) return cleanPhone(id);
+  return id;
 };
 
 const MOCK_CONTACTS: ContactInfo[] = [
@@ -72,6 +83,18 @@ export const WalletSettingsScreen: React.FC<Props> = ({ route, navigation }) => 
   const [wallet, setWallet] = useState<LocalWallet | null>(null);
   const [name, setName] = useState('');
   const [avatarUrl, setAvatarUrl] = useState<string | undefined>(undefined);
+
+  const ensureOwnerRole = (membersList: any[]) => {
+    if (!membersList) return [];
+    return membersList.map(m => {
+      const isMe = (user?.phoneNumber && (cleanPhone(m.userId) === cleanPhone(user.phoneNumber) || (m.phone && cleanPhone(m.phone) === cleanPhone(user.phoneNumber)))) ||
+                   (user?.id && m.userId === user.id);
+      if (isMe) {
+        return { ...m, role: 'owner' };
+      }
+      return m;
+    });
+  };
   const [helpToCollect, setHelpToCollect] = useState(false);
   const [defaultPaymentMethod, setDefaultPaymentMethod] = useState('');
   const [members, setMembers] = useState<LocalWallet['members']>([]);
@@ -115,8 +138,21 @@ export const WalletSettingsScreen: React.FC<Props> = ({ route, navigation }) => 
         setIncludeInGeneralBalance(w.includeInGeneralBalance ?? true);
         setEnabledPanels(w.enabledPanels || ['month_summary']);
 
-        // Cargar miembros desde local primero
-        setMembers(w.members || []);
+        // Cargar miembros desde local primero, filtrando posibles duplicados del owner por número de teléfono
+        const cleanedLocalMembers = ensureOwnerRole(w.members || []).filter((m: any) => {
+          const isOwnerPhone = user?.phoneNumber && m.role !== 'owner' && (cleanPhone(m.userId) === cleanPhone(user.phoneNumber) || (m.phone && cleanPhone(m.phone) === cleanPhone(user.phoneNumber)));
+          return !isOwnerPhone;
+        });
+        
+        // Eliminar duplicados locales
+        const seenLocal = new Set();
+        const uniqueLocal = cleanedLocalMembers.filter(m => {
+          const key = getMemberUniqueKey(m);
+          if (!key || seenLocal.has(key)) return false;
+          seenLocal.add(key);
+          return true;
+        });
+        setMembers(uniqueLocal);
 
         // Cargar contactos locales para resolver nombres
         loadContacts();
@@ -125,18 +161,47 @@ export const WalletSettingsScreen: React.FC<Props> = ({ route, navigation }) => 
         try {
           const serverMembers = await walletsApi.getWalletMembers(walletId);
           if (serverMembers && serverMembers.length > 0) {
-            // Combinar: Mantener miembros que están locales pero no en el server aún (si son nuevos)
-            // O simplemente confiar en el server para los roles, pero no borrar lo que no esté en el server si el server es "más corto"
-            // Por ahora, confiamos en el server pero notificamos si hay discrepancia?
-            // Mejor: Si el server tiene miembros, los usamos, pero si el usuario acaba de agregar uno local, no queremos que desaparezca.
+            const serverMembersWithOwner = ensureOwnerRole(serverMembers);
+            // Combinar: Mantener miembros que están locales pero no en el server aún, excluyendo duplicados del owner
             setMembers(prev => {
-              const serverIds = new Set(serverMembers.map(m => m.userId));
-              const localOnly = (prev || []).filter(m => !serverIds.has(m.userId) && m.role !== 'owner');
-              return [...serverMembers, ...localOnly];
+              const serverIds = new Set(serverMembersWithOwner.map(m => getMemberUniqueKey(m)));
+              const localOnly = (prev || []).filter((m: any) => {
+                const isOwnerPhone = user?.phoneNumber && m.role !== 'owner' && (cleanPhone(m.userId) === cleanPhone(user.phoneNumber) || (m.phone && cleanPhone(m.phone) === cleanPhone(user.phoneNumber)));
+                const isAlreadyInServer = serverIds.has(getMemberUniqueKey(m));
+                return !isAlreadyInServer && m.role !== 'owner' && !isOwnerPhone;
+              });
+
+              const cleanedServerMembers = serverMembersWithOwner.filter((m: any) => {
+                const isOwnerPhone = user?.phoneNumber && m.role !== 'owner' && (cleanPhone(m.userId) === cleanPhone(user.phoneNumber) || (m.phone && cleanPhone(m.phone) === cleanPhone(user.phoneNumber)));
+                return !isOwnerPhone;
+              });
+
+              const merged = [...cleanedServerMembers, ...localOnly];
+              
+              // Eliminar duplicados en el merge
+              const seenMerge = new Set();
+              return merged.filter(m => {
+                const key = getMemberUniqueKey(m);
+                if (!key || seenMerge.has(key)) return false;
+                seenMerge.add(key);
+                return true;
+              });
             });
 
             // Actualizar localmente
-            w.members = serverMembers;
+            const finalServerCleaned = serverMembersWithOwner.filter((m: any) => {
+              const isOwnerPhone = user?.phoneNumber && m.role !== 'owner' && (cleanPhone(m.userId) === cleanPhone(user.phoneNumber) || (m.phone && cleanPhone(m.phone) === cleanPhone(user.phoneNumber)));
+              return !isOwnerPhone;
+            });
+            
+            const seenServerClean = new Set();
+            const uniqueServerClean = finalServerCleaned.filter(m => {
+              const key = getMemberUniqueKey(m);
+              if (!key || seenServerClean.has(key)) return false;
+              seenServerClean.add(key);
+              return true;
+            });
+            w.members = uniqueServerClean;
             await saveLocalWallets(all);
           }
         } catch (err) {
@@ -198,7 +263,15 @@ export const WalletSettingsScreen: React.FC<Props> = ({ route, navigation }) => 
 
         // 3. Update Members on Server
         if (members && members.length > 0) {
-          await walletsApi.updateMembers(walletId, members.map(m => ({ userId: m.userId, displayName: m.displayName })));
+          const nonOwners = members
+            .filter((m: any) => {
+              const isOwnerUuid = m.role === 'owner';
+              const isOwnerPhone = user?.phoneNumber && (cleanPhone(m.userId) === cleanPhone(user.phoneNumber) || (m.phone && cleanPhone(m.phone) === cleanPhone(user.phoneNumber)));
+              return !isOwnerUuid && !isOwnerPhone;
+            })
+            .map(m => ({ userId: m.userId, displayName: m.displayName }));
+
+          await walletsApi.updateMembers(walletId, nonOwners);
         }
       } catch (serverErr: any) {
         console.error("[WalletSettings] Server update failed", serverErr);
@@ -291,9 +364,21 @@ export const WalletSettingsScreen: React.FC<Props> = ({ route, navigation }) => 
       setSelectedContactsTemp([...newListContacts]);
     } else {
       const currentMembers = members || [];
-      const preSelected = currentMembers
-        .filter(m => m.role !== 'owner')
-        .map(m => ({ name: m.displayName, phone: m.userId }));
+      const preSelected = (currentMembers as any[])
+        .filter((m: any) => {
+          const isOwnerUuid = m.role === 'owner';
+          const isOwnerPhone = user?.phoneNumber && (cleanPhone(m.userId) === cleanPhone(user.phoneNumber) || (m.phone && cleanPhone(m.phone) === cleanPhone(user.phoneNumber)));
+          return !isOwnerUuid && !isOwnerPhone;
+        })
+        .map((m: any) => {
+          const phoneVal = m.phone || (m.userId.includes('-') && m.userId.length > 20 ? '' : m.userId);
+          return {
+            name: m.displayName,
+            phone: phoneVal,
+            imageUri: m.avatarUrl,
+            userId: m.userId
+          };
+        });
       setSelectedContactsTemp(preSelected);
     }
 
@@ -312,9 +397,18 @@ export const WalletSettingsScreen: React.FC<Props> = ({ route, navigation }) => 
   };
 
   const toggleContactSelection = (contact: ContactInfo) => {
-    const isSelected = selectedContactsTemp.some(c => cleanPhone(c.phone) === cleanPhone(contact.phone));
+    const isSelected = selectedContactsTemp.some(c => {
+      const keyC = c.phone || c.userId;
+      const keyContact = contact.phone || contact.userId;
+      return cleanPhone(keyC) === cleanPhone(keyContact);
+    });
+
     if (isSelected) {
-      setSelectedContactsTemp(selectedContactsTemp.filter(c => cleanPhone(c.phone) !== cleanPhone(contact.phone)));
+      setSelectedContactsTemp(selectedContactsTemp.filter(c => {
+        const keyC = c.phone || c.userId;
+        const keyContact = contact.phone || contact.userId;
+        return cleanPhone(keyC) !== cleanPhone(keyContact);
+      }));
     } else {
       setSelectedContactsTemp([...selectedContactsTemp, contact]);
     }
@@ -332,19 +426,35 @@ export const WalletSettingsScreen: React.FC<Props> = ({ route, navigation }) => 
       // Preservar a los dueños (owners) para que no se pierdan al re-seleccionar contactos
       const currentOwners = (members || []).filter(m => m.role === 'owner');
 
-      // Mapear los seleccionados (evitando duplicar al owner si ya estaba)
+      // Mapear los seleccionados (evitando duplicar al owner si ya estaba, ya sea por UUID o por número de teléfono)
       const newFromContacts = selectedContactsTemp
         .map(c => {
-          const isUuid = c.phone.includes('-') && c.phone.length > 20;
+          const isUuid = c.phone && c.phone.includes('-') && c.phone.length > 20;
+          const targetUserId = isUuid ? c.phone : (c.userId || normalizePhone(c.phone));
           return {
-            userId: isUuid ? c.phone : normalizePhone(c.phone),
+            userId: targetUserId,
+            phone: isUuid ? undefined : (c.phone ? normalizePhone(c.phone) : undefined),
             displayName: c.name,
             role: 'member'
           };
         })
-        .filter(nc => !currentOwners.some(o => o.userId === nc.userId));
+        .filter(nc => {
+          const isOwnerUuid = currentOwners.some(o => o.userId === nc.userId);
+          const isOwnerPhone = user?.phoneNumber && (cleanPhone(nc.userId) === cleanPhone(user.phoneNumber) || (nc.phone && cleanPhone(nc.phone) === cleanPhone(user.phoneNumber)));
+          return !isOwnerUuid && !isOwnerPhone;
+        });
 
-      setMembers([...currentOwners, ...newFromContacts]);
+      const mergedMembers = [...currentOwners, ...newFromContacts];
+      
+      const seenConfirm = new Set();
+      const uniqueConfirmed = mergedMembers.filter(m => {
+        const key = getMemberUniqueKey(m);
+        if (!key || seenConfirm.has(key)) return false;
+        seenConfirm.add(key);
+        return true;
+      });
+
+      setMembers(uniqueConfirmed);
     }
     setContactModalVisible(false);
   };
@@ -398,6 +508,10 @@ export const WalletSettingsScreen: React.FC<Props> = ({ route, navigation }) => 
   };
 
   const filteredContacts = contactsList.filter(c => {
+    // Evitar mostrar el número del creador/owner en la lista de selección para que no se autoinvite
+    const isOwnerPhone = user?.phoneNumber && cleanPhone(c.phone) === cleanPhone(user.phoneNumber);
+    if (isOwnerPhone) return false;
+
     const searchLower = contactSearchText.toLowerCase();
     const searchDigits = contactSearchText.replace(/\D/g, '');
 
@@ -901,7 +1015,10 @@ export const WalletSettingsScreen: React.FC<Props> = ({ route, navigation }) => 
               data={filteredContacts}
               keyExtractor={item => item.phone}
               renderItem={({ item }) => {
-                const isSelected = selectedContactsTemp.some(c => cleanPhone(c.phone) === cleanPhone(item.phone));
+                const isSelected = selectedContactsTemp.some(c => {
+                  const keyC = c.phone || c.userId;
+                  return cleanPhone(keyC) === cleanPhone(item.phone);
+                });
                 return (
                   <TouchableOpacity
                     style={styles.contactRow}
