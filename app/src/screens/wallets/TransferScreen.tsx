@@ -492,8 +492,6 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.bold,
     color: Colors.textPrimary,
     textAlign: 'right',
-    // @ts-ignore
-    outlineStyle: 'none',
     padding: 0,
   },
   adjustmentHint: {
@@ -512,8 +510,6 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
     borderWidth: 1,
     borderColor: Colors.strokeSubtle,
-    // @ts-ignore
-    outlineStyle: 'none',
     width: '100%',
   },
   footer: { 

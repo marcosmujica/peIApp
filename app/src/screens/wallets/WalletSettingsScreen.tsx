@@ -28,6 +28,7 @@ import { walletsApi, WalletMember } from '@/api/wallets.api';
 import { normalizeUrl } from '@/utils/url.util';
 import { useContactsStore } from '@/store/contacts.store';
 import { Button } from '@/components/ui/Button';
+import { getContacts, normalizePhone } from '@/services/contacts.service';
 import { useAuthStore } from '@/store/auth.store';
 import { getSmartDisplayName, getSmartAvatarUrl } from '@/utils/userDisplay';
 
@@ -39,6 +40,12 @@ interface ContactInfo {
   imageUri?: string;
 }
 
+const cleanPhone = (p?: string) => {
+  if (!p) return '';
+  if (p.includes('-') && p.length > 20) return p; // UUID
+  return p.replace(/[^+0-9]/g, '').replace(/^\+/, '');
+};
+
 const MOCK_CONTACTS: ContactInfo[] = [
   { name: 'DEMO_1', phone: '+59811223344' },
   { name: 'DEMO_2', phone: '+59822334455' },
@@ -48,6 +55,7 @@ const MOCK_CONTACTS: ContactInfo[] = [
   { name: 'DEMO_6', phone: '+59866778899' },
   { name: 'DEMO_7', phone: '+59877889900' },
   { name: 'DEMO_8', phone: '+59888990011' },
+  { name: 'DEMO_NO_NORMALIZADO', phone: '096775523323' },
 ];
 
 const formatAmount = (val: string) => {
@@ -80,7 +88,7 @@ export const WalletSettingsScreen: React.FC<Props> = ({ route, navigation }) => 
   const [isListModalVisible, setListModalVisible] = useState(false);
   const [contactsList, setContactsList] = useState<ContactInfo[]>([]);
   const [contactSearchText, setContactSearchText] = useState('');
-  
+
   // State for creating a new distribution list
   const [newListLabel, setNewListLabel] = useState('');
   const [newListContacts, setNewListContacts] = useState<ContactInfo[]>([]);
@@ -106,7 +114,7 @@ export const WalletSettingsScreen: React.FC<Props> = ({ route, navigation }) => 
         setDefaultTransactionType(w.defaultTransactionType || (w.type.includes('negocio') || w.type === 'business' ? 'income' : 'expense'));
         setIncludeInGeneralBalance(w.includeInGeneralBalance ?? true);
         setEnabledPanels(w.enabledPanels || ['month_summary']);
-        
+
         // Cargar miembros desde local primero
         setMembers(w.members || []);
 
@@ -126,7 +134,7 @@ export const WalletSettingsScreen: React.FC<Props> = ({ route, navigation }) => 
               const localOnly = (prev || []).filter(m => !serverIds.has(m.userId) && m.role !== 'owner');
               return [...serverMembers, ...localOnly];
             });
-            
+
             // Actualizar localmente
             w.members = serverMembers;
             await saveLocalWallets(all);
@@ -169,11 +177,11 @@ export const WalletSettingsScreen: React.FC<Props> = ({ route, navigation }) => 
       }
 
       // 2. Update Server
-      const updateDto: any = { 
-        name, 
-        helpToCollect, 
-        defaultPaymentMethod: defaultPaymentMethod || '', 
-        avatarUrl, 
+      const updateDto: any = {
+        name,
+        helpToCollect,
+        defaultPaymentMethod: defaultPaymentMethod || '',
+        avatarUrl,
         warningThreshold: parsedWarning,
         alertThreshold: parsedAlert,
         defaultTransactionType,
@@ -187,7 +195,7 @@ export const WalletSettingsScreen: React.FC<Props> = ({ route, navigation }) => 
 
       try {
         await walletsApi.updateWallet(walletId, updateDto);
-        
+
         // 3. Update Members on Server
         if (members && members.length > 0) {
           await walletsApi.updateMembers(walletId, members.map(m => ({ userId: m.userId, displayName: m.displayName })));
@@ -200,19 +208,19 @@ export const WalletSettingsScreen: React.FC<Props> = ({ route, navigation }) => 
         }
         // Si el servidor falla pero ya guardamos local, notificamos y permitimos continuar
         if (serverErr.code === 'ECONNABORTED' || serverErr.message?.includes('timeout') || !serverErr.response) {
-            throw serverErr; // Re-throw to handle as timeout
+          throw serverErr; // Re-throw to handle as timeout
         }
         // Si es un error de validación (400), lo mostramos
         const msg = serverErr.response?.data?.message || serverErr.response?.data?.error || serverErr.message || 'Error desconocido';
         Alert.alert('Error al sincronizar', `Los cambios se guardaron en tu teléfono pero el servidor respondió: ${msg}`);
       }
 
-      navigation.navigate('MainTabs', { 
+      navigation.navigate('MainTabs', {
         screen: 'Billeteras',
         params: {
           screen: 'WalletDetails',
           params: {
-            walletId, 
+            walletId,
             walletName: name,
             showToast: true,
             toastMessage: 'Configuración guardada'
@@ -223,7 +231,7 @@ export const WalletSettingsScreen: React.FC<Props> = ({ route, navigation }) => 
       console.error("[WalletSettings] General error", e);
       if (e.code === 'ECONNABORTED' || e.message?.includes('timeout')) {
         Alert.alert(
-          'Sincronización pendiente', 
+          'Sincronización pendiente',
           'Los cambios se guardaron localmente pero el servidor está demorando en responder. La información se actualizará pronto.',
           [{ text: 'Aceptar', onPress: () => navigation.goBack() }]
         );
@@ -235,7 +243,7 @@ export const WalletSettingsScreen: React.FC<Props> = ({ route, navigation }) => 
     }
   };
   const handlePickImage = async (useCamera: boolean) => {
-    const permissionResult = useCamera 
+    const permissionResult = useCamera
       ? await ImagePicker.requestCameraPermissionsAsync()
       : await ImagePicker.requestMediaLibraryPermissionsAsync();
 
@@ -246,16 +254,16 @@ export const WalletSettingsScreen: React.FC<Props> = ({ route, navigation }) => 
 
     const result = useCamera
       ? await ImagePicker.launchCameraAsync({
-          allowsEditing: true,
-          aspect: [1, 1],
-          quality: 0.5,
-        })
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.5,
+      })
       : await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: ImagePicker.MediaTypeOptions.Images,
-          allowsEditing: true,
-          aspect: [1, 1],
-          quality: 0.5,
-        });
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.5,
+      });
 
     if (!result.canceled && result.assets && result.assets.length > 0) {
       handleUploadAvatar(result.assets[0].uri);
@@ -282,72 +290,58 @@ export const WalletSettingsScreen: React.FC<Props> = ({ route, navigation }) => 
     if (forList) {
       setSelectedContactsTemp([...newListContacts]);
     } else {
-      // Intentar encontrar los contactos locales que corresponden a los miembros actuales
       const currentMembers = members || [];
-      const preSelected: ContactInfo[] = [];
-      
-      const normalize = (p: string) => p.replace(/[^\d+]/g, '');
-
-      for (const m of currentMembers) {
-        const matchedContact = contactsList.find(c => normalize(c.phone) === normalize(m.userId));
-        if (matchedContact) {
-          preSelected.push(matchedContact);
-        } else if (m.role !== 'owner') {
-          // Si no está en la lista de contactos actual, crear un objeto temporal para que aparezca como seleccionado
-          preSelected.push({ name: m.displayName, phone: m.userId });
-        }
-      }
+      const preSelected = currentMembers
+        .filter(m => m.role !== 'owner')
+        .map(m => ({ name: m.displayName, phone: m.userId }));
       setSelectedContactsTemp(preSelected);
     }
 
-    if (Platform.OS === 'web') {
-      setContactsList(MOCK_CONTACTS);
-      setContactModalVisible(true);
-      return;
-    }
-
     try {
-      const { status } = await Contacts.requestPermissionsAsync();
-      if (status === 'granted') {
-        const { data } = await Contacts.getContactsAsync({
-          fields: [Contacts.Fields.Name, Contacts.Fields.PhoneNumbers, Contacts.Fields.Image],
-        });
-        const mapped: ContactInfo[] = data
-          .filter(c => c.name && c.phoneNumbers && c.phoneNumbers.length > 0)
-          .map(c => ({ 
-            name: c.name, 
-            phone: c.phoneNumbers![0].number || '',
-            imageUri: c.imageAvailable && c.image ? c.image.uri : undefined
-          }));
-        setContactsList(mapped);
-        setContactModalVisible(true);
-      }
+      const data = await getContacts();
+      const mapped: ContactInfo[] = data.map(c => ({
+        name: c.name,
+        phone: c.phoneNumbers?.[0] || '',
+        imageUri: c.imageUri
+      }));
+      setContactsList(mapped);
+      setContactModalVisible(true);
     } catch (e) {
       Alert.alert('Error', 'No se pudo acceder a los contactos.');
     }
   };
 
   const toggleContactSelection = (contact: ContactInfo) => {
-    const isSelected = selectedContactsTemp.some(c => c.phone === contact.phone);
+    const isSelected = selectedContactsTemp.some(c => cleanPhone(c.phone) === cleanPhone(contact.phone));
     if (isSelected) {
-      setSelectedContactsTemp(selectedContactsTemp.filter(c => c.phone !== contact.phone));
+      setSelectedContactsTemp(selectedContactsTemp.filter(c => cleanPhone(c.phone) !== cleanPhone(contact.phone)));
     } else {
       setSelectedContactsTemp([...selectedContactsTemp, contact]);
     }
   };
 
   const confirmContactsSelection = () => {
-    const normalize = (p: string) => p.replace(/[^\d+]/g, '');
-
     if (isAddingToList) {
-      setNewListContacts(selectedContactsTemp.map(c => ({ ...c, phone: normalize(c.phone) })));
+      setNewListContacts(
+        selectedContactsTemp.map(c => {
+          const isUuid = c.phone.includes('-') && c.phone.length > 20;
+          return { ...c, phone: isUuid ? c.phone : normalizePhone(c.phone) };
+        })
+      );
     } else {
       // Preservar a los dueños (owners) para que no se pierdan al re-seleccionar contactos
       const currentOwners = (members || []).filter(m => m.role === 'owner');
-      
+
       // Mapear los seleccionados (evitando duplicar al owner si ya estaba)
       const newFromContacts = selectedContactsTemp
-        .map(c => ({ userId: normalize(c.phone), displayName: c.name, role: 'member' }))
+        .map(c => {
+          const isUuid = c.phone.includes('-') && c.phone.length > 20;
+          return {
+            userId: isUuid ? c.phone : normalizePhone(c.phone),
+            displayName: c.name,
+            role: 'member'
+          };
+        })
         .filter(nc => !currentOwners.some(o => o.userId === nc.userId));
 
       setMembers([...currentOwners, ...newFromContacts]);
@@ -374,7 +368,7 @@ export const WalletSettingsScreen: React.FC<Props> = ({ route, navigation }) => 
       Alert.alert('Opps', 'La lista necesita un nombre y al menos 1 contacto');
       return;
     }
-    
+
     if (editingListId) {
       setDistributionLists(prev => prev.map(l => l.id === editingListId ? { ...l, name: newListLabel, contacts: newListContacts } : l));
     } else {
@@ -406,10 +400,10 @@ export const WalletSettingsScreen: React.FC<Props> = ({ route, navigation }) => 
   const filteredContacts = contactsList.filter(c => {
     const searchLower = contactSearchText.toLowerCase();
     const searchDigits = contactSearchText.replace(/\D/g, '');
-    
+
     const nameMatch = c.name.toLowerCase().includes(searchLower);
     const phoneMatch = searchDigits.length > 0 && c.phone.replace(/\D/g, '').includes(searchDigits);
-    
+
     return nameMatch || phoneMatch;
   });
 
@@ -423,11 +417,11 @@ export const WalletSettingsScreen: React.FC<Props> = ({ route, navigation }) => 
         <View style={{ width: 40 }} />
       </View>
 
-      <ScrollView 
+      <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={styles.scrollContent}
       >
-        
+
         {activeTab === 'general' && (
           <View>
             {/* Wallet Avatar */}
@@ -480,31 +474,31 @@ export const WalletSettingsScreen: React.FC<Props> = ({ route, navigation }) => 
             {/* Default Transaction Type */}
             <View style={styles.section}>
               <View style={[styles.optionInfo, { marginBottom: 12 }]}>
-                  <Text style={styles.optionTitle}>Movimiento por defecto</Text>
-                  <Text style={styles.optionCaption}>Predefinido cada vez que ingreso un ticket a esta billetera</Text>
-                </View>
+                <Text style={styles.optionTitle}>Movimiento por defecto</Text>
+                <Text style={styles.optionCaption}>Predefinido cada vez que ingreso un ticket a esta billetera</Text>
+              </View>
               <View style={styles.transactionTypeRow}>
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={[
-                    styles.typeCard, 
+                    styles.typeCard,
                     defaultTransactionType === 'expense' && styles.typeCardExpenseActive
                   ]}
                   onPress={() => setDefaultTransactionType('expense')}
                 >
                   <Text style={[
-                    styles.typeCardLabel, 
+                    styles.typeCardLabel,
                     defaultTransactionType === 'expense' && styles.typeCardLabelActive
                   ]}>Pago</Text>
                 </TouchableOpacity>
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={[
-                    styles.typeCard, 
+                    styles.typeCard,
                     defaultTransactionType === 'income' && styles.typeCardIncomeActive
                   ]}
                   onPress={() => setDefaultTransactionType('income')}
                 >
                   <Text style={[
-                    styles.typeCardLabel, 
+                    styles.typeCardLabel,
                     defaultTransactionType === 'income' && styles.typeCardLabelActive
                   ]}>Cobro</Text>
                 </TouchableOpacity>
@@ -554,13 +548,13 @@ export const WalletSettingsScreen: React.FC<Props> = ({ route, navigation }) => 
                   <Text style={styles.addMemberBtnText}>Invitar</Text>
                 </TouchableOpacity>
               </View>
-              
+
               {members && members.length > 0 ? (
-                <ScrollView 
-                  horizontal 
-                  showsHorizontalScrollIndicator={false} 
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
                   contentContainerStyle={styles.listCarousel}
-                  snapToInterval={112} 
+                  snapToInterval={112}
                   decelerationRate="fast"
                 >
                   {members.map((item) => {
@@ -572,38 +566,38 @@ export const WalletSettingsScreen: React.FC<Props> = ({ route, navigation }) => 
                     const isOwner = item.role === 'owner' || isCreatorFallback;
 
                     return (
-                        <View key={item.userId} style={styles.memberCard}>
-                          {avatarUrl ? (
-                            <Image 
-                              source={{ uri: normalizeUrl(avatarUrl) }} 
-                              style={styles.memberAvatarImg} 
-                            />
-                          ) : (
-                            <View style={styles.memberAvatarPlaceholder}>
-                              <Text style={styles.avatarTextHeader}>
-                                {(displayName || '?').charAt(0)}
-                              </Text>
-                            </View>
-                          )}
-                          {!isOwner && (
-                            <TouchableOpacity 
-                              onPress={() => handleRemoveMember(item.userId)} 
-                              style={styles.memberDeleteBtn}
-                              hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
-                            >
-                              <Ionicons name="close" size={16} color="#737373" />
-                            </TouchableOpacity>
-                          )}
-                          {isOwner && (
-                            <View style={styles.ownerBadge}>
-                              <Text style={styles.ownerBadgeText}>Creador</Text>
-                            </View>
-                          )}
-                          <Text style={styles.memberNameCard} numberOfLines={1}>
-                            {displayName}
-                          </Text>
-                        </View>
-                      );
+                      <View key={item.userId} style={styles.memberCard}>
+                        {avatarUrl ? (
+                          <Image
+                            source={{ uri: normalizeUrl(avatarUrl) }}
+                            style={styles.memberAvatarImg}
+                          />
+                        ) : (
+                          <View style={styles.memberAvatarPlaceholder}>
+                            <Text style={styles.avatarTextHeader}>
+                              {(displayName || '?').charAt(0)}
+                            </Text>
+                          </View>
+                        )}
+                        {!isOwner && (
+                          <TouchableOpacity
+                            onPress={() => handleRemoveMember(item.userId)}
+                            style={styles.memberDeleteBtn}
+                            hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
+                          >
+                            <Ionicons name="close" size={16} color="#737373" />
+                          </TouchableOpacity>
+                        )}
+                        {isOwner && (
+                          <View style={styles.ownerBadge}>
+                            <Text style={styles.ownerBadgeText}>Creador</Text>
+                          </View>
+                        )}
+                        <Text style={styles.memberNameCard} numberOfLines={1}>
+                          {displayName}
+                        </Text>
+                      </View>
+                    );
                   })}
                 </ScrollView>
               ) : (
@@ -628,22 +622,22 @@ export const WalletSettingsScreen: React.FC<Props> = ({ route, navigation }) => 
                   <Text style={styles.addMemberBtnText}>Nueva lista</Text>
                 </TouchableOpacity>
               </View>
-              
+
               {distributionLists.length > 0 ? (
-                <ScrollView 
-                  horizontal 
-                  showsHorizontalScrollIndicator={false} 
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
                   contentContainerStyle={styles.listCarousel}
-                  snapToInterval={132} 
+                  snapToInterval={132}
                   decelerationRate="fast"
                   snapToAlignment="start"
                 >
                   {distributionLists.map(list => (
-                    <View 
-                      key={list.id} 
+                    <View
+                      key={list.id}
                       style={styles.listCard}
                     >
-                      <TouchableOpacity 
+                      <TouchableOpacity
                         style={styles.listCardContentArea}
                         onPress={() => handleEditList(list)}
                         activeOpacity={0.6}
@@ -651,9 +645,9 @@ export const WalletSettingsScreen: React.FC<Props> = ({ route, navigation }) => 
                         <Text style={styles.listCardTitle} numberOfLines={2}>{list.name}</Text>
                         <Text style={styles.listCardCount}>{list.contacts.length} contactos</Text>
                       </TouchableOpacity>
-                      
-                      <TouchableOpacity 
-                        onPress={() => handleRemoveList(list.id)} 
+
+                      <TouchableOpacity
+                        onPress={() => handleRemoveList(list.id)}
                         style={styles.memberDeleteBtn}
                         hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                       >
@@ -724,7 +718,7 @@ export const WalletSettingsScreen: React.FC<Props> = ({ route, navigation }) => 
             <View style={styles.section}>
               <Text style={styles.label}>Categorías y Rubros</Text>
               <Text style={styles.inputSubtitle}>Activa o desactiva los rubros que deseas ver en esta billetera.</Text>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={[styles.actionBtn, { marginTop: 16 }]}
                 onPress={() => navigation.navigate('WalletCategories', { walletId })}
               >
@@ -745,26 +739,26 @@ export const WalletSettingsScreen: React.FC<Props> = ({ route, navigation }) => 
       </ScrollView>
 
       <View style={styles.tabSelectorRow}>
-        <TouchableOpacity 
-          style={[styles.tabCircleBtn, activeTab === 'general' && styles.tabCircleBtnActive]} 
+        <TouchableOpacity
+          style={[styles.tabCircleBtn, activeTab === 'general' && styles.tabCircleBtnActive]}
           onPress={() => setActiveTab('general')}
         >
           <Ionicons name="create-outline" size={20} color={activeTab === 'general' ? '#fff' : '#171717'} />
         </TouchableOpacity>
-        <TouchableOpacity 
-          style={[styles.tabCircleBtn, activeTab === 'members' && styles.tabCircleBtnActive]} 
+        <TouchableOpacity
+          style={[styles.tabCircleBtn, activeTab === 'members' && styles.tabCircleBtnActive]}
           onPress={() => setActiveTab('members')}
         >
           <Ionicons name="people-outline" size={20} color={activeTab === 'members' ? '#fff' : '#171717'} />
         </TouchableOpacity>
-        <TouchableOpacity 
-          style={[styles.tabCircleBtn, activeTab === 'advanced' && styles.tabCircleBtnActive]} 
+        <TouchableOpacity
+          style={[styles.tabCircleBtn, activeTab === 'advanced' && styles.tabCircleBtnActive]}
           onPress={() => setActiveTab('advanced')}
         >
           <Ionicons name="cash-outline" size={20} color={activeTab === 'advanced' ? '#fff' : '#171717'} />
         </TouchableOpacity>
-        <TouchableOpacity 
-          style={[styles.tabCircleBtn, activeTab === 'categories' && styles.tabCircleBtnActive]} 
+        <TouchableOpacity
+          style={[styles.tabCircleBtn, activeTab === 'categories' && styles.tabCircleBtnActive]}
           onPress={() => setActiveTab('categories')}
         >
           <Ionicons name="grid-outline" size={20} color={activeTab === 'categories' ? '#fff' : '#171717'} />
@@ -772,9 +766,9 @@ export const WalletSettingsScreen: React.FC<Props> = ({ route, navigation }) => 
       </View>
 
       <View style={styles.footer}>
-        <Button 
+        <Button
           label={isSaving ? "Guardando..." : "Guardar cambios"}
-          onPress={handleSave} 
+          onPress={handleSave}
           disabled={isSaving}
         />
       </View>
@@ -787,7 +781,7 @@ export const WalletSettingsScreen: React.FC<Props> = ({ route, navigation }) => 
               <Ionicons name="close" size={24} color="#171717" />
             </TouchableOpacity>
             <Text style={styles.modalTitleMain}>{editingListId ? 'Editar Lista' : 'Nueva Lista de Contactos'}</Text>
-            <TouchableOpacity 
+            <TouchableOpacity
               onPress={handleSaveList}
               disabled={!newListLabel.trim() || newListContacts.length === 0}
             >
@@ -796,7 +790,7 @@ export const WalletSettingsScreen: React.FC<Props> = ({ route, navigation }) => 
               </Text>
             </TouchableOpacity>
           </View>
-          
+
           <View style={{ padding: 20 }}>
             <Text style={styles.label}>Nombre de la lista</Text>
             <TextInput
@@ -805,12 +799,12 @@ export const WalletSettingsScreen: React.FC<Props> = ({ route, navigation }) => 
               onChangeText={setNewListLabel}
               placeholder="Ej: Clientes Frecuentes"
             />
-            
+
             <View style={[styles.sectionHeader, { marginTop: 24 }]}>
               <Text style={styles.label}>Contactos ({newListContacts.length})</Text>
               <TouchableOpacity onPress={() => handlePickContact(true)} style={styles.addMemberBtn}>
                 <Ionicons name="add" size={18} color="#171717" />
-                <Text style={styles.addMemberBtnText}>Agregar</Text>
+                <Text style={styles.addMemberBtnText}>Agregar Contactos</Text>
               </TouchableOpacity>
             </View>
 
@@ -834,8 +828,8 @@ export const WalletSettingsScreen: React.FC<Props> = ({ route, navigation }) => 
       {/* Contact Selection Modal */}
       <Modal visible={isContactModalVisible} animationType="slide" presentationStyle="formSheet">
         <SafeAreaView style={styles.contactModal}>
-          <KeyboardAvoidingView 
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             style={{ flex: 1 }}
           >
             <View style={styles.modalHeaderHeader}>
@@ -847,7 +841,7 @@ export const WalletSettingsScreen: React.FC<Props> = ({ route, navigation }) => 
                 <Text style={{ fontFamily: FontFamily.bold, color: '#16A34A' }}>Listo</Text>
               </TouchableOpacity>
             </View>
-            
+
             <View style={{ padding: 16 }}>
               <View style={{
                 flexDirection: 'row',
@@ -883,8 +877,8 @@ export const WalletSettingsScreen: React.FC<Props> = ({ route, navigation }) => 
               <View style={{ paddingHorizontal: 16, paddingBottom: 16 }}>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
                   {selectedContactsTemp.map(c => (
-                    <TouchableOpacity 
-                      key={c.phone} 
+                    <TouchableOpacity
+                      key={c.phone}
                       style={styles.selectedChip}
                       onPress={() => toggleContactSelection(c)}
                     >
@@ -892,7 +886,7 @@ export const WalletSettingsScreen: React.FC<Props> = ({ route, navigation }) => 
                         <Image source={{ uri: c.imageUri }} style={{ width: 24, height: 24, borderRadius: 12, marginRight: 6 }} />
                       ) : (
                         <View style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: '#404040', alignItems: 'center', justifyContent: 'center', marginRight: 6 }}>
-                           <Text style={{ fontSize: 10, color: 'white', fontFamily: FontFamily.bold }}>{c.name.charAt(0)}</Text>
+                          <Text style={{ fontSize: 10, color: 'white', fontFamily: FontFamily.bold }}>{c.name.charAt(0)}</Text>
                         </View>
                       )}
                       <Text style={styles.selectedChipText}>{c.name.split(' ')[0]}</Text>
@@ -907,10 +901,10 @@ export const WalletSettingsScreen: React.FC<Props> = ({ route, navigation }) => 
               data={filteredContacts}
               keyExtractor={item => item.phone}
               renderItem={({ item }) => {
-                const isSelected = selectedContactsTemp.some(c => c.phone === item.phone);
+                const isSelected = selectedContactsTemp.some(c => cleanPhone(c.phone) === cleanPhone(item.phone));
                 return (
-                  <TouchableOpacity 
-                    style={styles.contactRow} 
+                  <TouchableOpacity
+                    style={styles.contactRow}
                     onPress={() => toggleContactSelection(item)}
                   >
                     {item.imageUri ? (
@@ -926,10 +920,10 @@ export const WalletSettingsScreen: React.FC<Props> = ({ route, navigation }) => 
                       <Text style={styles.contactName}>{item.name}</Text>
                       <Text style={styles.contactPhone}>{item.phone}</Text>
                     </View>
-                    <Ionicons 
-                      name={isSelected ? "checkmark-circle" : "ellipse-outline"} 
-                      size={24} 
-                      color={isSelected ? "#16A34A" : "#D1D5DB"} 
+                    <Ionicons
+                      name={isSelected ? "checkmark-circle" : "ellipse-outline"}
+                      size={24}
+                      color={isSelected ? "#16A34A" : "#D1D5DB"}
                     />
                   </TouchableOpacity>
                 );
@@ -955,7 +949,7 @@ const styles = StyleSheet.create({
   backBtn: { padding: 4 },
   headerTitle: { fontSize: 17, fontFamily: FontFamily.bold, color: '#171717' },
   scrollContent: { padding: 20, paddingBottom: 40 },
-  
+
   tabSelectorRow: {
     flexDirection: 'row',
     justifyContent: 'center',
@@ -1017,14 +1011,14 @@ const styles = StyleSheet.create({
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
   addMemberBtn: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   addMemberBtnText: { fontSize: 14, fontFamily: FontFamily.medium, color: '#171717' },
-  
+
   // List Carousel
   listCarousel: { gap: 12, paddingRight: 20 },
-  listCard: { 
-    width: 120, 
-    backgroundColor: '#FFFFFF', 
-    borderRadius: 12, 
-    borderWidth: 1, 
+  listCard: {
+    width: 120,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    borderWidth: 1,
     borderColor: '#F3F4F6',
     ...Platform.select({
       web: { boxShadow: '0px 2px 5px rgba(0, 0, 0, 0.05)' },
@@ -1049,7 +1043,7 @@ const styles = StyleSheet.create({
   listCardCount: { fontSize: 11, color: '#737373', marginTop: 2 },
   emptyListPlaceholder: { height: 100, borderRadius: 16, borderStyle: 'dotted', borderWidth: 1, borderColor: '#D1D5DB', alignItems: 'center', justifyContent: 'center', gap: 8 },
   emptyListText: { fontSize: 13, color: '#A3A3A3', fontFamily: FontFamily.medium },
-  
+
   membersList: { gap: 12 },
   memberRow: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#FAFAFA', padding: 12, borderRadius: 12 },
   avatar: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
@@ -1058,7 +1052,7 @@ const styles = StyleSheet.create({
   memberName: { fontSize: 15, fontFamily: FontFamily.bold, color: '#171717' },
   memberId: { fontSize: 12, color: '#737373' },
   deleteMemberBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#F9FAFB', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#E5E5E5' },
-  
+
   emptyText: { color: '#A3A3A3', textAlign: 'center', padding: 12 },
 
   memberCard: {
@@ -1129,9 +1123,9 @@ const styles = StyleSheet.create({
   optionInfo: { flex: 1, marginRight: 16 },
   optionTitle: { fontSize: 15, fontFamily: FontFamily.bold, color: '#171717' },
   optionCaption: { fontSize: 13, color: '#737373', marginTop: 2 },
-  
+
   footer: { padding: 24, paddingBottom: Platform.OS === 'ios' ? 40 : 24, backgroundColor: '#FFFFFF', borderTopWidth: 1, borderTopColor: '#F5F5F5' },
-  
+
   modalBg: { flex: 1, backgroundColor: '#FFF' },
   modalHeaderHeader: { flexDirection: 'row', alignItems: 'center', padding: 16, gap: 12, justifyContent: 'space-between' },
   modalTitleMain: { fontSize: 17, fontFamily: FontFamily.bold },
@@ -1139,12 +1133,12 @@ const styles = StyleSheet.create({
   memberNameSmall: { fontSize: 14, fontFamily: FontFamily.medium, color: '#171717' },
 
   contactModal: { flex: 1, backgroundColor: '#FFF' },
-  searchBar: { 
-    height: 48, 
-    backgroundColor: '#F5F5F5', 
-    margin: 16, 
-    borderRadius: 24, 
-    paddingHorizontal: 16, 
+  searchBar: {
+    height: 48,
+    backgroundColor: '#F5F5F5',
+    margin: 16,
+    borderRadius: 24,
+    paddingHorizontal: 16,
     fontSize: 15,
     fontFamily: FontFamily.regular,
     color: '#171717',

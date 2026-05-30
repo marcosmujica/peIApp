@@ -13,7 +13,7 @@ export class NotificationsService {
     private usersService: UsersService,
   ) {}
 
-  async sendNotification(userId: string, content: string, title: string = 'peIApp') {
+  async sendNotification(userId: string, content: string, title: string = 'peIApp', data: any = {}) {
     this.logger.log(`Attempting to notify user ${userId}...`);
     
     try {
@@ -50,10 +50,11 @@ export class NotificationsService {
       this.logger.log(`Using SMS for ${userId}`);
       const smsUrl = (this.configService.get<string>('NOTIFICATION_SERVER_URL') || 'http://localhost:4000/send').replace('/send', '/send-sms');
       
+      const userPhone = user?.phone || data?.phone || userId;
       const response = await fetch(smsUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: userId.startsWith('+') ? userId : `+${userId}`, content: `${title}: ${content}` })
+        body: JSON.stringify({ phone: userPhone.startsWith('+') ? userPhone : `+${userPhone}`, content: `${title}: ${content}` })
       });
 
       if (response.ok) {

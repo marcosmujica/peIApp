@@ -40,7 +40,7 @@ import { API_URL, WEB_SHARE_URL } from '@/api/api.client';
 import { useAuthStore } from '@/store/auth.store';
 import { useUIStore } from '@/store/ui.store';
 import { useContactsStore } from '@/store/contacts.store';
-import { getContactByPhoneNumber, getContacts } from '@/services/contacts.service';
+import { getContactByPhoneNumber, getContacts, normalizePhone } from '@/services/contacts.service';
 import { getSmartDisplayName, getSmartAvatarUrl } from '@/utils/userDisplay';
 import { Colors, FontFamily } from '@/constants/theme';
 import { Button } from '@/components/ui/Button';
@@ -49,6 +49,12 @@ import { GENERAL_RUBROS_GASTOS, GENERAL_RUBROS_INGRESOS, WALLET_RUBROS_MAP, getR
 import { aiApi } from '@/api/ai.api';
 import { SYSTEM_WALLET_NAME } from '@/constants';
 import { normalizeUrl } from '@/utils/url.util';
+
+const cleanPhone = (p?: string) => {
+  if (!p) return '';
+  if (p.includes('-') && p.length > 20) return p; // UUID
+  return p.replace(/[^+0-9]/g, '').replace(/^\+/, '');
+};
 
 
 
@@ -113,6 +119,7 @@ const DATE_QUICK_OPTIONS = [
 interface ContactInfo {
   name: string;
   phone: string;
+  imageUri?: string;
 }
 
 const MOCK_CONTACTS: ContactInfo[] = [
@@ -124,6 +131,7 @@ const MOCK_CONTACTS: ContactInfo[] = [
   { name: 'DEMO_6', phone: '+59866778899' },
   { name: 'DEMO_7', phone: '+59877889900' },
   { name: 'DEMO_8', phone: '+59888990011' },
+  { name: 'DEMO_NO_NORMALIZADO', phone: '096775523323' },
   { name: 'Ana GÃ³mez', phone: '+5491112345678' },
   { name: 'Carlos LÃ³pez', phone: '+5491123456789' },
   { name: 'LucÃ­a FernÃ¡ndez', phone: '+5491134567890' },
@@ -215,6 +223,7 @@ export const AddMovementScreen = () => {
   const [isListModalVisible, setListModalVisible] = useState(false);
   const [isContactOptionsModalVisible, setContactOptionsModalVisible] = useState(false);
   const [contactsList, setContactsList] = useState<ContactInfo[]>([]);
+  const [selectedContactsTemp, setSelectedContactsTemp] = useState<ContactInfo[]>([]);
   const [contactSearchText, setContactSearchText] = useState('');
   const [selectedListId, setSelectedListId] = useState<string | null>(null);
   const [isReviewModalVisible, setReviewModalVisible] = useState(false);
@@ -736,7 +745,7 @@ export const AddMovementScreen = () => {
         const recipient = assignedContacts[0];
         const updateDto = {
           ...commonDto,
-          toUser: recipient ? recipient.phone : undefined,
+          toUser: recipient && recipient.phone ? (recipient.phone.includes('-') && recipient.phone.length > 20 ? recipient.phone : normalizePhone(recipient.phone)) : undefined,
         };
 
         try {
@@ -790,7 +799,7 @@ export const AddMovementScreen = () => {
         for (const recipient of recipients) {
           const createDto = {
             ...commonDto,
-            toUser: recipient ? recipient.phone : undefined,
+            toUser: recipient && recipient.phone ? (recipient.phone.includes('-') && recipient.phone.length > 20 ? recipient.phone : normalizePhone(recipient.phone)) : undefined,
           };
 
           try {
@@ -929,22 +938,40 @@ export const AddMovementScreen = () => {
 
   const openNativeContacts = async () => {
     setContactOptionsModalVisible(false);
+    setSelectedContactsTemp(assignedContacts);
     try {
       const data = await getContacts();
       if (data.length > 0) {
         const mapped: ContactInfo[] = data.map(c => ({
           name: c.name,
-          phone: c.phoneNumbers?.[0] || '',
+          phone: normalizePhone(c.phoneNumbers?.[0] || ''),
+          imageUri: c.imageUri
         }));
         setContactsList(mapped);
         setContactModalVisible(true);
       } else {
-        Alert.alert('Libreta VacÃ­a', 'No tienes contactos con nÃºmero de telÃ©fono.');
+        Alert.alert('Libreta Vacía', 'No tienes contactos con número de teléfono.');
       }
     } catch (e) {
       console.warn("Could not load native contacts: ", e);
       Alert.alert('Error', 'No se pudo abrir la libreta de contactos.');
     }
+  };
+
+  const toggleContactSelection = (contact: ContactInfo) => {
+    const isSelected = selectedContactsTemp.some(c => cleanPhone(c.phone) === cleanPhone(contact.phone));
+    if (isSelected) {
+      setSelectedContactsTemp(selectedContactsTemp.filter(c => cleanPhone(c.phone) !== cleanPhone(contact.phone)));
+    } else {
+      setSelectedContactsTemp([...selectedContactsTemp, contact]);
+    }
+  };
+
+  const confirmContactsSelection = () => {
+    setAssignedContacts(selectedContactsTemp);
+    setAssignedListName(null);
+    setSelectedListId(null);
+    setContactModalVisible(false);
   };
 
   const handleRemoveContact = (phone: string) => {
@@ -2810,61 +2837,112 @@ export const AddMovementScreen = () => {
       </Modal>
 
       {/* NATIVE CONTACTS MODAL */}
-      <Modal visible={isContactModalVisible} transparent animationType="slide" onRequestClose={() => setContactModalVisible(false)}>
-        <TouchableWithoutFeedback onPress={() => setContactModalVisible(false)}>
-          <View style={styles.modalOverlay}>
-            <TouchableWithoutFeedback>
-              <View style={[styles.modalContent, { height: '80%' }]}>
-                <View style={styles.modalHeader}>
-                  <Text style={styles.modalTitle}>Seleccionar Contacto</Text>
-                  <TouchableOpacity onPress={() => setContactModalVisible(false)}>
-                    <Ionicons name="close" size={24} color="#363630" />
-                  </TouchableOpacity>
-                </View>
-                
-                <View style={{ padding: 16 }}>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="Buscar contacto..."
-                    value={contactSearchText}
-                    onChangeText={setContactSearchText}
-                  />
-                </View>
+      <Modal 
+        visible={isContactModalVisible} 
+        animationType="slide" 
+        presentationStyle="formSheet"
+        onRequestClose={() => setContactModalVisible(false)}
+      >
+        <SafeAreaView style={styles.contactModal} edges={['top', 'bottom']}>
+          <KeyboardAvoidingView 
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
+            style={{ flex: 1 }}
+          >
+            <View style={styles.modalHeaderHeader}>
+              <TouchableOpacity onPress={() => setContactModalVisible(false)}>
+                <Text style={{ fontSize: 15, fontFamily: FontFamily.medium, color: '#737373' }}>Cancelar</Text>
+              </TouchableOpacity>
+              <Text style={styles.modalTitleMain}>Contactos</Text>
+              <TouchableOpacity onPress={confirmContactsSelection}>
+                <Text style={{ fontSize: 15, fontFamily: FontFamily.bold, color: '#16A34A' }}>Listo</Text>
+              </TouchableOpacity>
+            </View>
 
-                <FlatList
-                  data={filteredContacts}
-                  keyExtractor={(item, index) => item.phone + index}
-                  contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 40 }}
-                  renderItem={({ item }) => (
-                    <TouchableOpacity 
-                      style={styles.walletItem}
-                      onPress={() => {
-                        setAssignedContacts([item]);
-                        setAssignedListName(null);
-                        setContactModalVisible(false);
-                      }}
-                    >
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                        <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: '#f3f4f6', alignItems: 'center', justifyContent: 'center' }}>
-                          <Text style={{ fontSize: 16, fontFamily: FontFamily.bold, color: '#171717' }}>{item.name.charAt(0)}</Text>
-                        </View>
-                        <View>
-                          <Text style={styles.walletItemName}>{item.name}</Text>
-                          <Text style={{ fontSize: 12, color: '#737373' }}>{item.phone}</Text>
-                        </View>
-                      </View>
-                    </TouchableOpacity>
-                  )}
-                  ListEmptyComponent={
-                    <View style={{ alignItems: 'center', marginTop: 40 }}>
-                      <Text style={{ color: '#878778' }}>No se encontraron contactos</Text>
-                    </View>
-                  }
+            <View style={{ padding: 16 }}>
+              <View style={styles.searchBarWrapper}>
+                <Ionicons name="search" size={18} color="#A3A3A3" style={{ marginRight: 8 }} />
+                <TextInput
+                  style={styles.searchBar}
+                  placeholder="Buscar por nombre o teléfono..."
+                  value={contactSearchText}
+                  onChangeText={setContactSearchText}
+                  placeholderTextColor="#737373"
                 />
+                {contactSearchText.length > 0 && (
+                  <TouchableOpacity onPress={() => setContactSearchText('')} style={{ padding: 6 }}>
+                    <Ionicons name="close-circle" size={18} color="#A3A3A3" />
+                  </TouchableOpacity>
+                )}
               </View>
-            </TouchableWithoutFeedback>
-          </View>
-        </TouchableWithoutFeedback>
+            </View>
+
+            {selectedContactsTemp.length > 0 && (
+              <View style={{ paddingHorizontal: 16, paddingBottom: 16 }}>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
+                  {selectedContactsTemp.map(c => {
+                    const phone = c.phone;
+                    return (
+                      <TouchableOpacity 
+                        key={phone} 
+                        style={styles.selectedChip}
+                        onPress={() => toggleContactSelection(c)}
+                      >
+                        {c.imageUri ? (
+                          <Image source={{ uri: c.imageUri }} style={{ width: 24, height: 24, borderRadius: 12, marginRight: 6 }} />
+                        ) : (
+                          <View style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: '#404040', alignItems: 'center', justifyContent: 'center', marginRight: 6 }}>
+                            <Text style={{ fontSize: 10, color: 'white', fontFamily: FontFamily.bold }}>{c.name.charAt(0)}</Text>
+                          </View>
+                        )}
+                        <Text style={styles.selectedChipText}>{c.name.split(' ')[0]}</Text>
+                        <Ionicons name="close-circle" size={16} color="white" style={{ marginLeft: 4 }} />
+                      </TouchableOpacity>
+                    );
+                  })}
+                </ScrollView>
+              </View>
+            )}
+
+            <FlatList
+              data={filteredContacts}
+              keyExtractor={(item, index) => item.phone + index}
+              contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40 }}
+              renderItem={({ item }) => {
+                const isSelected = selectedContactsTemp.some(c => cleanPhone(c.phone) === cleanPhone(item.phone));
+                return (
+                  <TouchableOpacity 
+                    style={styles.contactRow} 
+                    onPress={() => toggleContactSelection(item)}
+                  >
+                    {item.imageUri ? (
+                      <Image source={{ uri: item.imageUri }} style={styles.contactAvatar} />
+                    ) : (
+                      <View style={styles.contactAvatar}>
+                        <Text style={{ fontSize: 16, fontFamily: FontFamily.bold, color: '#737373' }}>
+                          {item.name.charAt(0)}
+                        </Text>
+                      </View>
+                    )}
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.contactName}>{item.name}</Text>
+                      <Text style={styles.contactPhone}>{item.phone}</Text>
+                    </View>
+                    <Ionicons 
+                      name={isSelected ? "checkmark-circle" : "ellipse-outline"} 
+                      size={24} 
+                      color={isSelected ? "#16A34A" : "#D1D5DB"} 
+                    />
+                  </TouchableOpacity>
+                );
+              }}
+              ListEmptyComponent={
+                <View style={{ alignItems: 'center', marginTop: 40 }}>
+                  <Text style={{ color: '#878778' }}>No se encontraron contactos</Text>
+                </View>
+              }
+            />
+          </KeyboardAvoidingView>
+        </SafeAreaView>
       </Modal>
 
       {/* DISTRIBUTION LISTS MODAL */}
@@ -3652,6 +3730,78 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
+  },
+  contactModal: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
+  modalHeaderHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+  },
+  modalTitleMain: {
+    fontSize: 17,
+    fontFamily: FontFamily.bold,
+    color: '#171717',
+  },
+  searchBarWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F5F5F5',
+    borderRadius: 24,
+    paddingHorizontal: 16,
+    height: 48,
+  },
+  searchBar: {
+    flex: 1,
+    fontSize: 15,
+    fontFamily: FontFamily.regular,
+    color: '#171717',
+  },
+  contactRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+    gap: 12,
+  },
+  contactAvatar: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#F3F4F6',
+  },
+  contactName: {
+    fontSize: 15,
+    fontFamily: FontFamily.semibold,
+    color: '#171717',
+  },
+  contactPhone: {
+    fontSize: 13,
+    fontFamily: FontFamily.regular,
+    color: '#737373',
+  },
+  selectedChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.primary || '#171717',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
+  selectedChipText: {
+    fontSize: 13,
+    color: '#FFFFFF',
+    fontFamily: FontFamily.medium,
   },
 });
 

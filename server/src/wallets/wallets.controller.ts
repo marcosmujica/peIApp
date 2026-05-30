@@ -229,8 +229,9 @@ export class WalletsController {
   async updateMembers(
     @Param('walletId') walletId: string,
     @Body() body: { members: { userId: string; displayName: string }[] },
+    @Req() req: any,
   ) {
-    return this.walletsService.updateMembers(walletId, body.members);
+    return this.walletsService.updateMembers(walletId, body.members, req.user?.sub);
   }
 
   @UseGuards(AuthGuard('jwt'))

@@ -11,7 +11,7 @@ export interface PhoneContact {
   phoneNumbers?: string[];
 }
 
-const normalizePhone = (phone?: string) => {
+export const normalizePhone = (phone?: string) => {
   if (!phone) return '';
   // Remove spaces, hyphens, and other symbols except + and digits
   let cleaned = phone.replace(/[^+0-9]/g, '');
@@ -100,6 +100,12 @@ const generateMockContacts = (count: number): PhoneContact[] => {
       name: 'DEMO_8',
       initials: 'D8',
       phoneNumbers: ['+59888990011'],
+    },
+    {
+      id: 'mock-no-normalizado',
+      name: 'DEMO_NO_NORMALIZADO',
+      initials: 'DN',
+      phoneNumbers: ['096775523323'],
     }
   ];
 

@@ -27,15 +27,17 @@ export class AuthService {
     const otpHash = await bcrypt.hash(code, 10);
     const expiresAt = new Date(Date.now() + ttl * 60 * 1000);
 
-    // Ensure user exists (upsert)
-    // We update country and currency only if provided
-    const userUpdate: Partial<User> = { userId: phoneNumber, longUserId: uuidv4() };
-    if (country) userUpdate.country = country;
-    if (currency) userUpdate.currency = currency;
+    const cleanPhoneNumber = phoneNumber.replace(/[^\d]/g, '');
 
-    await this.userRepo.upsert(userUpdate, ['userId']);
+    let user = await this.userRepo.findOne({ where: { phone: cleanPhoneNumber } });
+    if (!user) {
+      user = this.userRepo.create({ phone: cleanPhoneNumber });
+    }
+    if (country) user.country = country;
+    if (currency) user.currency = currency;
+    await this.userRepo.save(user);
 
-    await this.otpRepo.save({ userId: phoneNumber, otpHash, expiresAt });
+    await this.otpRepo.save({ userId: user.userId, otpHash, expiresAt });
 
     if (isMock) {
       console.log(`[DEV OTP] ${phoneNumber} → ${code}`);
@@ -102,16 +104,17 @@ export class AuthService {
     otp.usedAt = new Date();
     await this.otpRepo.save(otp);
 
-    const user = await this.userRepo.findOneOrFail({ where: { userId: phoneNumber } });
+    const cleanPhoneNumber = phoneNumber.replace(/[^\d]/g, '');
+    const user = await this.userRepo.findOneOrFail({ where: { phone: cleanPhoneNumber } });
 
-    const payload = { sub: user.userId, longUserId: user.longUserId };
+    const payload = { sub: user.userId, phone: user.phone };
     const access_token = await this.jwtService.signAsync(payload);
 
     return { 
       access_token, 
       user: {
-        id: user.longUserId,
-        phoneNumber: user.userId,
+        id: user.userId,
+        phoneNumber: user.phone,
         needsOnboarding: true,
         displayName: user.displayName,
         avatarUrl: user.avatarUrl,

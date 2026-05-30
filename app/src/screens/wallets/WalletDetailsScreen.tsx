@@ -119,9 +119,9 @@ export const WalletDetailsScreen: React.FC<Props> = ({ route, navigation }) => {
         Alert.alert('Error', 'El monto objetivo no es un número válido.');
         return;
       }
-      
+
       let updatedGoals = [...(wallet.goals || [])];
-      
+
       if (editingGoal) {
         updatedGoals = updatedGoals.map(g => g.id === editingGoal.id ? { ...g, name: goalName, targetAmount: target, currentAmount: current, deadline: goalDeadline?.toISOString() } : g);
       } else {
@@ -134,7 +134,7 @@ export const WalletDetailsScreen: React.FC<Props> = ({ route, navigation }) => {
           createdAt: new Date().toISOString()
         });
       }
-      
+
       const all = await getLocalWallets();
       const idx = all.findIndex(w => w.id === walletId);
       if (idx >= 0) {
@@ -142,19 +142,19 @@ export const WalletDetailsScreen: React.FC<Props> = ({ route, navigation }) => {
         await saveLocalWallets(all);
         setWallet(all[idx]);
       }
-      
+
       // Server Sync
       if (wallet.name !== SYSTEM_WALLET_NAME) {
         try {
           await walletsApi.updateWallet(walletId, { goals: updatedGoals });
-        } catch (e) { 
+        } catch (e) {
           console.error('Failed to sync goals', e);
           // Opcional: Avisar que quedó solo local
         }
       }
-      
+
       useUIStore.getState().showToast(editingGoal ? 'Meta actualizada' : 'Meta creada', 'success');
-      
+
       // Success Cleanup
       setTimeout(() => {
         setEditingGoal(null);
@@ -194,14 +194,14 @@ export const WalletDetailsScreen: React.FC<Props> = ({ route, navigation }) => {
     // Server Sync
     try {
       if (wallet.name !== SYSTEM_WALLET_NAME) {
-         await walletsApi.updateWallet(walletId, { goals: updatedGoals });
+        await walletsApi.updateWallet(walletId, { goals: updatedGoals });
       }
     } catch (e) { console.error('Failed to sync goals (remove)', e); }
   };
 
   const loadData = useCallback(async (isRefreshing = false) => {
     if (isRefreshing) setRefreshing(true);
-    
+
     try {
       // 1. Sync with server if refreshing
       if (isRefreshing) {
@@ -209,12 +209,12 @@ export const WalletDetailsScreen: React.FC<Props> = ({ route, navigation }) => {
         const { mergeServerWallets } = await import('@/storage/wallets.local');
         const { ticketsApi } = await import('@/api/tickets.api');
         const { walletsApi } = await import('@/api/wallets.api');
-        
+
         const [serverWallets, serverTickets] = await Promise.all([
           walletsApi.getMyWallets(),
           ticketsApi.getMyTickets()
         ]);
-        
+
         await Promise.all([
           mergeServerWallets(serverWallets),
           mergeServerTickets(serverTickets)
@@ -240,13 +240,13 @@ export const WalletDetailsScreen: React.FC<Props> = ({ route, navigation }) => {
 
       const stats = calculateWalletStats(w, allTickets);
 
-      setTotals({ 
-        income: stats.totalIncome, 
-        expense: stats.totalExpense, 
-        balance: stats.balance, 
-        percentage: stats.totalIncome > 0 ? Math.round((stats.balance / stats.totalIncome) * 100) : 0, 
-        pendingIncome: stats.pendingIncome, 
-        pendingExpense: stats.pendingExpense 
+      setTotals({
+        income: stats.totalIncome,
+        expense: stats.totalExpense,
+        balance: stats.balance,
+        percentage: stats.totalIncome > 0 ? Math.round((stats.balance / stats.totalIncome) * 100) : 0,
+        pendingIncome: stats.pendingIncome,
+        pendingExpense: stats.pendingExpense
       } as any);
     } catch (err) {
       console.error("[WalletDetails.loadData] Error:", err);
@@ -260,11 +260,11 @@ export const WalletDetailsScreen: React.FC<Props> = ({ route, navigation }) => {
   const pendingTickets = useMemo(() => tickets.filter(t => t.status === 'pending'), [tickets]);
   const overdueTickets = useMemo(() => {
     const now = new Date();
-    now.setHours(0,0,0,0);
+    now.setHours(0, 0, 0, 0);
     return pendingTickets.filter(t => {
       if (!t.dueDate) return false;
       const due = new Date(t.dueDate);
-      due.setHours(0,0,0,0);
+      due.setHours(0, 0, 0, 0);
       const diffDays = Math.floor((now.getTime() - due.getTime()) / (1000 * 60 * 60 * 24));
       return diffDays > 1;
     });
@@ -277,7 +277,7 @@ export const WalletDetailsScreen: React.FC<Props> = ({ route, navigation }) => {
 
   const lastMovements = useMemo(() => {
     return tickets
-      .sort((a,b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
       .slice(0, 10);
   }, [tickets]);
 
@@ -303,7 +303,7 @@ export const WalletDetailsScreen: React.FC<Props> = ({ route, navigation }) => {
   }, [showToast, toastMessage]);
 
   const handleTogglePanel = (panelId: string) => {
-    setTempEnabledPanels(prev => 
+    setTempEnabledPanels(prev =>
       prev.includes(panelId) ? prev.filter(p => p !== panelId) : [...prev, panelId]
     );
   };
@@ -312,12 +312,12 @@ export const WalletDetailsScreen: React.FC<Props> = ({ route, navigation }) => {
     setTempEnabledPanels(prev => {
       const index = prev.indexOf(panelId);
       if (index === -1) return prev;
-      
+
       const newArr = [...prev];
       const targetIndex = direction === 'up' ? index - 1 : index + 1;
-      
+
       if (targetIndex < 0 || targetIndex >= newArr.length) return prev;
-      
+
       [newArr[index], newArr[targetIndex]] = [newArr[targetIndex], newArr[index]];
       return newArr;
     });
@@ -388,17 +388,17 @@ export const WalletDetailsScreen: React.FC<Props> = ({ route, navigation }) => {
             </Typography>
           </View>
           <View style={styles.headerActions}>
-            <TouchableOpacity 
-              style={styles.settingsBtn} 
+            <TouchableOpacity
+              style={styles.settingsBtn}
               onPress={() => (navigation as any).navigate('WalletSettings', { walletId })}
               activeOpacity={0.7}
             >
-              <View style={{ 
-                width: 40, 
-                height: 40, 
-                borderRadius: 20, 
-                backgroundColor: Colors.white, 
-                alignItems: 'center', 
+              <View style={{
+                width: 40,
+                height: 40,
+                borderRadius: 20,
+                backgroundColor: Colors.white,
+                alignItems: 'center',
                 justifyContent: 'center',
                 borderWidth: 1,
                 borderColor: Colors.strokeSubtle,
@@ -407,17 +407,17 @@ export const WalletDetailsScreen: React.FC<Props> = ({ route, navigation }) => {
                 <Ionicons name="settings-outline" size={20} color={Colors.textSecondary} />
               </View>
             </TouchableOpacity>
-            <TouchableOpacity 
-              style={styles.qrBtnHeader} 
+            <TouchableOpacity
+              style={styles.qrBtnHeader}
               onPress={() => navigation.navigate('GenerateQR', { walletId, currency: screenCurrency })}
               activeOpacity={0.7}
             >
-              <View style={{ 
-                width: 40, 
-                height: 40, 
-                borderRadius: 20, 
-                backgroundColor: Colors.white, 
-                alignItems: 'center', 
+              <View style={{
+                width: 40,
+                height: 40,
+                borderRadius: 20,
+                backgroundColor: Colors.white,
+                alignItems: 'center',
                 justifyContent: 'center',
                 borderWidth: 1,
                 borderColor: Colors.strokeSubtle,
@@ -426,8 +426,8 @@ export const WalletDetailsScreen: React.FC<Props> = ({ route, navigation }) => {
                 <Ionicons name="qr-code-outline" size={20} color={Colors.textSecondary} />
               </View>
             </TouchableOpacity>
-            <TouchableOpacity 
-              style={styles.addBtnHeader} 
+            <TouchableOpacity
+              style={styles.addBtnHeader}
               onPress={() => (navigation as any).navigate('AddMovementModal', { walletId })}
             >
               <Ionicons name="add" size={24} color={Colors.white} />
@@ -435,14 +435,14 @@ export const WalletDetailsScreen: React.FC<Props> = ({ route, navigation }) => {
           </View>
         </View>
 
-        <ScrollView 
-          style={styles.content} 
+        <ScrollView
+          style={styles.content}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: 40 }}
           refreshControl={
-            <RefreshControl 
-              refreshing={refreshing} 
-              onRefresh={onRefresh} 
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
               tintColor={Colors.primary}
               colors={[Colors.primary]} // Android
             />
@@ -453,24 +453,25 @@ export const WalletDetailsScreen: React.FC<Props> = ({ route, navigation }) => {
             <View style={styles.statusRow}>
               <View style={styles.statusView}>
                 <View style={[
-                    styles.statusDot,
-                    {
-                      backgroundColor: (wallet?.alertThreshold && totals.balance <= wallet.alertThreshold) || totals.balance < 0
-                        ? Colors.destructive 
-                        : (wallet?.warningThreshold && totals.balance <= wallet.warningThreshold)
-                          ? Colors.alertsWarning
-                          : Colors.alertsSuccess
-                    }
-                  ]} 
+                  styles.statusDot,
+                  {
+                    backgroundColor: (wallet?.alertThreshold && totals.balance <= wallet.alertThreshold) || totals.balance < 0
+                      ? Colors.destructive
+                      : (wallet?.warningThreshold && totals.balance <= wallet.warningThreshold)
+                        ? Colors.alertsWarning
+                        : Colors.alertsSuccess
+                  }
+                ]}
                 />
-                <Typography variant="labelSmall" style={{ color: (wallet?.alertThreshold && totals.balance <= wallet.alertThreshold) || totals.balance < 0
-                    ? Colors.destructive 
+                <Typography variant="labelSmall" style={{
+                  color: (wallet?.alertThreshold && totals.balance <= wallet.alertThreshold) || totals.balance < 0
+                    ? Colors.destructive
                     : (wallet?.warningThreshold && totals.balance <= wallet.warningThreshold)
                       ? Colors.alertsWarning
                       : Colors.alertsSuccess
-                  }}>
+                }}>
                   {(wallet?.alertThreshold && totals.balance <= wallet.alertThreshold) || totals.balance < 0
-                    ? 'Atención' 
+                    ? 'Atención'
                     : (wallet?.warningThreshold && totals.balance <= wallet.warningThreshold)
                       ? 'Precaución'
                       : 'Todo bien'}
@@ -486,23 +487,23 @@ export const WalletDetailsScreen: React.FC<Props> = ({ route, navigation }) => {
                       const avatarUrl = getSmartAvatarUrl(member.phone, member.avatarUrl);
                       const displayName = getSmartDisplayName(member.phone, member.displayName);
                       return (
-                      <View 
-                        key={member.phone} 
-                        style={[
-                          styles.facepileAvatar, 
-                          idx > 0 && { marginLeft: -18 }
-                        ]}
-                      >
-                        {avatarUrl ? (
-                          <Image source={{ uri: normalizeUrl(avatarUrl) }} style={styles.facepileImage} />
-                        ) : (
-                          <View style={styles.facepilePlaceholder}>
-                            <Text style={styles.facepilePlaceholderText}>
-                              {displayName.charAt(0).toUpperCase()}
-                            </Text>
-                          </View>
-                        )}
-                      </View>
+                        <View
+                          key={member.phone}
+                          style={[
+                            styles.facepileAvatar,
+                            idx > 0 && { marginLeft: -18 }
+                          ]}
+                        >
+                          {avatarUrl ? (
+                            <Image source={{ uri: normalizeUrl(avatarUrl) }} style={styles.facepileImage} />
+                          ) : (
+                            <View style={styles.facepilePlaceholder}>
+                              <Text style={styles.facepilePlaceholderText}>
+                                {displayName.charAt(0).toUpperCase()}
+                              </Text>
+                            </View>
+                          )}
+                        </View>
                       );
                     })
                   }
@@ -516,7 +517,7 @@ export const WalletDetailsScreen: React.FC<Props> = ({ route, navigation }) => {
                 </View>
               )}
 
-              <Badge 
+              <Badge
                 variant={(walletName || '').toLowerCase() === SYSTEM_WALLET_NAME.toLowerCase() ? 'default' : 'paid'}
                 label={(walletName || '').toLowerCase() === SYSTEM_WALLET_NAME.toLowerCase() ? 'SISTEMA' : WALLET_TYPE_LABELS[wallet?.type || 'otro']}
               />
@@ -526,7 +527,7 @@ export const WalletDetailsScreen: React.FC<Props> = ({ route, navigation }) => {
           {/* Wallet Balance Summary Card */}
           <View style={styles.summaryCardContainer}>
             <View style={styles.summaryCard}>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.balanceHeader}
                 onPress={() => navigation.navigate('MainTabs', { screen: 'Historial', params: { walletId, filter: 'all' } } as any)}
               >
@@ -534,7 +535,7 @@ export const WalletDetailsScreen: React.FC<Props> = ({ route, navigation }) => {
                 <Ionicons name="chevron-forward" size={16} color="#878778" />
               </TouchableOpacity>
 
-              <Text 
+              <Text
                 style={[styles.balanceValue, { color: totals.balance < 0 ? '#c05050' : '#363630' }]}
                 numberOfLines={1}
                 adjustsFontSizeToFit
@@ -563,7 +564,7 @@ export const WalletDetailsScreen: React.FC<Props> = ({ route, navigation }) => {
               </View>
 
               {/* AI Insights Bar */}
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.aiInsightBar}
                 onPress={() => (navigation as any).navigate('AIQuestions', { walletId })}
               >
@@ -571,8 +572,8 @@ export const WalletDetailsScreen: React.FC<Props> = ({ route, navigation }) => {
                   <Ionicons name="sparkles" size={14} color="#7c3aed" />
                 </View>
                 <Text style={styles.aiInsightText} numberOfLines={1}>
-                  {totals.expense > totals.income 
-                    ? 'Gastaste más de lo habitual esta semana.' 
+                  {totals.expense > totals.income
+                    ? 'Gastaste más de lo habitual esta semana.'
                     : 'Tus cobros están al día, ¡buen trabajo!'}
                 </Text>
                 <Ionicons name="chevron-forward" size={16} color="#A3A3A3" />
@@ -589,7 +590,7 @@ export const WalletDetailsScreen: React.FC<Props> = ({ route, navigation }) => {
                 <Text style={styles.warningText}>
                   El dinero de esta billetera solo estará disponible para usar si se transfiere a la billetera "Cobros sin billetera".
                 </Text>
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={styles.warningAction}
                   onPress={() => (navigation as any).navigate('Transfer', { fromWalletId: walletId })}
                 >
@@ -602,18 +603,18 @@ export const WalletDetailsScreen: React.FC<Props> = ({ route, navigation }) => {
 
           {/* QUICK ACTIONS */}
           <View style={styles.quickActionsRow}>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.quickActionBtn}
               onPress={() => (navigation as any).navigate('Transfer', { fromWalletId: walletId })}
             >
               <View style={[styles.quickActionIcon, { backgroundColor: '#F3F4F6' }]}>
                 <Ionicons name="swap-horizontal" size={22} color="#737373" />
               </View>
-              <Text style={styles.quickActionLabel}>Transferir entre billeteras / Ajustar el saldo </Text>
+              <Text style={styles.quickActionLabel}>Mover dinero entre billeteras / Ajustar el saldo </Text>
             </TouchableOpacity>
 
             {wallet && wallet.members && wallet.members.length > 0 && (
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.quickActionBtn}
                 onPress={() => (navigation as any).navigate('SplitWallet', { walletId })}
               >
@@ -627,7 +628,7 @@ export const WalletDetailsScreen: React.FC<Props> = ({ route, navigation }) => {
 
           {/* PERMANENT PANELS (CALMA IA and GOALS) */}
           <View style={{ paddingHorizontal: 20, marginBottom: 24 }}>
-            <TouchableOpacity 
+            <TouchableOpacity
               activeOpacity={0.8}
               onPress={() => (navigation as any).navigate('AIQuestions', { walletId })}
               style={[styles.aiPreviewCard, { marginBottom: 16 }]}
@@ -655,12 +656,12 @@ export const WalletDetailsScreen: React.FC<Props> = ({ route, navigation }) => {
 
           {/* CUSTOM DASHBOARD PANELS */}
           <View style={[styles.section, { marginBottom: 12 }]}>
-            <SectionHeader 
-              title="Resumen" 
-              actionLabel="Gestionar" 
+            <SectionHeader
+              title="Resumen"
+              actionLabel="Gestionar"
               onAction={openPanelModal}
             />
-            
+
             {wallet?.enabledPanels && wallet.enabledPanels.length > 0 && (
               <View style={{ marginTop: 12 }}>
                 {wallet.enabledPanels.map(panelId => {
@@ -669,7 +670,7 @@ export const WalletDetailsScreen: React.FC<Props> = ({ route, navigation }) => {
                   if (panelId === 'ventas_dia_cantidad') return <SalesByCountPanel key={panelId} tickets={tickets} currency={screenCurrency} />;
                   if (panelId === 'last_movements') {
                     return (
-                      <RecentMovementsPanel 
+                      <RecentMovementsPanel
                         key={panelId}
                         movements={lastMovements}
                         userPhoneNumber={user?.phoneNumber}
@@ -678,16 +679,16 @@ export const WalletDetailsScreen: React.FC<Props> = ({ route, navigation }) => {
                       />
                     );
                   }
-                  
+
                   if (panelId === 'tickets_pendientes') {
                     return (
                       <View key={panelId} style={styles.pendingPanel}>
                         <View style={styles.pendingPanelHeader}>
                           <Typography variant="bodyLargeStrong" style={{ flex: 1 }}>{dashboardFilter === 'overdue' ? 'Tickets atrasados' : 'Tickets pendientes'}</Typography>
-                          <TouchableOpacity 
-                            onPress={() => navigation.navigate('MainTabs' as any, { 
-                              screen: 'Historial', 
-                              params: { walletId, filter: 'all' } 
+                          <TouchableOpacity
+                            onPress={() => navigation.navigate('MainTabs' as any, {
+                              screen: 'Historial',
+                              params: { walletId, filter: 'all' }
                             })}
                           >
                             <Typography variant="labelSmall" style={{ color: Colors.textSecondary }}>Ver todos</Typography>
@@ -699,15 +700,15 @@ export const WalletDetailsScreen: React.FC<Props> = ({ route, navigation }) => {
                             { id: 'pending', label: 'Pendientes', count: pendingTickets.length },
                             { id: 'overdue', label: 'Atrasados', count: overdueTickets.length },
                           ].map(opt => (
-                            <TouchableOpacity 
+                            <TouchableOpacity
                               key={opt.id}
                               onPress={() => setDashboardFilter(opt.id as any)}
                               style={[
-                                styles.dashboardFilterPill, 
+                                styles.dashboardFilterPill,
                                 dashboardFilter === opt.id && styles.dashboardFilterPillActive
                               ]}
                             >
-                              <Typography variant="labelSmall" style={{ 
+                              <Typography variant="labelSmall" style={{
                                 color: dashboardFilter === opt.id ? Colors.primaryForeground : Colors.textSecondary,
                                 fontFamily: dashboardFilter === opt.id ? FontFamily.semibold : FontFamily.medium
                               }}>
@@ -737,13 +738,13 @@ export const WalletDetailsScreen: React.FC<Props> = ({ route, navigation }) => {
                                   (navigation as any).navigate('AddMovementModal', { walletId, ticketId: ticket.id });
                                 }}
                                 amountColor={ticket.type === 'income' ? Colors.textPrimary : Colors.alertsError}
-                                status={ticket.status === 'pending' && ticket.dueDate && new Date(ticket.dueDate).setHours(0,0,0,0) < new Date().setHours(0,0,0,0) ? 'overdue' : (ticket.status === 'pending' ? undefined : ticket.status)}
-                                overdueDays={ticket.status === 'pending' && ticket.dueDate && new Date(ticket.dueDate).setHours(0,0,0,0) < new Date().setHours(0,0,0,0) ? Math.max(0, Math.floor((new Date().setHours(0,0,0,0) - new Date(ticket.dueDate).setHours(0,0,0,0)) / (1000 * 60 * 60 * 24))) : undefined}
+                                status={ticket.status === 'pending' && ticket.dueDate && new Date(ticket.dueDate).setHours(0, 0, 0, 0) < new Date().setHours(0, 0, 0, 0) ? 'overdue' : (ticket.status === 'pending' ? undefined : ticket.status)}
+                                overdueDays={ticket.status === 'pending' && ticket.dueDate && new Date(ticket.dueDate).setHours(0, 0, 0, 0) < new Date().setHours(0, 0, 0, 0) ? Math.max(0, Math.floor((new Date().setHours(0, 0, 0, 0) - new Date(ticket.dueDate).setHours(0, 0, 0, 0)) / (1000 * 60 * 60 * 24))) : undefined}
                                 avatarUrl={ticket.globalType && ticket.globalType !== 'ticket' ? undefined : getSmartAvatarUrl(otherPartyPhone, ticket.toUserObj?.avatarUrl)}
                                 compact
-                                style={{ 
+                                style={{
                                   borderBottomWidth: tIdx === filteredTickets.length - 1 ? 0 : 1,
-                                  borderBottomColor: Colors.strokeSubtle 
+                                  borderBottomColor: Colors.strokeSubtle
                                 }}
                               />
                             );
@@ -772,7 +773,7 @@ export const WalletDetailsScreen: React.FC<Props> = ({ route, navigation }) => {
             )}
 
             {(!wallet?.enabledPanels || wallet.enabledPanels.length === 0) && (
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.emptyDashboard}
                 onPress={openPanelModal}
                 activeOpacity={0.7}
@@ -787,9 +788,9 @@ export const WalletDetailsScreen: React.FC<Props> = ({ route, navigation }) => {
         </ScrollView>
 
         {/* PANELS SELECTION MODAL */}
-        <Modal 
-          visible={isPanelModalVisible} 
-          animationType="slide" 
+        <Modal
+          visible={isPanelModalVisible}
+          animationType="slide"
           transparent={true}
           onRequestClose={() => setIsPanelModalVisible(false)}
         >
@@ -816,7 +817,7 @@ export const WalletDetailsScreen: React.FC<Props> = ({ route, navigation }) => {
 
                   return (
                     <View style={[styles.panelChoiceCard, isActive && styles.panelChoiceCardActive]}>
-                      <TouchableOpacity 
+                      <TouchableOpacity
                         style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}
                         onPress={() => handleTogglePanel(item.id)}
                       >
@@ -827,24 +828,24 @@ export const WalletDetailsScreen: React.FC<Props> = ({ route, navigation }) => {
                           <Typography variant="bodyLargeStrong">{item.title}</Typography>
                           <Typography variant="labelSmall" color="secondary">{item.subtitle}</Typography>
                         </View>
-                        <Ionicons 
-                          name={isActive ? "checkbox" : "square-outline"} 
-                          size={24} 
-                          color={isActive ? "#171717" : "#D1D5DB"} 
+                        <Ionicons
+                          name={isActive ? "checkbox" : "square-outline"}
+                          size={24}
+                          color={isActive ? "#171717" : "#D1D5DB"}
                           style={{ marginRight: isActive ? 12 : 0 }}
                         />
                       </TouchableOpacity>
 
                       {isActive && (
                         <View style={styles.reorderControls}>
-                          <TouchableOpacity 
+                          <TouchableOpacity
                             onPress={() => movePanel(item.id, 'up')}
                             disabled={isFirstActive}
                             style={{ opacity: isFirstActive ? 0.3 : 1 }}
                           >
                             <Ionicons name="chevron-up" size={24} color="#737373" />
                           </TouchableOpacity>
-                          <TouchableOpacity 
+                          <TouchableOpacity
                             onPress={() => movePanel(item.id, 'down')}
                             disabled={isLastActive}
                             style={{ opacity: isLastActive ? 0.3 : 1 }}
@@ -859,7 +860,7 @@ export const WalletDetailsScreen: React.FC<Props> = ({ route, navigation }) => {
                 contentContainerStyle={{ gap: 12, paddingVertical: 12 }}
               />
 
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.savePanelsBtn}
                 onPress={savePanels}
               >
@@ -879,7 +880,7 @@ export const WalletDetailsScreen: React.FC<Props> = ({ route, navigation }) => {
                   <Ionicons name="close" size={24} color={Colors.textTertiary} />
                 </TouchableOpacity>
               </View>
-              
+
               <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
                 <View style={{ marginBottom: 32 }}>
                   <Typography variant="bodyLargeStrong" style={{ marginBottom: 16 }}>
@@ -902,7 +903,7 @@ export const WalletDetailsScreen: React.FC<Props> = ({ route, navigation }) => {
                     }}
                   />
 
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     style={{ backgroundColor: '#F3F4F6', height: 48, borderRadius: 8, paddingHorizontal: 12, marginBottom: 16, justifyContent: 'center' }}
                     onPress={() => setShowGoalDatePicker(true)}
                   >
@@ -914,13 +915,13 @@ export const WalletDetailsScreen: React.FC<Props> = ({ route, navigation }) => {
                     </View>
                   </TouchableOpacity>
 
-                  <TouchableOpacity 
-                    style={{ 
-                      backgroundColor: (!goalName.trim() || !goalTarget.trim()) ? '#E5E7EB' : Colors.primary, 
-                      paddingVertical: 14, 
-                      borderRadius: 1000, 
-                      alignItems: 'center', 
-                      opacity: isSaving ? 0.7 : 1 
+                  <TouchableOpacity
+                    style={{
+                      backgroundColor: (!goalName.trim() || !goalTarget.trim()) ? '#E5E7EB' : Colors.primary,
+                      paddingVertical: 14,
+                      borderRadius: 1000,
+                      alignItems: 'center',
+                      opacity: isSaving ? 0.7 : 1
                     }}
                     onPress={saveGoal}
                     disabled={isSaving || !goalName.trim() || !goalTarget.trim()}
@@ -930,7 +931,7 @@ export const WalletDetailsScreen: React.FC<Props> = ({ route, navigation }) => {
                     </Typography>
                   </TouchableOpacity>
                   {editingGoal && (
-                    <TouchableOpacity 
+                    <TouchableOpacity
                       style={{ marginTop: 16, alignItems: 'center' }}
                       onPress={() => { setEditingGoal(null); setGoalName(''); setGoalTarget(''); setGoalCurrent(''); setGoalDeadline(null); }}
                     >
@@ -945,8 +946,8 @@ export const WalletDetailsScreen: React.FC<Props> = ({ route, navigation }) => {
                     {wallet.goals.map(g => {
                       const computedCurrentAmount = tickets.reduce((acc, t) => {
                         if (t.status === 'cancelled') return acc;
-                        const tTime = new Date(t.dueDate || t.createdAt).setHours(0,0,0,0);
-                        const todayTime = new Date().setHours(0,0,0,0);
+                        const tTime = new Date(t.dueDate || t.createdAt).setHours(0, 0, 0, 0);
+                        const todayTime = new Date().setHours(0, 0, 0, 0);
                         // ingresos - egresos previo al dia (incluyendo hoy)
                         if (tTime <= todayTime) {
                           const amt = Number(t.amountPaid) || 0;
@@ -956,21 +957,21 @@ export const WalletDetailsScreen: React.FC<Props> = ({ route, navigation }) => {
                       }, 0);
 
                       return (
-                      <View key={g.id} style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#FAFAFA', padding: 16, borderRadius: 12, marginBottom: 10, borderWidth: 1, borderColor: '#E5E5E5' }}>
-                        <View style={{ flex: 1, paddingRight: 10 }}>
-                          <Typography variant="bodyBaseStrong" style={{ marginBottom: 4 }}>{g.name}</Typography>
-                          <Typography variant="labelSmall" color="secondary">
-                            Voy: ${Math.round(computedCurrentAmount).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")} / de ${Math.round(g.targetAmount).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}
-                            {g.deadline && ` · Fin: ${new Date(g.deadline).toLocaleDateString('es-ES')}`}
-                          </Typography>
-                          <View style={{ height: 6, backgroundColor: '#E5E7EB', borderRadius: 3, marginTop: 8, overflow: 'hidden' }}>
-                            <View style={{ height: '100%', backgroundColor: '#10B981', width: `${Math.min(100, Math.max(0, (Number(computedCurrentAmount) / Number(g.targetAmount)) * 100))}%` }} />
+                        <View key={g.id} style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#FAFAFA', padding: 16, borderRadius: 12, marginBottom: 10, borderWidth: 1, borderColor: '#E5E5E5' }}>
+                          <View style={{ flex: 1, paddingRight: 10 }}>
+                            <Typography variant="bodyBaseStrong" style={{ marginBottom: 4 }}>{g.name}</Typography>
+                            <Typography variant="labelSmall" color="secondary">
+                              Voy: ${Math.round(computedCurrentAmount).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")} / de ${Math.round(g.targetAmount).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}
+                              {g.deadline && ` · Fin: ${new Date(g.deadline).toLocaleDateString('es-ES')}`}
+                            </Typography>
+                            <View style={{ height: 6, backgroundColor: '#E5E7EB', borderRadius: 3, marginTop: 8, overflow: 'hidden' }}>
+                              <View style={{ height: '100%', backgroundColor: '#10B981', width: `${Math.min(100, Math.max(0, (Number(computedCurrentAmount) / Number(g.targetAmount)) * 100))}%` }} />
+                            </View>
                           </View>
+                          <TouchableOpacity onPress={() => removeGoal(g.id)} style={{ padding: 8, backgroundColor: '#F5F5F5', borderRadius: 8 }}>
+                            <Ionicons name="trash-outline" size={18} color="#737373" />
+                          </TouchableOpacity>
                         </View>
-                        <TouchableOpacity onPress={() => removeGoal(g.id)} style={{ padding: 8, backgroundColor: '#F5F5F5', borderRadius: 8 }}>
-                          <Ionicons name="trash-outline" size={18} color="#737373" />
-                        </TouchableOpacity>
-                      </View>
                       );
                     })}
                   </View>
@@ -987,9 +988,9 @@ export const WalletDetailsScreen: React.FC<Props> = ({ route, navigation }) => {
                     if (Platform.OS === 'android' || Platform.OS === 'web') {
                       setShowGoalDatePicker(false);
                     }
-                    
+
                     const isSet = !event || event.type === 'set'; // Web envía null pero queremos procesar
-                    
+
                     if (isSet && selectedDate) {
                       const normalized = new Date(selectedDate);
                       normalized.setHours(12, 0, 0, 0);
@@ -1000,13 +1001,13 @@ export const WalletDetailsScreen: React.FC<Props> = ({ route, navigation }) => {
               )}
 
               {showGoalDatePicker && Platform.OS === 'ios' && (
-                <TouchableOpacity 
-                  style={{ 
-                    marginHorizontal: 20, 
-                    marginBottom: 16, 
-                    paddingVertical: 14, 
-                    alignItems: 'center', 
-                    backgroundColor: '#16A34A', 
+                <TouchableOpacity
+                  style={{
+                    marginHorizontal: 20,
+                    marginBottom: 16,
+                    paddingVertical: 14,
+                    alignItems: 'center',
+                    backgroundColor: '#16A34A',
                     borderRadius: 12,
                     ...Platform.select({
                       web: { boxShadow: '0px 4px 8px rgba(22, 163, 74, 0.2)' },
@@ -1029,7 +1030,7 @@ export const WalletDetailsScreen: React.FC<Props> = ({ route, navigation }) => {
         </Modal>
 
         {/* Animated Toast */}
-        <Animated.View style={[styles.toast, { opacity: toastAlpha, transform: [{ translateY: toastAlpha.interpolate({ inputRange:[0,1], outputRange:[20,0] }) }] }]}>
+        <Animated.View style={[styles.toast, { opacity: toastAlpha, transform: [{ translateY: toastAlpha.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }] }]}>
           <Text style={styles.toastText}>{msg}</Text>
         </Animated.View>
       </>

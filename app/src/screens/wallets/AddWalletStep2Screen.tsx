@@ -9,7 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Animated, Image, TouchableWithoutFeedback } from 'react-native';
-import { getContacts } from '@/services/contacts.service';
+import { getContacts, normalizePhone } from '@/services/contacts.service';
 
 import { useAuthStore } from '@/store/auth.store';
 import { walletsApi, WalletMember } from '@/api/wallets.api';
@@ -24,6 +24,12 @@ interface ContactInfo {
   imageUri?: string;
 }
 
+const cleanPhone = (p?: string) => {
+  if (!p) return '';
+  if (p.includes('-') && p.length > 20) return p; // UUID
+  return p.replace(/[^+0-9]/g, '').replace(/^\+/, '');
+};
+
 const MOCK_CONTACTS: ContactInfo[] = [
   { name: 'DEMO_1', phone: '+59811223344' },
   { name: 'DEMO_2', phone: '+59822334455' },
@@ -33,6 +39,7 @@ const MOCK_CONTACTS: ContactInfo[] = [
   { name: 'DEMO_6', phone: '+59866778899' },
   { name: 'DEMO_7', phone: '+59877889900' },
   { name: 'DEMO_8', phone: '+59888990011' },
+  { name: 'DEMO_NO_NORMALIZADO', phone: '096775523323' },
 ];
 
 type AddWalletStackParamList = {
@@ -102,7 +109,7 @@ export const AddWalletStep2Screen: React.FC<{ onFinish?: (message?: string) => v
 
   const handlePickContact = async () => {
     // Initialize temporary selection with current contacts
-    setSelectedContactsTemp(members.map(m => ({ name: m.displayName, phone: m.userId })));
+    setSelectedContactsTemp(members.map(m => ({ name: m.displayName, phone: m.phone || m.userId })));
 
     try {
       const data = await getContacts();
@@ -119,21 +126,23 @@ export const AddWalletStep2Screen: React.FC<{ onFinish?: (message?: string) => v
   };
 
   const toggleContactSelection = (contact: ContactInfo) => {
-    const isSelected = selectedContactsTemp.some(c => c.phone === contact.phone);
+    const isSelected = selectedContactsTemp.some(c => cleanPhone(c.phone) === cleanPhone(contact.phone));
     if (isSelected) {
-      setSelectedContactsTemp(selectedContactsTemp.filter(c => c.phone !== contact.phone));
+      setSelectedContactsTemp(selectedContactsTemp.filter(c => cleanPhone(c.phone) !== cleanPhone(contact.phone)));
     } else {
       setSelectedContactsTemp([...selectedContactsTemp, contact]);
     }
   };
 
   const confirmContactsSelection = () => {
-    const normalize = (p: string) => p.replace(/[^\d+]/g, '');
-    const newMembers = selectedContactsTemp.map(c => ({ 
-      userId: normalize(c.phone), 
-      displayName: c.name, 
-      role: 'member' 
-    }));
+    const newMembers = selectedContactsTemp.map(c => {
+      const isUuid = c.phone.includes('-') && c.phone.length > 20;
+      return { 
+        userId: isUuid ? c.phone : normalizePhone(c.phone), 
+        displayName: c.name, 
+        role: 'member' 
+      };
+    });
     setMembers(newMembers);
     setContactModalVisible(false);
   };
@@ -422,9 +431,13 @@ export const AddWalletStep2Screen: React.FC<{ onFinish?: (message?: string) => v
                         style={styles.selectedChip}
                         onPress={() => toggleContactSelection(c)}
                       >
-                        <View style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: '#404040', alignItems: 'center', justifyContent: 'center', marginRight: 6 }}>
-                           <Text style={{ fontSize: 10, color: 'white', fontFamily: 'PlusJakarta-Bold' }}>{c.name.charAt(0)}</Text>
-                        </View>
+                        {c.imageUri ? (
+                          <Image source={{ uri: c.imageUri }} style={{ width: 24, height: 24, borderRadius: 12, marginRight: 6 }} />
+                        ) : (
+                          <View style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: '#404040', alignItems: 'center', justifyContent: 'center', marginRight: 6 }}>
+                             <Text style={{ fontSize: 10, color: 'white', fontFamily: 'PlusJakarta-Bold' }}>{c.name.charAt(0)}</Text>
+                          </View>
+                        )}
                         <Text style={styles.selectedChipText}>{c.name.split(' ')[0]}</Text>
                         <Ionicons name="close-circle" size={16} color="white" style={{ marginLeft: 4 }} />
                       </TouchableOpacity>
@@ -438,17 +451,21 @@ export const AddWalletStep2Screen: React.FC<{ onFinish?: (message?: string) => v
                 keyExtractor={item => item.phone}
                 contentContainerStyle={{ paddingHorizontal: 16 }}
                 renderItem={({ item }) => {
-                  const isSelected = selectedContactsTemp.some(c => c.phone === item.phone);
+                  const isSelected = selectedContactsTemp.some(c => cleanPhone(c.phone) === cleanPhone(item.phone));
                   return (
                     <TouchableOpacity 
                       style={styles.contactRow} 
                       onPress={() => toggleContactSelection(item)}
                     >
-                      <View style={styles.contactAvatar}>
-                        <Text style={{ fontSize: 16, fontFamily: 'PlusJakarta-Bold', color: '#737373' }}>
-                          {item.name.charAt(0)}
-                        </Text>
-                      </View>
+                      {item.imageUri ? (
+                        <Image source={{ uri: item.imageUri }} style={styles.contactAvatar} />
+                      ) : (
+                        <View style={styles.contactAvatar}>
+                          <Text style={{ fontSize: 16, fontFamily: 'PlusJakarta-Bold', color: '#737373' }}>
+                            {item.name.charAt(0)}
+                          </Text>
+                        </View>
+                      )}
                       <View style={{ flex: 1 }}>
                         <Text style={styles.contactName}>{item.name}</Text>
                         <Text style={styles.contactPhone}>{item.phone}</Text>
@@ -579,8 +596,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: FontFamily.regular,
     color: Colors.textPrimary,
-    // @ts-ignore
-    outlineStyle: 'none',
   },
   clearBtn: { padding: 4 },
   footer: { paddingHorizontal: 24, paddingBottom: 32, paddingTop: 12, gap: 12 },
@@ -651,8 +666,6 @@ const styles = StyleSheet.create({
     marginLeft: 4,
     paddingRight: 8,
     textAlign: 'right',
-    // @ts-ignore
-    outlineStyle: 'none',
   },
   // Member Section Styles
   emptyMembersBox: {
@@ -718,8 +731,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontFamily: FontFamily.regular,
     color: Colors.textPrimary,
-    // @ts-ignore
-    outlineStyle: 'none',
   },
   contactRow: {
     flexDirection: 'row',

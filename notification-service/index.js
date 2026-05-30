@@ -183,19 +183,27 @@ app.post('/send', async (req, res) => {
   if (!userId || !content) return res.status(400).json({ error: 'userId and content are required' });
 
   const user = await getOrFetchUser(userId);
-  let type = 'whatsapp';
-  let status = 'sent';
+  let type = (user && user.notificationId) ? 'push' : 'whatsapp';
+  let status = 'pending';
 
+  // 1. Registrar primero en la BD con estado 'pending'
+  let logId = null;
+  try {
+    const insertRes = await notifDb.query(
+      'INSERT INTO notification_logs (user_id, content, type, status) VALUES ($1, $2, $3, $4) RETURNING id',
+      [userId, content, type, status]
+    );
+    logId = insertRes.rows[0].id;
+  } catch (dbErr) {
+    console.error('❌ Error pre-logging notification:', dbErr.message);
+  }
+
+  // 2. Intentar el envío
+  status = 'sent';
   if (user && user.notificationId) {
-    // Si existe en BD y tiene token, el canal por defecto es PUSH
-    type = 'push';
-    
     if (!Expo.isExpoPushToken(user.notificationId)) {
         console.error(`Push token ${user.notificationId} is not a valid Expo push token`);
         status = 'invalid_token';
-        // Fallback a whatsapp si el token es inválido? 
-        // El usuario pidió que el canal por defecto sea la app, 
-        // pero si falla podemos dejarlo como error o fallback.
     } else {
         const isEnabled = process.env.ENABLE_NOTIFICATIONS === 'true';
         if (!isEnabled) {
@@ -230,7 +238,6 @@ app.post('/send', async (req, res) => {
     }
   } else if (user) {
     // Existe pero no tiene token de push
-    type = 'whatsapp';
     if (process.env.ENABLE_NOTIFICATIONS === 'true') {
       fileLog(`[WHATSAPP] Sending to ${user.phone}: ${content}`);
     } else {
@@ -239,7 +246,6 @@ app.post('/send', async (req, res) => {
     }
   } else {
     // Usuario no existe en BD
-    type = 'whatsapp';
     if (process.env.ENABLE_NOTIFICATIONS === 'true') {
       fileLog(`[WHATSAPP] External/Unknown User ${userId}: ${content}`);
     } else {
@@ -248,15 +254,18 @@ app.post('/send', async (req, res) => {
     }
   }
 
-  // Registrar en DB de notificaciones
-  try {
-    await notifDb.query(
-      'INSERT INTO notification_logs (user_id, content, type, status) VALUES ($1, $2, $3, $4)',
-      [userId, content, type, status]
-    );
-  } catch (err) {
-    console.error('❌ Error logging notification:', err.message);
+  // 3. Actualizar estado en la BD de notificaciones
+  if (logId) {
+    try {
+      await notifDb.query(
+        'UPDATE notification_logs SET status = $1, type = $2 WHERE id = $3',
+        [status, type, logId]
+      );
+    } catch (dbErr) {
+      console.error('❌ Error updating notification log:', dbErr.message);
+    }
   }
+
   res.json({ success: true, type, status });
 });
 
@@ -265,85 +274,93 @@ app.post('/send-sms', async (req, res) => {
   const { phone, content, title } = req.body || {};
   if (!phone || !content) return res.status(400).json({ error: 'phone and content are required' });
 
-  // Push redirect removed as requested by user. OTPs will always send via SMS (or Mock).
+  // 1. Registrar primero en la BD con estado 'pending'
+  let logId = null;
+  try {
+    const insertRes = await notifDb.query(
+      'INSERT INTO notification_logs (user_id, content, type, status) VALUES ($1, $2, $3, $4) RETURNING id',
+      [phone, content, 'sms', 'pending']
+    );
+    logId = insertRes.rows[0].id;
+  } catch (dbErr) {
+    console.error('❌ Error pre-logging SMS:', dbErr.message);
+  }
+
+  // 2. Procesar el envío según configuración
+  let status = 'sent';
+  let twilioError = null;
+  let responseData = null;
 
   if (process.env.SMS_MOCK === 'true') {
     fileLog(`[SMS-MOCK] Simulating SMS to ${phone}: ${content}`);
-    // Log to DB
-    try {
-      await notifDb.query(
-        'INSERT INTO notification_logs (user_id, content, type, status) VALUES ($1, $2, $3, $4)',
-        [phone, content, 'sms', 'mocked']
-      );
-    } catch (dbErr) {
-      console.error('❌ Error logging Mocked SMS to DB:', dbErr.message);
-    }
-    return res.json({ success: true, message: 'Mocked SMS', type: 'sms', status: 'mocked' });
-  }
-
-  if (process.env.ENABLE_NOTIFICATIONS !== 'true') {
+    status = 'mocked';
+    responseData = { success: true, message: 'Mocked SMS', type: 'sms', status };
+  } else if (process.env.ENABLE_NOTIFICATIONS !== 'true') {
     fileLog(`[SMS-LOG-ONLY] Would have sent SMS to ${phone}: ${content}`);
-    // Log to DB
+    status = 'logged_only';
+    responseData = { success: true, message: 'SMS Logged Only', type: 'sms', status };
+  } else {
+    const sid = process.env.TWILIO_ACCOUNT_SID;
+    const token = process.env.TWILIO_AUTH_TOKEN;
+    const from = process.env.TWILIO_FROM_NUMBER;
+
+    if (!sid || !token || !from) {
+        fileLog('❌ Twilio credentials missing in .env');
+        status = 'error';
+        twilioError = 'Twilio credentials missing';
+    } else {
+        try {
+          const auth = Buffer.from(`${sid}:${token}`).toString('base64');
+          const body = new URLSearchParams();
+          body.append('To', phone);
+          body.append('From', from);
+          body.append('Body', content);
+
+          const twilioRes = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${sid}/Messages.json`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Basic ${auth}`,
+              'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: body.toString(),
+          });
+
+          const data = await twilioRes.json();
+
+          if (!twilioRes.ok) {
+            fileLog(`❌ Twilio SMS failed for ${phone}: ${JSON.stringify(data)}`);
+            status = 'error';
+            twilioError = { error: 'Twilio API error', details: data };
+          } else {
+            fileLog(`✅ SMS sent to ${phone}: ${content}`);
+            status = 'sent';
+            responseData = { success: true, messageId: data.sid, type: 'sms' };
+          }
+        } catch (err) {
+          fileLog(`❌ Exception during SMS sending to ${phone}: ${err.message}`);
+          status = 'error';
+          twilioError = err.message;
+        }
+    }
+  }
+
+  // 3. Actualizar estado en la BD de notificaciones
+  if (logId) {
     try {
       await notifDb.query(
-        'INSERT INTO notification_logs (user_id, content, type, status) VALUES ($1, $2, $3, $4)',
-        [phone, content, 'sms', 'logged_only']
+        'UPDATE notification_logs SET status = $1 WHERE id = $2',
+        [status, logId]
       );
     } catch (dbErr) {
-      console.error('❌ Error logging Logged-only SMS to DB:', dbErr.message);
+      console.error('❌ Error updating SMS log:', dbErr.message);
     }
-    return res.json({ success: true, message: 'SMS Logged Only', type: 'sms', status: 'logged_only' });
   }
 
-  const sid = process.env.TWILIO_ACCOUNT_SID;
-  const token = process.env.TWILIO_AUTH_TOKEN;
-  const from = process.env.TWILIO_FROM_NUMBER;
-
-  if (!sid || !token || !from) {
-      fileLog('❌ Twilio credentials missing in .env');
-      return res.status(500).json({ error: 'Twilio credentials missing' });
+  if (status === 'error') {
+    return res.status(500).json(typeof twilioError === 'string' ? { error: twilioError } : twilioError);
   }
 
-  try {
-    const auth = Buffer.from(`${sid}:${token}`).toString('base64');
-    const body = new URLSearchParams();
-    body.append('To', phone);
-    body.append('From', from);
-    body.append('Body', content);
-
-    const twilioRes = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${sid}/Messages.json`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Basic ${auth}`,
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: body.toString(),
-    });
-
-    const data = await twilioRes.json();
-
-    if (!twilioRes.ok) {
-      fileLog(`❌ Twilio SMS failed for ${phone}: ${JSON.stringify(data)}`);
-      return res.status(500).json({ error: 'Twilio API error', details: data });
-    }
-
-    fileLog(`✅ SMS sent to ${phone}: ${content}`);
-    
-    // Log to DB
-    try {
-      await notifDb.query(
-        'INSERT INTO notification_logs (user_id, content, type, status) VALUES ($1, $2, $3, $4)',
-        [phone, content, 'sms', 'sent']
-      );
-    } catch (dbErr) {
-      console.error('❌ Error logging SMS to DB:', dbErr.message);
-    }
-
-    res.json({ success: true, messageId: data.sid, type: 'sms' });
-  } catch (err) {
-    fileLog(`❌ Exception during SMS sending to ${phone}: ${err.message}`);
-    res.status(500).json({ error: err.message });
-  }
+  res.json(responseData);
 });
 
 // Startup

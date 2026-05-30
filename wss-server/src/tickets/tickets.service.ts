@@ -96,7 +96,10 @@ export class TicketsService {
 
       this.logger.log(`[sendTicketNotification] Logic: sender=${senderId}, owner=${ticket.ownerId}, target=${targetUserId}`);
 
-      if (targetUserId && targetUserId !== senderId) {
+      const targetUser = targetUserId ? await userRepo.findOne({ where: { userId: targetUserId } }) : null;
+      const isActiveAccount = targetUser && (targetUser.lastAccess !== null || targetUser.notificationId !== null || targetUser.displayName !== null);
+
+      if (targetUserId && targetUserId !== senderId && isActiveAccount) {
         const baseUrl = this.configService.get<string>('WEB_SHARE_URL') || 'http://localhost:5173';
         const publicLink = ticket.shortId ? `\nLink: ${baseUrl}/t/${ticket.shortId}` : '';
         const ticketInfo = `\nTicket: ${ticket.description || 'Sin detalle'} (${ticket.currency} ${Number(ticket.amount).toLocaleString('es-AR')})`;
@@ -106,7 +109,7 @@ export class TicketsService {
         this.logger.log(`[sendTicketNotification] SENDING to ${targetUserId}: ${fullContent}`);
         await this.notificationsService.sendNotification(targetUserId, fullContent, 'peIApp');
       } else {
-        this.logger.log(`[sendTicketNotification] SKIP: No target or target is sender. target=${targetUserId}`);
+        this.logger.log(`[sendTicketNotification] SKIP: No target, target is sender, or target has no active account. target=${targetUserId}, active=${!!isActiveAccount}`);
       }
 
     } catch (err) {

@@ -13,17 +13,17 @@ export class UsersService {
   async findById(id: string): Promise<User | null> {
     const isUuid = id.includes('-');
     if (isUuid) {
-      return this.userRepo.findOne({ where: { longUserId: id } });
+      return this.userRepo.findOne({ where: { userId: id } });
     }
-    return this.userRepo.findOne({ where: { userId: id } });
+    return this.userRepo.findOne({ where: { phone: id } });
   }
 
   async updateProfile(id: string, data: Partial<Pick<User, 'displayName' | 'avatarUrl' | 'country' | 'currency' | 'pushEnabled' | 'defaultPaymentProcedure' | 'gender' | 'age' | 'theme' | 'defaultWalletId' | 'notificationId' | 'preferredNotificationTime' | 'dailyReportsEnabled' | 'monthlyReportsEnabled' | 'transactionNotificationsEnabled' | 'lastAccess'>>) {
     const isUuid = id.includes('-');
     if (isUuid) {
-      await this.userRepo.update({ longUserId: id }, data);
-    } else {
       await this.userRepo.update({ userId: id }, data);
+    } else {
+      await this.userRepo.update({ phone: id }, data);
     }
     return this.findById(id);
   }

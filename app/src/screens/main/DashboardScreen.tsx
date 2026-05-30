@@ -31,14 +31,14 @@ export const DashboardScreen: React.FC = () => {
   const [offline, setOffline] = useState(false);
   const timelineRef = useRef<ScrollView>(null);
   const scrollX = useRef(0);
-  
+
   const scrollTimeline = (direction: 'left' | 'right') => {
     if (timelineRef.current) {
       const scrollAmount = 250;
-      const newX = direction === 'left' 
+      const newX = direction === 'left'
         ? Math.max(0, scrollX.current - scrollAmount)
         : scrollX.current + scrollAmount;
-      
+
       timelineRef.current.scrollTo({
         x: newX,
         animated: true,
@@ -50,15 +50,15 @@ export const DashboardScreen: React.FC = () => {
   const loadData = useCallback(async (isRefreshing = false) => {
     if (isRefreshing) setRefreshing(true);
     setOffline(false);
-    
+
     // 1. Carga rápida desde local
     const [localTickets, localWallets] = await Promise.all([
       getLocalTickets(),
       getLocalWallets()
     ]);
-    
+
     const walletsWithStats = processWalletsWithTickets(localWallets, localTickets);
-    
+
     setTickets(localTickets.filter((t: any) => t.status === 'pending'));
     setWallets(walletsWithStats);
 
@@ -68,12 +68,12 @@ export const DashboardScreen: React.FC = () => {
         walletsApi.getMyWallets(),
         ticketsApi.getMyTickets()
       ]);
-      
+
       const mergedWallets = await mergeServerWallets(serverWallets);
       const mergedTickets = await mergeServerTickets(serverTickets);
-      
+
       const walletsFinal = processWalletsWithTickets(mergedWallets, mergedTickets);
-      
+
       const allPending = mergedTickets.filter((t: any) => t.status === 'pending');
 
       setWallets(walletsFinal);
@@ -86,8 +86,8 @@ export const DashboardScreen: React.FC = () => {
     }
   }, []);
 
-  useFocusEffect(useCallback(() => { 
-    loadData(); 
+  useFocusEffect(useCallback(() => {
+    loadData();
     loadContacts();
     // Auto-register for push notifications if missing
     const checkPushToken = async () => {
@@ -110,7 +110,7 @@ export const DashboardScreen: React.FC = () => {
 
   const groupedBalances = useMemo(() => {
     const groups: Record<string, { balance: number; incomes: number; expenses: number }> = {};
-    
+
     wallets
       .filter(w => w.includeInGeneralBalance !== false)
       .forEach(w => {
@@ -122,7 +122,7 @@ export const DashboardScreen: React.FC = () => {
         groups[curr].incomes += ((w as any).pendingIncomes || 0);
         groups[curr].expenses += ((w as any).pendingExpenses || 0);
       });
-      
+
     return Object.entries(groups)
       .map(([currency, totals]) => ({
         currency,
@@ -230,9 +230,9 @@ export const DashboardScreen: React.FC = () => {
     sorted.slice(0, 10).forEach(ticket => { // Show up to 10 grouped tickets
       const date = ticket.dueDate ? new Date(ticket.dueDate) : new Date(ticket.createdAt);
       date.setHours(0, 0, 0, 0);
-      
+
       let dateKey = date.toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' });
-      
+
       // Special labels
       if (date.getTime() === today.getTime()) dateKey = 'Hoy';
       else if (date.getTime() === today.getTime() - 86400000) dateKey = 'Ayer';
@@ -260,10 +260,10 @@ export const DashboardScreen: React.FC = () => {
   const navigateToHistory = (group: any, currency?: string) => {
     const params: any = { filter: group.filter, currency };
     const today = new Date();
-    today.setHours(0,0,0,0);
+    today.setHours(0, 0, 0, 0);
     const yesterday = new Date(today);
     yesterday.setDate(today.getDate() - 1);
-    
+
     if (group.label === 'Atrasado') {
       params.startDate = null;
       params.endDate = yesterday.toISOString();
@@ -284,36 +284,36 @@ export const DashboardScreen: React.FC = () => {
       params.startDate = afterNextWeek.toISOString();
       params.endDate = monthEnd.toISOString();
     }
-    
+
     navigation.navigate('Historial', params);
   };
 
   return (
     <SafeAreaView className="bg-background" style={{ flex: 1, backgroundColor: Colors.background }}>
       <StatusBar barStyle="dark-content" backgroundColor="transparent" />
-      
-       {/* TOOLBAR TOP */}
+
+      {/* TOOLBAR TOP */}
       <View className="flex-row items-center justify-between px-4 pb-6 pt-2">
         <View className="flex-1">
           <LogoPei size={24} tintColor="#000000" />
         </View>
-        
+
         <View className="flex-row items-center gap-3">
-          <TouchableOpacity 
+          <TouchableOpacity
             className="w-10 h-10 rounded-full bg-white items-center justify-center"
             style={{ borderWidth: 1, borderColor: '#eceae3', ...Shadows.card }}
             onPress={() => navigation.navigate('Settings')}
           >
             <Ionicons name="settings-outline" size={20} color={Colors.textSecondary} />
           </TouchableOpacity>
-          <TouchableOpacity 
+          <TouchableOpacity
             className="w-10 h-10 rounded-full items-center justify-center"
             style={{ backgroundColor: Colors.accent, ...Shadows.card }}
             onPress={() => navigation.navigate('QuickEntry')}
           >
             <Ionicons name="flash" size={20} color="white" />
           </TouchableOpacity>
-          <TouchableOpacity 
+          <TouchableOpacity
             className="w-10 h-10 rounded-full items-center justify-center"
             style={{ backgroundColor: Colors.primary, ...Shadows.card }}
             onPress={() => navigation.navigate('AddMovementModal')}
@@ -323,7 +323,7 @@ export const DashboardScreen: React.FC = () => {
         </View>
       </View>
 
-      <ScrollView 
+      <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40, gap: 16, paddingTop: 8 }}
         showsVerticalScrollIndicator={false}
@@ -338,17 +338,17 @@ export const DashboardScreen: React.FC = () => {
 
         {/* SALDO TOTAL CARD */}
         <View style={{ backgroundColor: Colors.white, borderRadius: 24, padding: 16, borderWidth: 1, borderColor: Colors.strokeSubtle, paddingBottom: 20, ...Shadows.card }}>
-          <TouchableOpacity 
+          <TouchableOpacity
             className="flex-row items-center justify-between mb-2"
             onPress={() => navigation.navigate('Dashboard')}
             activeOpacity={0.7}
           >
-             <View className="flex-row items-center gap-1">
+            <View className="flex-row items-center gap-1">
               <Text style={{ fontSize: 20, fontFamily: FontFamily.medium, lineHeight: 24, color: Colors.textPrimary }}>Dinero para usar</Text>
               <Ionicons name="chevron-forward" size={18} color={Colors.textPrimary} style={{ marginLeft: 4, marginTop: 2 }} />
             </View>
           </TouchableOpacity>
-          
+
           {groupedBalances.length > 0 ? (
             groupedBalances.map((group, idx) => (
               <View key={group.currency} style={{ marginTop: idx > 0 ? 20 : 8 }}>
@@ -356,11 +356,11 @@ export const DashboardScreen: React.FC = () => {
                   <Text style={{ fontSize: 16, fontFamily: FontFamily.medium, color: Colors.textSecondary }}>
                     {group.currency}
                   </Text>
-                  <Text style={{ 
-                    fontSize: 32, 
-                    fontFamily: FontFamily.bold, 
-                    lineHeight: 32, 
-                    color: group.balance < 0 ? '#c05050' : Colors.textPrimary 
+                  <Text style={{
+                    fontSize: 32,
+                    fontFamily: FontFamily.bold,
+                    lineHeight: 32,
+                    color: group.balance < 0 ? '#c05050' : Colors.textPrimary
                   }}>
                     ${Math.abs(group.balance).toLocaleString('es-AR')}
                   </Text>
@@ -377,7 +377,7 @@ export const DashboardScreen: React.FC = () => {
                   </View>
                   <View className="flex-col items-end">
                     <View className="flex-row items-center mb-1">
-                      <Text className="text-[13px] font-sans text-[#a8a69e]">Pagos que me faltan</Text>
+                      <Text className="text-[13px] font-sans text-[#a8a69e]">Me falta pagar</Text>
                     </View>
                     <Text className="text-[17px] font-heading text-[#c05050]">
                       ${Math.abs(group.expenses).toLocaleString('es-AR')}
@@ -396,10 +396,10 @@ export const DashboardScreen: React.FC = () => {
           )}
 
           {insights.length > 0 && (
-            <View style={{ 
-              backgroundColor: '#f8f7f2', 
-              borderRadius: 24, 
-              padding: 16, 
+            <View style={{
+              backgroundColor: '#f8f7f2',
+              borderRadius: 24,
+              padding: 16,
               marginTop: 20,
               borderWidth: 1,
               borderColor: '#eceae3'
@@ -412,7 +412,7 @@ export const DashboardScreen: React.FC = () => {
                   Inteligencia Financiera
                 </Text>
               </View>
-              
+
               <View style={{ gap: 10 }}>
                 {insights.map((insight, idx) => (
                   <TouchableOpacity
@@ -423,20 +423,20 @@ export const DashboardScreen: React.FC = () => {
                       }
                     }}
                     activeOpacity={0.7}
-                    style={{ 
-                      flexDirection: 'row', 
-                      alignItems: 'center', 
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
                       gap: 10,
                       paddingVertical: 2
                     }}
                   >
                     <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: insight.negative ? '#c05050' : '#7465b5', opacity: 0.5 }} />
-                    <Text style={{ 
-                      flex: 1, 
-                      fontSize: 14, 
-                      fontFamily: FontFamily.regular, 
-                      lineHeight: 20, 
-                      color: insight.negative ? '#c05050' : '#363630' 
+                    <Text style={{
+                      flex: 1,
+                      fontSize: 14,
+                      fontFamily: FontFamily.regular,
+                      lineHeight: 20,
+                      color: insight.negative ? '#c05050' : '#363630'
                     }}>
                       {insight.text}
                     </Text>
@@ -453,7 +453,7 @@ export const DashboardScreen: React.FC = () => {
         {/* MIS BILLETERAS CARD */}
         <View className="bg-white rounded-[24px] p-4 shadow-sm border border-[#eceae3]">
           <View className="flex-row items-center justify-between mb-4">
-            <TouchableOpacity 
+            <TouchableOpacity
               onPress={() => navigation.navigate('Billeteras')}
               className="flex-row items-center gap-2 active:opacity-70"
             >
@@ -484,7 +484,7 @@ export const DashboardScreen: React.FC = () => {
         {/* TRANSACCIONES PENDIENTES */}
         <View className="bg-white rounded-[24px] p-4 shadow-sm border border-[#eceae3]">
           <View className="flex-row items-center justify-between mb-4">
-            <TouchableOpacity 
+            <TouchableOpacity
               onPress={() => navigation.navigate('Historial')}
               className="flex-row items-center gap-2 active:opacity-70"
             >
@@ -500,73 +500,73 @@ export const DashboardScreen: React.FC = () => {
               </Text>
             </View>
 
-              <View className="relative">
-                {/* Connecting Line */}
-                <View 
-                  style={{ 
-                    position: 'absolute', 
-                    top: 18, 
-                    left: 40, 
-                    right: 40, 
-                    height: 2, 
-                    backgroundColor: '#eceae3',
-                    zIndex: 0 
-                  }} 
-                />
-                
-                {/* Scroll Buttons */}
-                <TouchableOpacity 
-                  onPress={() => scrollTimeline('left')}
-                  style={{
-                    position: 'absolute',
-                    left: 4,
-                    top: '30%',
-                    zIndex: 10,
-                    backgroundColor: 'rgba(255,255,255,0.9)',
-                    width: 32,
-                    height: 32,
-                    borderRadius: 16,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    borderWidth: 1,
-                    borderColor: '#eceae3',
-                    ...Shadows.card
-                  }}
-                >
-                  <Ionicons name="chevron-back" size={20} color={Colors.textPrimary} />
-                </TouchableOpacity>
+            <View className="relative">
+              {/* Connecting Line */}
+              <View
+                style={{
+                  position: 'absolute',
+                  top: 18,
+                  left: 40,
+                  right: 40,
+                  height: 2,
+                  backgroundColor: '#eceae3',
+                  zIndex: 0
+                }}
+              />
 
-                <TouchableOpacity 
-                  onPress={() => scrollTimeline('right')}
-                  style={{
-                    position: 'absolute',
-                    right: 4,
-                    top: '30%',
-                    zIndex: 10,
-                    backgroundColor: 'rgba(255,255,255,0.9)',
-                    width: 32,
-                    height: 32,
-                    borderRadius: 16,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    borderWidth: 1,
-                    borderColor: '#eceae3',
-                    ...Shadows.card
-                  }}
-                >
-                  <Ionicons name="chevron-forward" size={20} color={Colors.textPrimary} />
-                </TouchableOpacity>
-                
-                <ScrollView 
-                  ref={timelineRef}
-                  horizontal 
-                  showsHorizontalScrollIndicator={false}
-                  onScroll={(e) => {
-                    scrollX.current = e.nativeEvent.contentOffset.x;
-                  }}
-                  scrollEventThrottle={16}
-                  contentContainerStyle={{ paddingHorizontal: 36, gap: 12, paddingBottom: 8 }}
-                >
+              {/* Scroll Buttons */}
+              <TouchableOpacity
+                onPress={() => scrollTimeline('left')}
+                style={{
+                  position: 'absolute',
+                  left: 4,
+                  top: '30%',
+                  zIndex: 10,
+                  backgroundColor: 'rgba(255,255,255,0.9)',
+                  width: 32,
+                  height: 32,
+                  borderRadius: 16,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderWidth: 1,
+                  borderColor: '#eceae3',
+                  ...Shadows.card
+                }}
+              >
+                <Ionicons name="chevron-back" size={20} color={Colors.textPrimary} />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => scrollTimeline('right')}
+                style={{
+                  position: 'absolute',
+                  right: 4,
+                  top: '30%',
+                  zIndex: 10,
+                  backgroundColor: 'rgba(255,255,255,0.9)',
+                  width: 32,
+                  height: 32,
+                  borderRadius: 16,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderWidth: 1,
+                  borderColor: '#eceae3',
+                  ...Shadows.card
+                }}
+              >
+                <Ionicons name="chevron-forward" size={20} color={Colors.textPrimary} />
+              </TouchableOpacity>
+
+              <ScrollView
+                ref={timelineRef}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                onScroll={(e) => {
+                  scrollX.current = e.nativeEvent.contentOffset.x;
+                }}
+                scrollEventThrottle={16}
+                contentContainerStyle={{ paddingHorizontal: 36, gap: 12, paddingBottom: 8 }}
+              >
                 {[
                   { key: 'overdue', label: 'Atrasado', color: '#c05050', filter: 'overdue', icon: 'alert-circle' },
                   { key: 'today', label: 'Hoy', color: Colors.primary, filter: 'pending', dateRange: 'today', icon: 'today' },
@@ -577,23 +577,23 @@ export const DashboardScreen: React.FC = () => {
                   const currenciesData = summaryEntries
                     .map(([curr, sum]) => ({ currency: curr, data: (sum as any)[group.key] }))
                     .filter(c => c.data && c.data.count > 0);
-                  
+
                   const hasData = currenciesData.length > 0;
                   const totalTickets = currenciesData.reduce((acc, c) => acc + c.data.count, 0);
 
                   return (
-                    <TouchableOpacity 
+                    <TouchableOpacity
                       key={i}
                       onPress={() => navigateToHistory(group)}
                       activeOpacity={0.7}
                       style={{ width: 160, alignItems: 'center' }}
                     >
                       {/* Node Dot */}
-                      <View 
-                        style={{ 
-                          width: 36, 
-                          height: 36, 
-                          borderRadius: 18, 
+                      <View
+                        style={{
+                          width: 36,
+                          height: 36,
+                          borderRadius: 18,
                           backgroundColor: 'white',
                           borderWidth: 2,
                           borderColor: hasData ? group.color : '#eceae3',
@@ -613,15 +613,15 @@ export const DashboardScreen: React.FC = () => {
                           })
                         }}
                       >
-                        <Ionicons 
-                          name={group.icon as any} 
-                          size={18} 
-                          color={hasData ? group.color : '#a8a69e'} 
+                        <Ionicons
+                          name={group.icon as any}
+                          size={18}
+                          color={hasData ? group.color : '#a8a69e'}
                         />
                       </View>
 
                       {/* Info Card */}
-                      <View 
+                      <View
                         style={{
                           backgroundColor: '#f8f7f2',
                           padding: 14,
@@ -643,15 +643,15 @@ export const DashboardScreen: React.FC = () => {
                                 <View key={c.currency} style={{ gap: 4 }}>
                                   <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                                     <Text style={{ fontSize: 12, fontFamily: FontFamily.bold, color: Colors.textTertiary }}>{c.currency}</Text>
-                                    <Text style={{ 
-                                      fontSize: 15, 
-                                      fontFamily: FontFamily.bold, 
-                                      color: netAmount < 0 ? '#c05050' : Colors.textPrimary 
+                                    <Text style={{
+                                      fontSize: 15,
+                                      fontFamily: FontFamily.bold,
+                                      color: netAmount < 0 ? '#c05050' : Colors.textPrimary
                                     }}>
                                       ${Math.abs(netAmount).toLocaleString('es-AR')}
                                     </Text>
                                   </View>
-                                  
+
                                   <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', opacity: 0.8 }}>
                                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
                                       <Ionicons name="arrow-up" size={10} color={Colors.primary} />
@@ -695,10 +695,10 @@ export const DashboardScreen: React.FC = () => {
           <View className="flex-col gap-0">
             {groupedTickets.length > 0 ? groupedTickets.map(([dateKey, items]) => (
               <View key={dateKey} className="mb-4">
-                <Text style={{ 
-                  fontSize: 13, 
-                  fontFamily: FontFamily.bold, 
-                  color: '#a8a69e', 
+                <Text style={{
+                  fontSize: 13,
+                  fontFamily: FontFamily.bold,
+                  color: '#a8a69e',
                   textTransform: 'uppercase',
                   marginBottom: 8,
                   marginTop: 4
@@ -707,28 +707,28 @@ export const DashboardScreen: React.FC = () => {
                 </Text>
                 {items.map((item, index) => {
                   const today = new Date();
-                  today.setHours(0,0,0,0);
+                  today.setHours(0, 0, 0, 0);
                   const dueDate = item.dueDate ? new Date(item.dueDate) : null;
-                  if (dueDate) dueDate.setHours(0,0,0,0);
-                  
+                  if (dueDate) dueDate.setHours(0, 0, 0, 0);
+
                   const isOverdue = dueDate && dueDate < today;
                   const diffTime = dueDate ? today.getTime() - dueDate.getTime() : 0;
                   const overdueDays = Math.max(0, Math.floor(diffTime / (1000 * 60 * 60 * 24)));
-                  
+
                   const isOwner = user?.phoneNumber === item.ownerUserObj?.phone || (user as any)?.userId === item.ownerId || user?.phoneNumber === item.ownerId;
                   const otherPartyPhone = isOwner ? (item.toUserObj?.phone || item.toUser) : (item.ownerUserObj?.phone || item.ownerId);
-                  
-                  const otherPartyAvatar = (isOwner 
-                    ? (item.toUserAvatarUrl || item.toUserObj?.avatarUrl) 
+
+                  const otherPartyAvatar = (isOwner
+                    ? (item.toUserAvatarUrl || item.toUserObj?.avatarUrl)
                     : (item.ownerAvatarUrl || item.ownerUserObj?.avatarUrl)) || getContactAvatarStatic(otherPartyPhone);
-                  
+
                   let otherPartyName = otherPartyPhone ? getContactNameStatic(otherPartyPhone, otherPartyPhone) : null;
-                  
+
                   // Si otherPartyName parece un UUID o ID interno, lo ocultamos para que no se muestre en pantalla
                   if (otherPartyName && (otherPartyName.includes('-') && otherPartyName.length > 20)) {
                     otherPartyName = null;
                   }
-                  
+
                   return (
                     <TransactionItem
                       key={item.id}

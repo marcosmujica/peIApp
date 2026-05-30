@@ -16,7 +16,7 @@ export class WalletMember {
   @Column({ name: "wallet_id" })
   walletId: string;
 
-  @Column({ name: "user_id", length: 20 })
+  @Column({ name: "user_id", type: "uuid" })
   userId: string;
 
   @Column({ name: "role", type: "varchar", length: 20 })

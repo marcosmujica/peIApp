@@ -1,15 +1,15 @@
 import {
-  Entity, Column, PrimaryColumn, CreateDateColumn,
+  Entity, Column, PrimaryColumn, PrimaryGeneratedColumn, CreateDateColumn,
   UpdateDateColumn, DeleteDateColumn,
 } from "typeorm";
 
 @Entity("users")
 export class User {
-  @PrimaryColumn({ name: "user_id", length: 20 })
-  userId: string; // E.164 phone number
+  @PrimaryGeneratedColumn("uuid", { name: "user_id" })
+  userId: string; // Internal UUID
 
-  @Column({ name: "long_user_id", unique: true })
-  longUserId: string; // UUID
+  @Column({ name: "phone", length: 20, unique: true })
+  phone: string; // E.164 phone number
 
   @Column({ name: "display_name", nullable: true })
   displayName?: string;

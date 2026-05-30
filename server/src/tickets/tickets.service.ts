@@ -96,7 +96,10 @@ export class TicketsService {
 
       this.logger.log(`[sendTicketNotification] Logic: sender=${senderId}, owner=${ticket.ownerId}, target=${targetUserId}`);
 
-      if (targetUserId && targetUserId !== senderId) {
+      const targetUser = targetUserId ? await userRepo.findOne({ where: { userId: targetUserId } }) : null;
+      const isActiveAccount = targetUser && (targetUser.lastAccess !== null || targetUser.notificationId !== null || targetUser.displayName !== null);
+
+      if (targetUserId && targetUserId !== senderId && isActiveAccount) {
         const baseUrl = this.configService.get<string>('WEB_SHARE_URL') || 'http://localhost:5173';
         const publicLink = ticket.shortId ? `\nLink: ${baseUrl}/t/${ticket.shortId}` : '';
         const ticketInfo = `\nTicket: ${ticket.description || 'Sin detalle'} (${ticket.currency} ${Number(ticket.amount).toLocaleString('es-AR')})`;
@@ -106,7 +109,7 @@ export class TicketsService {
         this.logger.log(`[sendTicketNotification] SENDING to ${targetUserId}: ${fullContent}`);
         await this.notificationsService.sendNotification(targetUserId, fullContent, 'peIApp', { ticketId, type: 'ticket' });
       } else {
-        this.logger.log(`[sendTicketNotification] SKIP: No target or target is sender. target=${targetUserId}`);
+        this.logger.log(`[sendTicketNotification] SKIP: No target, target is sender, or target has no active account. target=${targetUserId}, active=${!!isActiveAccount}`);
       }
 
     } catch (err) {
@@ -877,10 +880,12 @@ export class TicketsService {
     // 3. Set participants
     const allParticipants = new Set(walletMembers);
     allParticipants.add(ownerId);
+    let recipientPhone: string | null = null;
     if (data.toUser) {
       const isUuid = data.toUser.includes('-');
       if (!isUuid) {
-         const cleanPhone = data.toUser.replace(/[^\d+]/g, '');
+         const cleanPhone = data.toUser.replace(/[^\d]/g, '');
+         recipientPhone = cleanPhone;
          let toUserExists = await manager.findOne(User, { where: { phone: cleanPhone } });
          if (!toUserExists) {
              toUserExists = manager.create(User, { phone: cleanPhone });
@@ -994,7 +999,7 @@ export class TicketsService {
         const notificationContent = `Nuevo Ticket de ${ownerName}: ${concept} por ${amountStr}${pmSuffix}.${publicLink}`;
         
         console.log(`[internalCreateTicket] Notifying primary recipient ${data.toUser}`);
-        await this.notificationsService.sendNotification(data.toUser, notificationContent, 'peIApp', { ticketId: savedTicket.ticketId, type: 'ticket' });
+        await this.notificationsService.sendNotification(data.toUser, notificationContent, 'peIApp', { ticketId: savedTicket.ticketId, type: 'ticket', phone: recipientPhone });
       }
     } catch (notifErr) {
       console.error(`[internalCreateTicket] Notification failed:`, notifErr.message);

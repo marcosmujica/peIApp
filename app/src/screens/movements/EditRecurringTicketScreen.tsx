@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   StyleSheet,
@@ -19,7 +19,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { RootStackParamList } from '@/navigation/RootNavigator';
-import { FontFamily } from '@/constants/theme';
+import { Colors, FontFamily } from '@/constants/theme';
 import { ticketsApi } from '@/api/tickets.api';
 import { useContactsStore } from '@/store/contacts.store';
 import { getLocalTickets } from '@/storage/tickets.local';
@@ -35,23 +35,29 @@ const FREQ_LABELS: Record<string, string> = {
   monthly:         '1 vez por mes',
   bimonthly:       '1 vez cada 2 meses',
   'semi-annually': '1 vez cada 6 meses',
-  yearly:          '1 vez por aÃ±o',
+  yearly:          '1 vez por año',
 };
 
 const CURRENCY_NAMES: Record<string, string> = {
   ARS: 'Peso Argentino',
-  USD: 'DÃ³lar Estadounidense',
+  USD: 'Dólar Estadounidense',
   UYU: 'Peso Uruguayo',
   BRL: 'Real',
   CLP: 'Peso Chileno',
   COP: 'Peso Colombiano',
   MXN: 'Peso Mexicano',
   PEN: 'Sol',
-  VES: 'BolÃ­var',
+  VES: 'Bolívar',
   BOB: 'Boliviano',
 };
 
-// â”€â”€â”€ Contact Picker Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Contact Picker Modal ─────────────────────────────────────────────────────────────
+
+const cleanPhone = (p?: string) => {
+  if (!p) return '';
+  if (p.includes('-') && p.length > 20) return p; // UUID
+  return p.replace(/[^+0-9]/g, '').replace(/^\+/, '');
+};
 
 interface Contact { name: string; phoneNumber: string; }
 
@@ -77,7 +83,7 @@ const ContactPickerModal: React.FC<ContactPickerProps> = ({ selected, onConfirm,
       tickets.forEach((t: any) => {
         const add = (phone: string) => {
           if (!phone) return;
-          // Normalizar a solo nÃºmeros (caracterÃ­stica internacional)
+          // Normalizar a solo números (característica internacional)
           const clean = phone.replace(/[^0-9]/g, '');
           if (clean && clean !== user?.phoneNumber?.replace(/[^0-9]/g, '') && !map.has(clean))
             map.set(clean, { phoneNumber: clean, name: getContactName(clean) });
@@ -101,53 +107,76 @@ const ContactPickerModal: React.FC<ContactPickerProps> = ({ selected, onConfirm,
 
   const toggle = (c: Contact) => {
     setDraft(prev =>
-      prev.some(p => p.phoneNumber === c.phoneNumber)
-        ? prev.filter(p => p.phoneNumber !== c.phoneNumber)
+      prev.some(p => cleanPhone(p.phoneNumber) === cleanPhone(c.phoneNumber))
+        ? prev.filter(p => cleanPhone(p.phoneNumber) !== cleanPhone(c.phoneNumber))
         : [...prev, c]
     );
   };
 
-  const isSelected = (c: Contact) => draft.some(p => p.phoneNumber === c.phoneNumber);
+  const isSelected = (c: Contact) => draft.some(p => cleanPhone(p.phoneNumber) === cleanPhone(c.phoneNumber));
 
   return (
-    <Modal visible animationType="slide" transparent onRequestClose={onClose}>
-      <View style={pickerStyles.overlay}>
-        <View style={pickerStyles.sheet}>
+    <Modal 
+      visible 
+      animationType="slide" 
+      presentationStyle="formSheet" 
+      onRequestClose={onClose}
+    >
+      <SafeAreaView style={pickerStyles.contactModal} edges={['top', 'bottom']}>
+        <KeyboardAvoidingView 
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
+          style={{ flex: 1 }}
+        >
           {/* Header */}
-          <View style={pickerStyles.header}>
-            <Text style={pickerStyles.title}>Seleccionar contactos</Text>
+          <View style={pickerStyles.modalHeaderHeader}>
             <TouchableOpacity onPress={onClose}>
-              <Ionicons name="close" size={24} color="#363630" />
+              <Text style={{ fontSize: 15, fontFamily: FontFamily.medium, color: '#737373' }}>Cancelar</Text>
+            </TouchableOpacity>
+            <Text style={pickerStyles.modalTitleMain}>Contactos</Text>
+            <TouchableOpacity onPress={() => onConfirm(draft)}>
+              <Text style={{ fontSize: 15, fontFamily: FontFamily.bold, color: '#16A34A' }}>Listo</Text>
             </TouchableOpacity>
           </View>
 
-          {/* BÃºsqueda */}
-          <View style={pickerStyles.searchWrap}>
-            <Ionicons name="search-outline" size={18} color="#878778" />
-            <TextInput
-              style={pickerStyles.searchInput}
-              placeholder="Buscar por nombre o nÃºmeroâ€¦"
-              placeholderTextColor="#b0b0a8"
-              value={search}
-              onChangeText={setSearch}
-              autoFocus
-            />
-            {search ? (
-              <TouchableOpacity onPress={() => setSearch('')}>
-                <Ionicons name="close-circle" size={18} color="#878778" />
-              </TouchableOpacity>
-            ) : null}
+          {/* Búsqueda */}
+          <View style={{ padding: 16 }}>
+            <View style={pickerStyles.searchBarWrapper}>
+              <Ionicons name="search" size={18} color="#A3A3A3" style={{ marginRight: 8 }} />
+              <TextInput
+                style={pickerStyles.searchBar}
+                placeholder="Buscar por nombre o número..."
+                placeholderTextColor="#737373"
+                value={search}
+                onChangeText={setSearch}
+              />
+              {search ? (
+                <TouchableOpacity onPress={() => setSearch('')} style={{ padding: 6 }}>
+                  <Ionicons name="close-circle" size={18} color="#A3A3A3" />
+                </TouchableOpacity>
+              ) : null}
+            </View>
           </View>
 
-          {/* Contador seleccionados */}
+          {/* Horizontal Chips for Selected Contacts */}
           {draft.length > 0 && (
-            <View style={pickerStyles.selectionBar}>
-              <Text style={pickerStyles.selectionText}>
-                {draft.length} contacto{draft.length !== 1 ? 's' : ''} seleccionado{draft.length !== 1 ? 's' : ''}
-              </Text>
-              <TouchableOpacity onPress={() => setDraft([])}>
-                <Text style={pickerStyles.clearAll}>Limpiar</Text>
-              </TouchableOpacity>
+            <View style={{ paddingHorizontal: 16, paddingBottom: 16 }}>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
+                {draft.map(c => (
+                  <TouchableOpacity 
+                    key={c.phoneNumber} 
+                    style={pickerStyles.selectedChip}
+                    onPress={() => toggle(c)}
+                  >
+                    <View style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: '#404040', alignItems: 'center', justifyContent: 'center', marginRight: 6 }}>
+                      <Text style={{ fontSize: 10, color: 'white', fontFamily: FontFamily.bold }}>
+                        {(c.name || '?').charAt(0).toUpperCase()}
+                      </Text>
+                    </View>
+                    <Text style={pickerStyles.selectedChipText}>{c.name.split(' ')[0]}</Text>
+                    <Ionicons name="close-circle" size={16} color="white" style={{ marginLeft: 4 }} />
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
             </View>
           )}
 
@@ -157,52 +186,40 @@ const ContactPickerModal: React.FC<ContactPickerProps> = ({ selected, onConfirm,
             <FlatList
               data={filtered}
               keyExtractor={c => c.phoneNumber}
-              contentContainerStyle={{ paddingBottom: 100 }}
+              contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40 }}
               ListEmptyComponent={
-                <Text style={pickerStyles.empty}>No se encontraron contactos</Text>
+                <View style={{ alignItems: 'center', marginTop: 40 }}>
+                  <Text style={pickerStyles.empty}>No se encontraron contactos</Text>
+                </View>
               }
-              renderItem={({ item: c }) => (
-                <TouchableOpacity
-                  style={pickerStyles.contactRow}
-                  onPress={() => toggle(c)}
-                >
-                  <View style={pickerStyles.avatar}>
-                    <Text style={pickerStyles.avatarText}>
-                      {(c.name || '?').charAt(0).toUpperCase()}
-                    </Text>
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <Text style={pickerStyles.contactName}>{c.name}</Text>
-                    <Text style={pickerStyles.contactPhone}>{c.phoneNumber}</Text>
-                  </View>
-                  <View style={[
-                    pickerStyles.checkbox,
-                    isSelected(c) && pickerStyles.checkboxSelected,
-                  ]}>
-                    {isSelected(c) && (
-                      <Ionicons name="checkmark" size={14} color="#fff" />
-                    )}
-                  </View>
-                </TouchableOpacity>
-              )}
+              renderItem={({ item: c }) => {
+                const selected = isSelected(c);
+                return (
+                  <TouchableOpacity
+                    style={pickerStyles.contactRow}
+                    onPress={() => toggle(c)}
+                  >
+                    <View style={pickerStyles.avatar}>
+                      <Text style={pickerStyles.avatarText}>
+                        {(c.name || '?').charAt(0).toUpperCase()}
+                      </Text>
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={pickerStyles.contactName}>{c.name}</Text>
+                      <Text style={pickerStyles.contactPhone}>{c.phoneNumber}</Text>
+                    </View>
+                    <Ionicons 
+                      name={selected ? "checkmark-circle" : "ellipse-outline"} 
+                      size={24} 
+                      color={selected ? "#16A34A" : "#D1D5DB"} 
+                    />
+                  </TouchableOpacity>
+                );
+              }}
             />
           )}
-
-          {/* BotÃ³n Confirmar */}
-          <View style={pickerStyles.confirmWrap}>
-            <TouchableOpacity
-              style={pickerStyles.confirmBtn}
-              onPress={() => onConfirm(draft)}
-            >
-              <Text style={pickerStyles.confirmText}>
-                {draft.length === 0
-                  ? 'Confirmar sin destinatarios'
-                  : `Confirmar (${draft.length})`}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
     </Modal>
   );
 };
@@ -659,74 +676,89 @@ const styles = StyleSheet.create({
 // â”€â”€â”€ Picker Styles â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const pickerStyles = StyleSheet.create({
-  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
-  sheet: {
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 24, borderTopRightRadius: 24,
-    maxHeight: '80%', paddingBottom: 20,
+  contactModal: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
   },
-  header: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    paddingHorizontal: 20, paddingTop: 20, paddingBottom: 12,
-    borderBottomWidth: 1, borderBottomColor: '#f2f2f0',
+  modalHeaderHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
   },
-  title: { fontSize: 17, fontFamily: FontFamily.bold, color: '#1a1a18' },
-  searchWrap: {
-    flexDirection: 'row', alignItems: 'center', gap: 8,
-    margin: 16, paddingHorizontal: 14, paddingVertical: 10,
-    backgroundColor: '#f7f7f5', borderRadius: 12,
-    borderWidth: 1, borderColor: '#e8e8e0',
+  modalTitleMain: {
+    fontSize: 17,
+    fontFamily: FontFamily.bold,
+    color: '#171717',
   },
-  searchInput: { flex: 1, fontSize: 15, color: '#363630', fontFamily: FontFamily.regular },
-  clearRow: {
-    flexDirection: 'row', alignItems: 'center', gap: 12,
-    paddingHorizontal: 20, paddingVertical: 14,
-    borderBottomWidth: 1, borderBottomColor: '#f2f2f0',
+  searchBarWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F5F5F5',
+    borderRadius: 24,
+    paddingHorizontal: 16,
+    height: 48,
   },
-  clearIcon: {
-    width: 40, height: 40, borderRadius: 20,
-    backgroundColor: '#f2f2f0', alignItems: 'center', justifyContent: 'center',
+  searchBar: {
+    flex: 1,
+    fontSize: 15,
+    fontFamily: FontFamily.regular,
+    color: '#171717',
   },
-  clearText: { fontSize: 15, color: '#878778', fontFamily: FontFamily.medium },
   contactRow: {
-    flexDirection: 'row', alignItems: 'center', gap: 12,
-    paddingHorizontal: 20, paddingVertical: 12,
-    borderBottomWidth: 1, borderBottomColor: '#f7f7f5',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+    gap: 12,
   },
   avatar: {
-    width: 40, height: 40, borderRadius: 20,
-    backgroundColor: '#363630', alignItems: 'center', justifyContent: 'center',
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#F3F4F6',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
   },
-  avatarText: { color: '#fff', fontSize: 16, fontFamily: FontFamily.bold },
-  contactName:  { fontSize: 15, color: '#1a1a18', fontFamily: FontFamily.medium },
-  contactPhone: { fontSize: 12, color: '#878778', marginTop: 2 },
-  empty: { textAlign: 'center', color: '#878778', marginTop: 40, fontSize: 14 },
-
-  // Multi-select
-  selectionBar: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    paddingHorizontal: 20, paddingVertical: 8,
-    backgroundColor: '#f7f7f5',
+  avatarText: {
+    fontSize: 16,
+    fontFamily: FontFamily.bold,
+    color: '#737373',
   },
-  selectionText: { fontSize: 13, color: '#363630', fontFamily: FontFamily.medium },
-  clearAll: { fontSize: 13, color: '#c05050', fontFamily: FontFamily.medium },
-  checkbox: {
-    width: 22, height: 22, borderRadius: 6,
-    borderWidth: 2, borderColor: '#d1d1cf',
-    alignItems: 'center', justifyContent: 'center',
+  contactName: {
+    fontSize: 15,
+    fontFamily: FontFamily.semibold,
+    color: '#171717',
   },
-  checkboxSelected: { backgroundColor: '#196342', borderColor: '#196342' },
-  confirmWrap: {
-    position: 'absolute', bottom: 0, left: 0, right: 0,
-    padding: 16, backgroundColor: '#fff',
-    borderTopWidth: 1, borderTopColor: '#f2f2f0',
+  contactPhone: {
+    fontSize: 13,
+    fontFamily: FontFamily.regular,
+    color: '#737373',
   },
-  confirmBtn: {
-    backgroundColor: '#196342', borderRadius: 1000,
-    paddingVertical: 14, alignItems: 'center',
+  selectedChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.primary || '#171717',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 20,
   },
-  confirmBtnDisabled: { backgroundColor: '#d1d1cf' },
-  confirmText: { color: '#fff', fontSize: 16, fontFamily: FontFamily.bold },
+  selectedChipText: {
+    fontSize: 13,
+    color: '#FFFFFF',
+    fontFamily: FontFamily.medium,
+  },
+  empty: {
+    textAlign: 'center',
+    color: '#878778',
+    marginTop: 40,
+    fontSize: 14,
+  },
 });
 
 const rubroStyles = StyleSheet.create({

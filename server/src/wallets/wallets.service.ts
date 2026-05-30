@@ -170,7 +170,26 @@ export class WalletsService {
     }));
   }
 
-  async updateMembers(walletId: string, members: { userId: string; displayName: string }[]) {
+  async updateMembers(walletId: string, members: { userId: string; displayName: string }[], currentUserId?: string) {
+    const wallet = await this.walletRepo.findOne({ where: { walletId } });
+    const walletName = wallet?.name || 'una billetera';
+
+    let ownerName = 'Un usuario';
+    if (currentUserId) {
+      const currentUser = await this.userRepo.findOne({ where: { userId: currentUserId } });
+      if (currentUser?.displayName) {
+        ownerName = currentUser.displayName;
+      }
+    }
+
+    // Get active non-owner members before update
+    const beforeMembers = await this.memberRepo.find({
+      where: { walletId },
+    });
+    const beforeActiveOperatorUserIds = beforeMembers
+      .filter(m => m.role !== 'owner')
+      .map(m => m.userId);
+
     // 1. Mark existing non-owner members as deleted
     await this.memberRepo
       .createQueryBuilder()
@@ -179,6 +198,8 @@ export class WalletsService {
       .where('wallet_id = :walletId', { walletId })
       .andWhere('role != :role', { role: 'owner' })
       .execute();
+
+    const afterActiveUserIds: string[] = [];
 
     // 2. Upsert members
     for (const m of members) {
@@ -189,7 +210,7 @@ export class WalletsService {
       if (isUuid) {
         userExists = await this.userRepo.findOne({ where: { userId: targetUserId } });
       } else {
-        const cleanPhone = m.userId.replace(/[^\d+]/g, '');
+        const cleanPhone = m.userId.replace(/[^\d]/g, '');
         userExists = await this.userRepo.findOne({ where: { phone: cleanPhone } });
         if (!userExists) {
           userExists = this.userRepo.create({ phone: cleanPhone, displayName: m.displayName });
@@ -203,6 +224,8 @@ export class WalletsService {
         continue;
       }
 
+      afterActiveUserIds.push(targetUserId);
+
       // Check if already member (might be deleted)
       const existingMember = await this.memberRepo.findOne({
         where: { walletId, userId: targetUserId },
@@ -210,11 +233,24 @@ export class WalletsService {
       });
 
       if (existingMember) {
+        const wasDeleted = existingMember.deletedAt !== null;
         await this.memberRepo.restore({ memberId: existingMember.memberId });
         await this.memberRepo.update(
           { memberId: existingMember.memberId },
           { role: 'operator' },
         );
+
+        if (wasDeleted) {
+          try {
+            await this.notificationsService.sendNotification(
+              targetUserId,
+              `${ownerName} te asoció a la billetera "${walletName}".`,
+              'Billetera Compartida'
+            );
+          } catch (e) {
+            console.error(`[WalletsService] Failed to notify restored member ${targetUserId}`, e);
+          }
+        }
       } else {
         await this.memberRepo.save({
           walletId,
@@ -224,11 +260,9 @@ export class WalletsService {
         
         // Notify the user that they were added
         try {
-          const wallet = await this.walletRepo.findOne({ where: { walletId } });
-          const walletName = wallet?.name || 'una billetera';
           await this.notificationsService.sendNotification(
             targetUserId, 
-            `Fuiste agregado como miembro a la billetera "${walletName}".`,
+            `${ownerName} te asoció a la billetera "${walletName}".`,
             'Nueva Billetera Compartida'
           );
         } catch (e) {
@@ -267,6 +301,20 @@ export class WalletsService {
             });
           }
         }
+      }
+    }
+
+    // Send notifications to removed members
+    const removedUserIds = beforeActiveOperatorUserIds.filter(id => !afterActiveUserIds.includes(id));
+    for (const targetUserId of removedUserIds) {
+      try {
+        await this.notificationsService.sendNotification(
+          targetUserId,
+          `${ownerName} te eliminó de la billetera "${walletName}".`,
+          'Billetera Compartida'
+        );
+      } catch (e) {
+        console.error(`[WalletsService] Failed to notify removed member ${targetUserId}`, e);
       }
     }
 

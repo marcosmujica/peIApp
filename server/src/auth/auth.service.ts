@@ -27,9 +27,11 @@ export class AuthService {
     const otpHash = await bcrypt.hash(code, 10);
     const expiresAt = new Date(Date.now() + ttl * 60 * 1000);
 
-    let user = await this.userRepo.findOne({ where: { phone: phoneNumber } });
+    const cleanPhoneNumber = phoneNumber.replace(/[^\d]/g, '');
+
+    let user = await this.userRepo.findOne({ where: { phone: cleanPhoneNumber } });
     if (!user) {
-      user = this.userRepo.create({ phone: phoneNumber });
+      user = this.userRepo.create({ phone: cleanPhoneNumber });
     }
     if (country) user.country = country;
     if (currency) user.currency = currency;
@@ -38,7 +40,7 @@ export class AuthService {
     await this.otpRepo.save({ userId: user.userId, otpHash, expiresAt });
 
     if (isMock) {
-      console.log(`[DEV OTP] ${phoneNumber} → ${code}`);
+      console.log(`[DEV OTP] ${cleanPhoneNumber} → ${code}`);
     } else {
       const notifUrl = this.config.get('NOTIFICATION_SERVER_URL', 'http://localhost:4000/send');
       const smsUrl = notifUrl.replace('/send', '/send-sms');
@@ -50,7 +52,7 @@ export class AuthService {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            phone: phoneNumber.startsWith('+') ? phoneNumber : `+${phoneNumber}`,
+            phone: `+${cleanPhoneNumber}`,
             content: `Tu codigo de verificacion de peIApp es: ${code}`,
           }),
         });
@@ -87,7 +89,9 @@ export class AuthService {
   }> {
     const isMock = this.config.get<string>('OTP_MOCK') === 'true';
 
-    const user = await this.userRepo.findOne({ where: { phone: phoneNumber } });
+    const cleanPhoneNumber = phoneNumber.replace(/[^\d]/g, '');
+
+    const user = await this.userRepo.findOne({ where: { phone: cleanPhoneNumber } });
     if (!user) throw new UnauthorizedException('Usuario no encontrado');
 
     const otp = await this.otpRepo.findOne({
