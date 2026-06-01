@@ -7,6 +7,7 @@ import { Colors, FontFamily, Shadows, Spacing, BorderRadius } from "@/constants/
 import { Typography } from "@/components/ui/Typography";
 import { authApi } from "@/api/auth.api";
 import { Ionicons } from "@expo/vector-icons";
+import Constants from "expo-constants";
 
 type Props = NativeStackScreenProps<AuthStackParamList, "PhoneInput">;
 
@@ -35,6 +36,7 @@ const COUNTRIES = [
 ];
 
 export const PhoneInputScreen: React.FC<Props> = ({ navigation }) => {
+  const buildId = Constants.expoConfig?.extra?.buildId || '';
   const [phone, setPhone] = useState("");
   const [countryCode, setCountryCode] = useState("+598"); // Default fallback
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -153,6 +155,11 @@ export const PhoneInputScreen: React.FC<Props> = ({ navigation }) => {
               Al continuar, aceptás nuestros <Typography variant="labelSmall" color={Colors.primary} style={{textDecorationLine:'underline'}}>Términos & Condiciones</Typography>
             </Typography>
           </TouchableOpacity>
+          {buildId ? (
+            <Typography variant="labelXSmall" color={Colors.textTertiary} style={{ textAlign: 'center', marginTop: -16, marginBottom: 12, opacity: 0.6, fontSize: 10 }}>
+              Versión: {buildId}
+            </Typography>
+          ) : null}
 
           <TouchableOpacity
             style={[styles.mainBtn, isLoading && styles.btnDisabled]}

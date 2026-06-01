@@ -293,11 +293,16 @@ export class TicketsService {
       .leftJoinAndSelect('detail.ticket', 'ticket')
       .leftJoinAndSelect('ticket.owner', 'owner')
       .leftJoinAndMapOne('ticket.otherParticipant', TicketDetail, 'other', 'other.ticketId = detail.ticketId AND other.userId != detail.userId')
-      .leftJoinAndMapOne('ticket.otherUserObj', User, 'u', 'u.userId = other.userId')
-      .where('detail.walletId = :walletId', { walletId });
+      .leftJoinAndMapOne('ticket.otherUserObj', User, 'u', 'u.userId = other.userId');
 
     if (isUnassignedWallet && userId) {
-      qb.orWhere('(detail.walletId IS NULL AND detail.userId = :userId)', { userId });
+      qb.where('detail.walletId = :walletId', { walletId })
+        .orWhere('(detail.walletId IS NULL AND detail.userId = :userId)', { userId });
+    } else if (userId) {
+      qb.where('detail.walletId = :walletId', { walletId })
+        .andWhere('detail.userId = :userId', { userId });
+    } else {
+      qb.where('detail.walletId = :walletId', { walletId });
     }
 
     const details = await qb.orderBy('ticket.createdAt', 'DESC').getMany();

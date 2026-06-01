@@ -27,6 +27,7 @@ import { Colors, FontFamily } from '@/constants/theme';
 import { Button } from '@/components/ui/Button';
 import { helpdeskApi } from '@/api/helpdesk.api';
 import { useUIStore } from '@/store/ui.store';
+import Constants from 'expo-constants';
 
 
 const LATAM_COUNTRIES = [
@@ -86,6 +87,7 @@ const YEAR_OPTIONS = Array.from({ length: 71 }, (_, i) => {
 import { normalizeUrl } from '@/utils/url.util';
 
 export const SettingsScreen: React.FC = () => {
+  const buildId = Constants.expoConfig?.extra?.buildId || '';
   const navigation = useNavigation<any>();
   const { user, updateUser } = useAuthStore();
   
@@ -573,6 +575,11 @@ export const SettingsScreen: React.FC = () => {
                 <Ionicons name="document-text-outline" size={18} color={Colors.primary} />
                 <Text style={styles.textLinkText}>Términos & Condiciones</Text>
               </TouchableOpacity>
+              {buildId ? (
+                <Text style={{ fontSize: 10, color: '#A3A3A3', marginTop: 8, marginLeft: 28, opacity: 0.8 }}>
+                  Versión: {buildId}
+                </Text>
+              ) : null}
             </View>
           </View>
         )}

@@ -45,6 +45,7 @@ export const QuickEntryScreen = () => {
   const [isWalletModalVisible, setWalletModalVisible] = useState(false);
   const [amounts, setAmounts] = useState<Record<string, string>>({});
   const [isSaving, setIsSaving] = useState(false);
+  const isSavingRef = React.useRef(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -100,6 +101,7 @@ export const QuickEntryScreen = () => {
   };
 
   const handleSave = async () => {
+    if (isSavingRef.current) return;
     const activeEntries = Object.entries(amounts).filter(([_, val]) => val && parseThousands(val) > 0);
     
     if (activeEntries.length === 0) {
@@ -112,6 +114,7 @@ export const QuickEntryScreen = () => {
     const count = activeEntries.length;
     const walletName = selectedWallet?.name || '';
 
+    isSavingRef.current = true;
     setIsSaving(true);
     navigation.goBack(); // Cierre instantáneo
 
@@ -166,6 +169,7 @@ export const QuickEntryScreen = () => {
     } catch (err) {
       console.error("Error in background save", err);
     } finally {
+      isSavingRef.current = false;
       setIsSaving(false);
     }
   };

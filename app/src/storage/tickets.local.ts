@@ -1,4 +1,4 @@
-﻿import AsyncStorage from '@react-native-async-storage/async-storage';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const TICKETS_KEY = 'peiapp_local_tickets';
 
@@ -87,8 +87,11 @@ export async function saveLocalTickets(tickets: LocalTicket[]): Promise<void> {
 
 export async function addLocalTicket(ticket: LocalTicket): Promise<void> {
   const all = await getLocalTickets();
-  all.push(ticket);
-  await saveLocalTickets(all);
+  const exists = all.some(t => t.id === ticket.id);
+  if (!exists) {
+    all.push(ticket);
+    await saveLocalTickets(all);
+  }
 }
 
 export async function updateLocalTicket(ticketId: string, data: Partial<LocalTicket>): Promise<void> {

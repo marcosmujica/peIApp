@@ -15,11 +15,22 @@ if (fs.existsSync(envPath)) {
   console.warn(`[WARNING] No se encontró el archivo de entorno en: ${envPath}`);
 }
 
+const pJson = require('./package.json');
+const version = pJson.version || "1.0.0";
+let gitCommit = '';
+try {
+  gitCommit = require('child_process').execSync('git rev-parse --short HEAD', { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
+} catch (e) {
+  gitCommit = 'dev';
+}
+const buildTime = new Date().toISOString().slice(0, 10).replace(/-/g, ''); // YYYYMMDD
+const buildId = `${version} (${buildTime}-${gitCommit})`;
+
 export default {
   expo: {
     name: "PeiApp",
     slug: "peiapp",
-    version: "1.0.0",
+    version: version,
     orientation: "portrait",
     icon: "./assets/icon.png",
     userInterfaceStyle: "light",
@@ -55,6 +66,7 @@ export default {
     extra: {
       apiUrl: process.env.EXPO_PUBLIC_API_URL,
       wssUrl: process.env.EXPO_PUBLIC_WSS_URL,
+      buildId: buildId,
       eas: {
         projectId: "e68496e5-32ba-4b72-96f7-63cbd0010ed6"
       }
