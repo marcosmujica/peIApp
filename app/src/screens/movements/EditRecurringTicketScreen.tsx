@@ -30,12 +30,12 @@ import { getRubroLabel, GENERAL_RUBROS_INGRESOS, GENERAL_RUBROS_GASTOS, WALLET_R
 // â”€â”€â”€ Constants â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const FREQ_LABELS: Record<string, string> = {
-  weekly:          '1 vez por semana',
-  biweekly:        '1 vez cada 15 dÃ­as',
-  monthly:         '1 vez por mes',
-  bimonthly:       '1 vez cada 2 meses',
+  weekly: '1 vez por semana',
+  biweekly: '1 vez cada 15 días',
+  monthly: '1 vez por mes',
+  bimonthly: '1 vez cada 2 meses',
   'semi-annually': '1 vez cada 6 meses',
-  yearly:          '1 vez por año',
+  yearly: '1 vez por año',
 };
 
 const CURRENCY_NAMES: Record<string, string> = {
@@ -72,9 +72,9 @@ const ContactPickerModal: React.FC<ContactPickerProps> = ({ selected, onConfirm,
   const { user } = useAuthStore();
   const { getContactName, loadContacts } = useContactsStore();
   const [contacts, setContacts] = useState<Contact[]>([]);
-  const [search, setSearch]     = useState('');
-  const [loading, setLoading]   = useState(true);
-  const [draft, setDraft]       = useState<Contact[]>(selected);
+  const [search, setSearch] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [draft, setDraft] = useState<Contact[]>(selected);
 
   useEffect(() => {
     const load = async () => {
@@ -117,15 +117,15 @@ const ContactPickerModal: React.FC<ContactPickerProps> = ({ selected, onConfirm,
   const isSelected = (c: Contact) => draft.some(p => cleanPhone(p.phoneNumber) === cleanPhone(c.phoneNumber));
 
   return (
-    <Modal 
-      visible 
-      animationType="slide" 
-      presentationStyle="formSheet" 
+    <Modal
+      visible
+      animationType="slide"
+      presentationStyle="formSheet"
       onRequestClose={onClose}
     >
       <SafeAreaView style={pickerStyles.contactModal} edges={['top', 'bottom']}>
-        <KeyboardAvoidingView 
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={{ flex: 1 }}
         >
           {/* Header */}
@@ -163,8 +163,8 @@ const ContactPickerModal: React.FC<ContactPickerProps> = ({ selected, onConfirm,
             <View style={{ paddingHorizontal: 16, paddingBottom: 16 }}>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
                 {draft.map(c => (
-                  <TouchableOpacity 
-                    key={c.phoneNumber} 
+                  <TouchableOpacity
+                    key={c.phoneNumber}
                     style={pickerStyles.selectedChip}
                     onPress={() => toggle(c)}
                   >
@@ -209,10 +209,10 @@ const ContactPickerModal: React.FC<ContactPickerProps> = ({ selected, onConfirm,
                       <Text style={pickerStyles.contactName}>{c.name}</Text>
                       <Text style={pickerStyles.contactPhone}>{c.phoneNumber}</Text>
                     </View>
-                    <Ionicons 
-                      name={selected ? "checkmark-circle" : "ellipse-outline"} 
-                      size={24} 
-                      color={selected ? "#16A34A" : "#D1D5DB"} 
+                    <Ionicons
+                      name={selected ? "checkmark-circle" : "ellipse-outline"}
+                      size={24}
+                      color={selected ? "#16A34A" : "#D1D5DB"}
                     />
                   </TouchableOpacity>
                 );
@@ -242,19 +242,19 @@ export const EditRecurringTicketScreen: React.FC = () => {
     }));
   };
 
-  const [description, setDescription]      = useState(String(item.description ?? ''));
-  const [comment, setComment]              = useState(String(item.comment ?? ''));
-  const [amount, setAmount]                = useState(String(Math.round(Number(item.amount ?? 0))));
-  const [paymentProcedure, setPayProc]     = useState(String(item.paymentProcedure ?? ''));
-  const [privateNote, setPrivateNote]      = useState(String(item.privateNote ?? ''));
-  const [helpToCollect, setHelp]           = useState(!!item.helpToCollect);
-  const [totalInstallments, setTotal]      = useState(String(item.totalInstallments ?? '12'));
-  const [participants, setParticipants]    = useState<Contact[]>(initParticipants);
-  const [pickerVisible, setPickerVisible]  = useState(false);
+  const [description, setDescription] = useState(String(item.description ?? ''));
+  const [comment, setComment] = useState(String(item.comment ?? ''));
+  const [amount, setAmount] = useState(String(Math.round(Number(item.amount ?? 0))));
+  const [paymentProcedure, setPayProc] = useState(String(item.paymentProcedure ?? ''));
+  const [privateNote, setPrivateNote] = useState(String(item.privateNote ?? ''));
+  const [helpToCollect, setHelp] = useState(!!item.helpToCollect);
+  const [totalInstallments, setTotal] = useState(String(item.totalInstallments ?? '12'));
+  const [participants, setParticipants] = useState<Contact[]>(initParticipants);
+  const [pickerVisible, setPickerVisible] = useState(false);
   const [rubroPickerVisible, setRubroPickerVisible] = useState(false);
-  const [saving, setSaving]                = useState(false);
+  const [saving, setSaving] = useState(false);
 
-  const isIncome    = item.type === 'income';
+  const isIncome = item.type === 'income';
   const currencyName = CURRENCY_NAMES[item.currency] ?? item.currency;
 
   const [rubro, setRubro] = useState<string>(
@@ -262,12 +262,12 @@ export const EditRecurringTicketScreen: React.FC = () => {
       ? (item.rubroIncome ?? item.rubro ?? '')
       : (item.rubroExpense ?? item.rubro ?? '')
   );
-  const [walletName, setWalletName]           = useState<string>('...');
-  const [walletType, setWalletType]           = useState<string>('personal');
+  const [walletName, setWalletName] = useState<string>('...');
+  const [walletType, setWalletType] = useState<string>('personal');
   const [walletEnabledCats, setWalletEnabledCats] = useState<string[] | null>(null);
 
   // Lista de rubros: enabledCategories del wallet > WALLET_RUBROS_MAP > todos
-  const rubroList   = (() => {
+  const rubroList = (() => {
     let enabledIds: string[] = [];
     if (walletEnabledCats && walletEnabledCats.length > 0) {
       enabledIds = walletEnabledCats;
@@ -277,7 +277,7 @@ export const EditRecurringTicketScreen: React.FC = () => {
     }
     return getPartitionedRubros(item.type, enabledIds);
   })();
-  const rubroLabel  = getRubroLabel(rubro || undefined, item.type, item.globalType);
+  const rubroLabel = getRubroLabel(rubro || undefined, item.type, item.globalType);
 
   useEffect(() => {
     getLocalWallets().then(ws => {
@@ -296,31 +296,31 @@ export const EditRecurringTicketScreen: React.FC = () => {
 
   const handleSave = async () => {
     if (!description.trim()) {
-      Alert.alert('DescripciÃ³n requerida', 'IngresÃ¡ una descripciÃ³n para la plantilla.');
+      Alert.alert('Descripción requerida', 'Ingresá una descripción para la plantilla.');
       return;
     }
     const parsedAmount = parseInt(amount);
     if (isNaN(parsedAmount) || parsedAmount <= 0) {
-      Alert.alert('Monto invÃ¡lido', 'IngresÃ¡ un monto mayor a 0.');
+      Alert.alert('Monto inválido', 'Ingresá un monto mayor a 0.');
       return;
     }
 
     setSaving(true);
     try {
       await ticketsApi.updateRecurringTicket(item.id, {
-        description:       description.trim(),
-        comment:           comment.trim() || null,
-        amount:            parsedAmount,
-        paymentProcedure:  paymentProcedure.trim() || null,
-        privateNote:       privateNote.trim() || null,
+        description: description.trim(),
+        comment: comment.trim() || null,
+        amount: parsedAmount,
+        paymentProcedure: paymentProcedure.trim() || null,
+        privateNote: privateNote.trim() || null,
         helpToCollect,
         totalInstallments: item.totalInstallments,
-        participants:      participants.map(p => ({ userId: p.phoneNumber, role: 'user_id' })),
+        participants: participants.map(p => ({ userId: p.phoneNumber, role: 'user_id' })),
         ...(isIncome ? { rubroIncome: rubro || null } : { rubroExpense: rubro || null }),
       });
       navigation.goBack();
     } catch {
-      Alert.alert('Error', 'No se pudieron guardar los cambios. RevisÃ¡ tu conexiÃ³n.');
+      Alert.alert('Error', 'No se pudieron guardar los cambios. Revisá tu conexión.');
     } finally {
       setSaving(false);
     }
@@ -336,7 +336,7 @@ export const EditRecurringTicketScreen: React.FC = () => {
 
       {/* â”€â”€ Header: [spacer] [badge centrado] [X] â”€â”€ */}
       <View style={styles.header}>
-        {/* BotÃ³n volver a la izquierda */}
+        {/* Botón volver a la izquierda */}
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <View style={styles.closeBtnInner}>
             <Ionicons name="chevron-back" size={20} color="#363630" />
@@ -357,8 +357,8 @@ export const EditRecurringTicketScreen: React.FC = () => {
         <View style={styles.headerSpacer} />
       </View>
 
-      <KeyboardAvoidingView 
-        style={{ flex: 1 }} 
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
       >
@@ -380,7 +380,7 @@ export const EditRecurringTicketScreen: React.FC = () => {
             />
           </View>
 
-          {/* â”€â”€ DescripciÃ³n â”€â”€ */}
+          {/* â”€â”€ Descripción â”€â”€ */}
           <TextInput
             style={styles.descriptionInput}
             placeholder="Agregar un detalle"
@@ -399,7 +399,7 @@ export const EditRecurringTicketScreen: React.FC = () => {
             </View>
           </View>
 
-          {/* â”€â”€ Billetera | CategorÃ­a (billetera: readonly, categorÃ­a: editable) â”€â”€ */}
+          {/* ── Billetera | Categoría (billetera: readonly, categoría: editable) ── */}
           <View style={styles.infoDualRow}>
             <View style={styles.infoDualCol}>
               <Text style={styles.infoDualLabel}>Billetera</Text>
@@ -410,7 +410,7 @@ export const EditRecurringTicketScreen: React.FC = () => {
               style={[styles.infoDualCol, { alignItems: 'flex-end' }]}
               onPress={() => setRubroPickerVisible(true)}
             >
-              <Text style={styles.infoDualLabel}>CategorÃ­a</Text>
+              <Text style={styles.infoDualLabel}>Categoría</Text>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, flexShrink: 1 }}>
                 <Text style={[styles.infoDualValue, { flexShrink: 1 }]} numberOfLines={1} ellipsizeMode="tail">
                   {rubroLabel}
@@ -485,7 +485,7 @@ export const EditRecurringTicketScreen: React.FC = () => {
           />
           <View style={styles.rowSep} />
 
-          {/* â”€â”€ Detalle pÃºblico â”€â”€ */}
+          {/* â”€â”€ Detalle público â”€â”€ */}
           <TextInput
             style={styles.multiInput}
             placeholder="Detalle del ticket (lo pueden ver todos)"
@@ -550,7 +550,7 @@ export const EditRecurringTicketScreen: React.FC = () => {
         />
         <View style={rubroStyles.sheet}>
           <View style={rubroStyles.sheetHeader}>
-            <Text style={rubroStyles.sheetTitle}>CategorÃ­a</Text>
+            <Text style={rubroStyles.sheetTitle}>Categoría</Text>
             <TouchableOpacity onPress={() => setRubroPickerVisible(false)}>
               <Ionicons name="close" size={22} color="#363630" />
             </TouchableOpacity>
@@ -563,7 +563,7 @@ export const EditRecurringTicketScreen: React.FC = () => {
                 return (
                   <View style={{ paddingVertical: 12, alignItems: 'center' }}>
                     <View style={{ height: 1, backgroundColor: '#f2f2f0', width: '100%' }} />
-                    <Text style={{ fontSize: 10, color: '#b7b7ae', marginTop: 6, fontFamily: FontFamily.bold, textTransform: 'uppercase' }}>Otras categorÃ­as</Text>
+                    <Text style={{ fontSize: 10, color: '#b7b7ae', marginTop: 6, fontFamily: FontFamily.bold, textTransform: 'uppercase' }}>Otras categorías</Text>
                   </View>
                 );
               }
@@ -603,16 +603,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
   },
-  headerSpacer: { width: 36, height: 36 }, // mismo tamaÃ±o que closeBtnInner
-  closeBtn: {},  // ya no necesita posiciÃ³n absoluta
+  headerSpacer: { width: 36, height: 36 }, // mismo tamaño que closeBtnInner
+  closeBtn: {},  // ya no necesita posición absoluta
   closeBtnInner: { backgroundColor: '#f2f2f0', borderRadius: 100, padding: 8 },
 
   typeToggleRow: { alignItems: 'center', paddingTop: 8, paddingBottom: 4, gap: 4 },
   typeBadge: { borderRadius: 100, paddingHorizontal: 28, paddingVertical: 10 },
-  typeBadgeIncome:      { backgroundColor: '#3a9e7620' },
-  typeBadgeExpense:     { backgroundColor: '#c0505020' },
-  typeBadgeText:        { fontSize: 15, fontFamily: FontFamily.bold },
-  typeBadgeTextIncome:  { color: '#3a9e76' },
+  typeBadgeIncome: { backgroundColor: '#3a9e7620' },
+  typeBadgeExpense: { backgroundColor: '#c0505020' },
+  typeBadgeText: { fontSize: 15, fontFamily: FontFamily.bold },
+  typeBadgeTextIncome: { color: '#3a9e76' },
   typeBadgeTextExpense: { color: '#c05050' },
   currencyNameText: { fontSize: 12, color: '#878778', fontFamily: FontFamily.medium, marginTop: 2 },
 
@@ -647,14 +647,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center',
     paddingVertical: 14, marginBottom: 4,
   },
-  infoDualCol:     { flex: 1 },
+  infoDualCol: { flex: 1 },
   infoDualDivider: { width: 1, height: 36, backgroundColor: '#e8e8e4', marginHorizontal: 12 },
-  infoDualLabel:   { fontSize: 11, color: '#b0b0a8', fontFamily: FontFamily.regular, marginBottom: 3 },
-  infoDualValue:   { fontSize: 15, color: '#363630', fontFamily: FontFamily.semibold },
+  infoDualLabel: { fontSize: 11, color: '#b0b0a8', fontFamily: FontFamily.regular, marginBottom: 3 },
+  infoDualValue: { fontSize: 15, color: '#363630', fontFamily: FontFamily.semibold },
 
   row: { flexDirection: 'row', alignItems: 'center', paddingVertical: 14 },
   rowLabel: { flex: 1, fontSize: 15, color: '#363630', fontFamily: FontFamily.medium },
-  rowSub:   { fontSize: 12, color: '#878778', marginTop: 2 },
+  rowSub: { fontSize: 12, color: '#878778', marginTop: 2 },
   rowRight: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   rowValue: { fontSize: 15, color: '#878778', fontFamily: FontFamily.regular },
   rowValuePlaceholder: { color: '#878778' },

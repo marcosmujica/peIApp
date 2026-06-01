@@ -38,7 +38,7 @@ export interface LocalTicket {
   ownerDisplayName?: string; // Nombre del creador
   toUserAvatarUrl?: string; // Avatar del asignado (from backend)
   toUserDisplayName?: string; // Nombre del asignado
-  
+
   ownerUserObj?: {
     userId: string;
     phone: string;
@@ -52,13 +52,13 @@ export interface LocalTicket {
     avatarUrl?: string;
   };
 
-  synced: boolean; // Para saber si ya se subiÃ³ al server
+  synced: boolean; // Para saber si ya se subió al server
   createdAt: string;
   rubroIncome?: string;
   rubroExpense?: string;
   rubro?: string; // Unified rubro filter
   globalType?: 'ticket' | 'transfer' | 'adjustment';
-  
+
   // Chat integration
   lastChatMessage?: string;
   lastChatSenderAvatar?: string;
@@ -148,7 +148,7 @@ export async function mergeServerTickets(serverTickets: any[]): Promise<LocalTic
       ownerDisplayName: st.owner?.displayName,
       toUserAvatarUrl: st.toUserObj?.avatarUrl,
       toUserDisplayName: st.toUserObj?.displayName,
-      
+
       ownerUserObj: st.ownerUserObj,
       toUserObj: st.toUserObj,
 

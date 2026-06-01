@@ -135,18 +135,24 @@ export const QuickEntryScreen = () => {
           source: 'quick_entry',
         };
 
+        let serverTicket: any = null;
         try {
-          const serverTicket = await ticketsApi.createTicket(createDto);
-          await ticketsApi.recordPayment(serverTicket.ticketId, {
-            amount: parsedAmount,
-            paymentMethod: selectedWallet?.defaultPaymentMethod || 'cash',
-            description: 'Saldado rápido',
-          });
+          serverTicket = await ticketsApi.createTicket(createDto);
+          
+          try {
+            await ticketsApi.recordPayment(serverTicket.ticketId, {
+              amount: parsedAmount,
+              paymentMethod: selectedWallet?.defaultPaymentMethod || 'cash',
+              description: 'Saldado rápido',
+            });
+          } catch (payErr) {
+            console.warn("Failed to record payment on server, but ticket was created", payErr);
+          }
 
           await addLocalTicket({
             ...createDto,
             id: serverTicket.ticketId,
-            ownerId: user?.phoneNumber || '',
+            ownerId: user?.id || serverTicket.ownerId || '',
             dueDate: createDto.dueDate.toISOString(),
             synced: true,
             createdAt: serverTicket.createdAt,
@@ -157,7 +163,7 @@ export const QuickEntryScreen = () => {
           await addLocalTicket({
             ...createDto,
             id: `local_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
-            ownerId: user?.phoneNumber || '',
+            ownerId: user?.id || '',
             dueDate: createDto.dueDate.toISOString(),
             synced: false,
             createdAt: new Date().toISOString(),
@@ -189,7 +195,20 @@ export const QuickEntryScreen = () => {
           <Ionicons name="chevron-back" size={28} color="#333" />
         </TouchableOpacity>
         <Typography variant="headingH3">Carga Rápida</Typography>
-        <View style={{ width: 40 }} />
+        <TouchableOpacity 
+          onPress={handleSave} 
+          disabled={isSaving} 
+          style={styles.saveButtonHeader}
+          activeOpacity={0.7}
+        >
+          {isSaving ? (
+            <ActivityIndicator size="small" color={Colors.primary} />
+          ) : (
+            <Typography variant="labelBaseStrong" style={{ color: Colors.primary }}>
+              Guardar
+            </Typography>
+          )}
+        </TouchableOpacity>
       </View>
 
       <View style={styles.walletSelectorContainer}>
@@ -244,18 +263,6 @@ export const QuickEntryScreen = () => {
           })}
         </ScrollView>
       </KeyboardAvoidingView>
-
-      <View style={styles.footer}>
-        <Button
-          label={isSaving ? "Guardando..." : "Guardar"}
-          onPress={handleSave}
-          loading={isSaving}
-          disabled={isSaving}
-          variant="primary"
-          fullWidth
-          size="lg"
-        />
-      </View>
 
       <Modal visible={isWalletModalVisible} transparent animationType="fade">
         <TouchableWithoutFeedback onPress={() => setWalletModalVisible(false)}>
@@ -320,7 +327,14 @@ const styles = StyleSheet.create({
     // @ts-ignore
     outlineStyle: 'none',
   },
-  footer: { padding: 20, backgroundColor: 'white', borderTopWidth: 1, borderTopColor: '#EEE' },
+  saveButtonHeader: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    backgroundColor: '#F3F4F6',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(20,51,39,0.4)', justifyContent: 'center', padding: 24 },
   modalContent: { backgroundColor: 'white', borderRadius: 24, padding: 24, maxHeight: '70%', ...Shadows.cardElevated },
   modalItem: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
