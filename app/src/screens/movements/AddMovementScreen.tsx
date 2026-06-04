@@ -34,7 +34,7 @@ import * as Sharing from 'expo-sharing';
 import NativeDatePicker from '@/components/ui/NativeDatePicker';
 
 import { getLocalWallets, LocalWallet } from '@/storage/wallets.local';
-import { addLocalTicket, getLocalTickets, updateLocalTicket } from '@/storage/tickets.local';
+import { addLocalTicket, getLocalTickets, updateLocalTicket, markTicketAsOpened } from '@/storage/tickets.local';
 import { ticketsApi } from '@/api/tickets.api';
 import { API_URL, WEB_SHARE_URL } from '@/api/api.client';
 import { useAuthStore } from '@/store/auth.store';
@@ -401,6 +401,7 @@ export const AddMovementScreen = () => {
   useEffect(() => {
     if (ticketId) {
       const loadTicket = async () => {
+        await markTicketAsOpened(ticketId);
         const all = await getLocalTickets();
         const t = (all as any[]).find((x: any) => x.id === ticketId);
         if (t) {

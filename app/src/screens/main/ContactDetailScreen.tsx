@@ -1,14 +1,14 @@
 import React, { useState, useCallback } from 'react';
-import { 
-  View, StyleSheet, FlatList, TouchableOpacity, 
+import {
+  View, StyleSheet, FlatList, TouchableOpacity,
   Image, ActivityIndicator, StatusBar, Platform,
-  ScrollView 
+  ScrollView
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { Colors, FontFamily, Shadows, Spacing, BorderRadius } from '@/constants/theme';
-import { getLocalTickets, LocalTicket } from '@/storage/tickets.local';
+import { getLocalTickets, LocalTicket, isTicketChatUnread } from '@/storage/tickets.local';
 import { useAuthStore } from '@/store/auth.store';
 import { getRubroLabel, getRubroIcon } from '@/constants/rubros';
 import { useContactsStore } from '@/store/contacts.store';
@@ -22,9 +22,9 @@ export const ContactDetailScreen = () => {
   const route = useRoute<any>();
   const { phoneNumber, name: initialName, avatarUrl } = route.params;
   const { user } = useAuthStore();
-  
+
   const name = getSmartDisplayName(phoneNumber, initialName);
-  
+
   const [loading, setLoading] = useState(true);
   const [tickets, setTickets] = useState<LocalTicket[]>([]);
 
@@ -37,7 +37,7 @@ export const ContactDetailScreen = () => {
         const toUserMatch = t.toUser === phoneNumber || t.toUserObj?.phone === phoneNumber;
         return ownerMatch || toUserMatch;
       }).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-      
+
       setTickets(filtered);
     } catch (error) {
       console.error("Error loading contact tickets", error);
@@ -80,25 +80,30 @@ export const ContactDetailScreen = () => {
     return (
       <View style={styles.ticketsCard}>
         {tickets.map((item, index) => {
-          const isOverdue = item.status === 'pending' && item.dueDate && new Date(item.dueDate).setHours(0,0,0,0) < new Date().setHours(0,0,0,0);
+          const isOverdue = item.status === 'pending' && item.dueDate && new Date(item.dueDate).setHours(0, 0, 0, 0) < new Date().setHours(0, 0, 0, 0);
           const isLast = index === tickets.length - 1;
-          
+
+          const baseSubtitle = new Date(item.dueDate && item.dueDate !== '' ? item.dueDate : item.createdAt).toLocaleDateString('es-AR', { day: 'numeric', month: 'short' });
+          const hasUnread = isTicketChatUnread(item, user?.id);
+          const subtitle = hasUnread ? item.lastChatMessage : baseSubtitle;
+
           return (
             <View key={item.id}>
               <TransactionItem
                 title={item.description || getRubroLabel(item.rubro || (item.type === 'income' ? item.rubroIncome : item.rubroExpense), item.type)}
-                subtitle={new Date(item.dueDate && item.dueDate !== '' ? item.dueDate : item.createdAt).toLocaleDateString('es-AR', { day: 'numeric', month: 'short' })}
+                subtitle={subtitle}
                 amount={`$${item.amount.toLocaleString('es-AR')}`}
                 currency={item.currency || 'UYU'}
                 iconName={getRubroIcon(item.rubro || (item.type === 'income' ? item.rubroIncome : item.rubroExpense), item.type) as any}
                 iconColor={item.type === 'income' ? "#207e52" : "#c05050"}
                 onPress={() => navigation.navigate('AddMovementModal', { ticketId: item.id })}
                 status={isOverdue ? 'overdue' : (item.status === 'pending' ? undefined : item.status)}
-                overdueDays={isOverdue ? Math.max(0, Math.floor((new Date().setHours(0,0,0,0) - new Date(item.dueDate).setHours(0,0,0,0)) / (1000 * 60 * 60 * 24))) : undefined}
+                overdueDays={isOverdue ? Math.max(0, Math.floor((new Date().setHours(0, 0, 0, 0) - new Date(item.dueDate).setHours(0, 0, 0, 0)) / (1000 * 60 * 60 * 24))) : undefined}
                 amountColor={item.type === 'income' ? '#363630' : '#c05050'}
                 avatarUrl={item.globalType && item.globalType !== 'ticket' ? undefined : getSmartAvatarUrl(item.toUserObj?.phone, item.toUserObj?.avatarUrl)}
                 rating={user?.id === item.ownerId ? item.participantRating : item.ownerRating}
-                style={{ 
+                hasUnreadChat={hasUnread}
+                style={{
                   height: 64,
                   paddingHorizontal: 16,
                   paddingVertical: 12,
@@ -117,7 +122,7 @@ export const ContactDetailScreen = () => {
   return (
     <SafeAreaView style={styles.safe}>
       <StatusBar barStyle="dark-content" />
-      
+
       {/* TOP HEADER */}
       <View style={styles.topHeader}>
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
@@ -127,41 +132,41 @@ export const ContactDetailScreen = () => {
         <View style={{ width: 44 }} />
       </View>
 
-      <ScrollView 
+      <ScrollView
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
       >
         {/* PROFILE CARD */}
         <View style={{ marginBottom: 24 }}>
           <View style={styles.profileCard}>
-              <View style={styles.avatarContainer}>
-                {finalAvatarUrl ? (
-                  <Image source={{ uri: normalizeAvatarUrl(finalAvatarUrl) }} style={styles.avatarLarge} />
-                ) : (
-                  <View style={styles.avatarPlaceholderLarge}>
-                    <Typography style={{ fontSize: 32, fontFamily: FontFamily.bold, color: Colors.white }}>
-                      {name.charAt(0).toUpperCase()}
-                    </Typography>
-                  </View>
-                )}
-              </View>
-              <Typography variant="headingH2" textAlign="center">{name}</Typography>
-              <View style={styles.phoneRatingRow}>
-                 <Typography variant="bodyBase" color={Colors.textSecondary}>{phoneNumber}</Typography>
-                 {avgRating && (
-                   <View style={styles.mainRatingBadge}>
-                      <Ionicons name="star" size={14} color="#F59E0B" />
-                      <Typography variant="labelBase" style={{ color: '#92400E', marginLeft: 4 }}>{avgRating}</Typography>
-                   </View>
-                 )}
-              </View>
+            <View style={styles.avatarContainer}>
+              {finalAvatarUrl ? (
+                <Image source={{ uri: normalizeAvatarUrl(finalAvatarUrl) }} style={styles.avatarLarge} />
+              ) : (
+                <View style={styles.avatarPlaceholderLarge}>
+                  <Typography style={{ fontSize: 32, fontFamily: FontFamily.bold, color: Colors.white }}>
+                    {name.charAt(0).toUpperCase()}
+                  </Typography>
+                </View>
+              )}
+            </View>
+            <Typography variant="headingH2" textAlign="center">{name}</Typography>
+            <View style={styles.phoneRatingRow}>
+              <Typography variant="bodyBase" color={Colors.textSecondary}>{phoneNumber}</Typography>
+              {avgRating && (
+                <View style={styles.mainRatingBadge}>
+                  <Ionicons name="star" size={14} color="#F59E0B" />
+                  <Typography variant="labelBase" style={{ color: '#92400E', marginLeft: 4 }}>{avgRating}</Typography>
+                </View>
+              )}
+            </View>
           </View>
         </View>
 
         {/* RECENT ACTIVITY TITLE */}
         <View style={{ marginBottom: 12 }}>
           <Typography variant="labelXSmall" color={Colors.textTertiary} uppercase spacing={2}>
-             Actividad Reciente
+            Actividad Reciente
           </Typography>
         </View>
 
@@ -175,13 +180,13 @@ export const ContactDetailScreen = () => {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Colors.background },
-  topHeader: { 
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
-    alignItems: 'center', 
-    paddingHorizontal: 16, 
+  topHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
     paddingTop: 10,
-    marginBottom: 10 
+    marginBottom: 10
   },
   backBtn: { width: 44, height: 44, justifyContent: 'center', alignItems: 'center' },
   listContent: { paddingHorizontal: 24, paddingBottom: 40 },
@@ -204,22 +209,22 @@ const styles = StyleSheet.create({
   },
   avatarContainer: { marginBottom: 16 },
   avatarLarge: { width: 100, height: 100, borderRadius: 50 },
-  avatarPlaceholderLarge: { 
-    width: 100, 
-    height: 100, 
-    borderRadius: 50, 
-    backgroundColor: Colors.primary, 
-    alignItems: 'center', 
-    justifyContent: 'center' 
+  avatarPlaceholderLarge: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: Colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center'
   },
   phoneRatingRow: { flexDirection: 'row', alignItems: 'center', marginTop: 8, gap: 12 },
-  mainRatingBadge: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    backgroundColor: '#FFFBEB', 
-    paddingHorizontal: 10, 
-    paddingVertical: 4, 
-    borderRadius: 12 
+  mainRatingBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFBEB',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12
   },
   ticketsCard: {
     backgroundColor: Colors.white,

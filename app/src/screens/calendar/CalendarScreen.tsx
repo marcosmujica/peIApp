@@ -16,7 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { Colors, FontFamily, Spacing } from '@/constants/theme';
-import { getLocalTickets, LocalTicket } from '@/storage/tickets.local';
+import { getLocalTickets, LocalTicket, isTicketChatUnread } from '@/storage/tickets.local';
 import { getLocalWallets, LocalWallet } from '@/storage/wallets.local';
 import { useAuthStore } from '@/store/auth.store';
 import { getSmartAvatarUrl } from '@/utils/userDisplay';
@@ -74,10 +74,10 @@ export const CalendarScreen = () => {
     const month = currentDate.getMonth();
 
     const firstDayOfMonth = new Date(year, month, 1);
-    firstDayOfMonth.setHours(0,0,0,0);
+    firstDayOfMonth.setHours(0, 0, 0, 0);
     const firstDayTime = firstDayOfMonth.getTime();
 
-    const todayTime = new Date().setHours(0,0,0,0);
+    const todayTime = new Date().setHours(0, 0, 0, 0);
 
     // Get balance before this month starts, per currency
     let runningBalance: Record<string, number> = {};
@@ -100,7 +100,7 @@ export const CalendarScreen = () => {
     const days = [];
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     const startDayOfWeek = new Date(year, month, 1).getDay();
-    
+
     // Add empty slots
     for (let i = 0; i < startDayOfWeek; i++) {
       days.push({ day: null, balance: {}, delta: {}, date: null, hasIncomes: false, hasExpenses: false, isToday: false });
@@ -108,9 +108,9 @@ export const CalendarScreen = () => {
 
     for (let d = 1; d <= daysInMonth; d++) {
       const dDate = new Date(year, month, d);
-      dDate.setHours(0,0,0,0);
+      dDate.setHours(0, 0, 0, 0);
       const dTime = dDate.getTime();
-      
+
       const dayTickets = displayedTickets.filter(t => parseDateLiteral(t.dueDate) === dTime);
 
       const delta: Record<string, number> = {};
@@ -166,15 +166,15 @@ export const CalendarScreen = () => {
       <View style={styles.header}>
         <Text style={styles.title}>Agenda</Text>
       </View>
- 
-      <ScrollView 
-        showsVerticalScrollIndicator={false} 
+
+      <ScrollView
+        showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 40 }}
         refreshControl={
-          <RefreshControl 
-            refreshing={refreshing} 
-            onRefresh={() => fetchContent(true)} 
-            tintColor={Colors.primary} 
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={() => fetchContent(true)}
+            tintColor={Colors.primary}
           />
         }
       >
@@ -188,104 +188,110 @@ export const CalendarScreen = () => {
           </TouchableOpacity>
         </View>
         <View style={styles.monthSelector}>
-        <TouchableOpacity onPress={() => changeMonth(-1)} style={styles.navBtn}>
-          <Ionicons name="chevron-back" size={24} color={Colors.foreground} />
-        </TouchableOpacity>
-        <Text style={styles.monthLabel}>{monthName.charAt(0).toUpperCase() + monthName.slice(1)}</Text>
-        <TouchableOpacity onPress={() => changeMonth(1)} style={styles.navBtn}>
-          <Ionicons name="chevron-forward" size={24} color={Colors.foreground} />
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.calendarContainer}>
-        <View style={styles.weekHeaders}>
-          {['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'].map(d => (
-            <Text key={d} style={styles.weekHeaderText}>{d}</Text>
-          ))}
+          <TouchableOpacity onPress={() => changeMonth(-1)} style={styles.navBtn}>
+            <Ionicons name="chevron-back" size={24} color={Colors.foreground} />
+          </TouchableOpacity>
+          <Text style={styles.monthLabel}>{monthName.charAt(0).toUpperCase() + monthName.slice(1)}</Text>
+          <TouchableOpacity onPress={() => changeMonth(1)} style={styles.navBtn}>
+            <Ionicons name="chevron-forward" size={24} color={Colors.foreground} />
+          </TouchableOpacity>
         </View>
 
-        <View style={styles.grid}>
-          {monthData.map((d, index) => (
-            <TouchableOpacity 
-              key={index} 
-              onPress={() => {
-                if (d.day !== null && d.date) {
-                  setSelectedDay(d.date);
-                }
-              }}
-              style={[
-                styles.dayCell, 
-                d.day === null && styles.emptyCell,
-                d.day !== null && Object.values(d.balance).some(v => v < 0) && styles.lossCell,
-                d.isToday && styles.todayCell,
-                selectedDay && d.date && selectedDay.getTime() === d.date.getTime() && styles.selectedDayCell
-              ]}
-            >
-              {d.day !== null && (
-                <>
-                  <Text style={[styles.dayNumber, Object.values(d.balance).some(v => v < 0) && styles.lossText]}>{d.day}</Text>
-                  {Object.entries(d.balance).slice(0, 2).map(([curr, val], idx) => (
-                    <Text 
-                      key={curr}
-                      style={[
-                        styles.dayBalance, 
-                        val < 0 ? styles.lossText : (val > 0 ? styles.gainText : styles.neutralText),
-                        { marginTop: idx === 0 ? 2 : 0, fontSize: 9 }
-                      ]}
-                      numberOfLines={1}
-                      adjustsFontSizeToFit
-                    >
-                      {curr === 'USD' ? 'U$S' : '$'}{Math.abs(val) >= 1000 ? (Math.abs(val)/1000).toFixed(1) + 'k' : Math.abs(Math.round(val))}
-                    </Text>
-                  ))}
-                  <View style={styles.dotContainer}>
-                    {d.hasIncomes && <View style={[styles.dot, { backgroundColor: '#10b981' }]} />}
-                    {d.hasExpenses && <View style={[styles.dot, { backgroundColor: '#ef4444' }]} />}
-                  </View>
-                </>
-              )}
-            </TouchableOpacity>
-          ))}
-        </View>
-      </View>
-
-      {selectedDay && (
-        <View style={styles.selectedDayTransactions}>
-          <View style={styles.selectedDayHeader}>
-            <Text style={styles.selectedDayTitle}>
-              Movimientos del {selectedDay.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })}
-            </Text>
-            <TouchableOpacity onPress={() => setSelectedDay(null)}>
-              <Ionicons name="close-circle" size={20} color={Colors.mutedForeground} />
-            </TouchableOpacity>
+        <View style={styles.calendarContainer}>
+          <View style={styles.weekHeaders}>
+            {['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'].map(d => (
+              <Text key={d} style={styles.weekHeaderText}>{d}</Text>
+            ))}
           </View>
-          
-          {displayedTickets.filter(t => parseDateLiteral(t.dueDate) === selectedDay.getTime()).map(item => (
-            <TransactionItem
-              key={item.id}
-              title={item.description || getRubroLabel(item.type === 'income' ? item.rubroIncome : item.rubroExpense, item.type)}
-              subtitle={item.type === 'income' ? 'Cobro' : 'Pago'}
-              amount={`$${item.amount.toLocaleString('es-AR')}`}
-              iconName={getRubroIcon(item.type === 'income' ? item.rubroIncome : item.rubroExpense, item.type) as any}
-              iconColor={item.type === 'income' ? "#207e52" : "#c05050"}
-              onPress={() => navigation.navigate('AddMovementModal', { ticketId: item.id })}
-              amountColor={item.type === 'income' ? '#363630' : '#c05050'}
-              status={item.status === 'pending' && item.dueDate && new Date(item.dueDate).setHours(0,0,0,0) < new Date().setHours(0,0,0,0) ? 'overdue' : (item.status === 'pending' ? undefined : item.status)}
-              overdueDays={item.status === 'pending' && item.dueDate && new Date(item.dueDate).setHours(0,0,0,0) < new Date().setHours(0,0,0,0) ? Math.max(0, Math.floor((new Date().setHours(0,0,0,0) - new Date(item.dueDate).setHours(0,0,0,0)) / (1000 * 60 * 60 * 24))) : undefined}
-              avatarUrl={item.globalType && item.globalType !== 'ticket' ? undefined : getSmartAvatarUrl(item.toUserObj?.phone, item.toUserObj?.avatarUrl)}
-              style={styles.transactionItem}
-            />
-          ))}
-          
-          {displayedTickets.filter(t => parseDateLiteral(t.dueDate) === selectedDay.getTime()).length === 0 && (
-            <Text style={styles.emptyDayText}>No hay movimientos registrados para este día</Text>
-          )}
-        </View>
-      )}
 
-      <View style={styles.summaryContainer}>
+          <View style={styles.grid}>
+            {monthData.map((d, index) => (
+              <TouchableOpacity
+                key={index}
+                onPress={() => {
+                  if (d.day !== null && d.date) {
+                    setSelectedDay(d.date);
+                  }
+                }}
+                style={[
+                  styles.dayCell,
+                  d.day === null && styles.emptyCell,
+                  d.day !== null && Object.values(d.balance).some(v => v < 0) && styles.lossCell,
+                  d.isToday && styles.todayCell,
+                  selectedDay && d.date && selectedDay.getTime() === d.date.getTime() && styles.selectedDayCell
+                ]}
+              >
+                {d.day !== null && (
+                  <>
+                    <Text style={[styles.dayNumber, Object.values(d.balance).some(v => v < 0) && styles.lossText]}>{d.day}</Text>
+                    {Object.entries(d.balance).slice(0, 2).map(([curr, val], idx) => (
+                      <Text
+                        key={curr}
+                        style={[
+                          styles.dayBalance,
+                          val < 0 ? styles.lossText : (val > 0 ? styles.gainText : styles.neutralText),
+                          { marginTop: idx === 0 ? 2 : 0, fontSize: 9 }
+                        ]}
+                        numberOfLines={1}
+                        adjustsFontSizeToFit
+                      >
+                        {curr === 'USD' ? 'U$S' : '$'}{Math.abs(val) >= 1000 ? (Math.abs(val) / 1000).toFixed(1) + 'k' : Math.abs(Math.round(val))}
+                      </Text>
+                    ))}
+                    <View style={styles.dotContainer}>
+                      {d.hasIncomes && <View style={[styles.dot, { backgroundColor: '#10b981' }]} />}
+                      {d.hasExpenses && <View style={[styles.dot, { backgroundColor: '#ef4444' }]} />}
+                    </View>
+                  </>
+                )}
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        {selectedDay && (
+          <View style={styles.selectedDayTransactions}>
+            <View style={styles.selectedDayHeader}>
+              <Text style={styles.selectedDayTitle}>
+                Movimientos del {selectedDay.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })}
+              </Text>
+              <TouchableOpacity onPress={() => setSelectedDay(null)}>
+                <Ionicons name="close-circle" size={20} color={Colors.mutedForeground} />
+              </TouchableOpacity>
+            </View>
+
+            {displayedTickets.filter(t => parseDateLiteral(t.dueDate) === selectedDay.getTime()).map(item => {
+              const baseSubtitle = item.type === 'income' ? 'Cobro' : 'Pago';
+              const hasUnread = isTicketChatUnread(item, user?.id);
+              const subtitle = hasUnread ? item.lastChatMessage : baseSubtitle;
+              return (
+                <TransactionItem
+                  key={item.id}
+                  title={item.description || getRubroLabel(item.type === 'income' ? item.rubroIncome : item.rubroExpense, item.type)}
+                  subtitle={subtitle}
+                  amount={`$${item.amount.toLocaleString('es-AR')}`}
+                  iconName={getRubroIcon(item.type === 'income' ? item.rubroIncome : item.rubroExpense, item.type) as any}
+                  iconColor={item.type === 'income' ? "#207e52" : "#c05050"}
+                  onPress={() => navigation.navigate('AddMovementModal', { ticketId: item.id })}
+                  amountColor={item.type === 'income' ? '#363630' : '#c05050'}
+                  status={item.status === 'pending' && item.dueDate && new Date(item.dueDate).setHours(0, 0, 0, 0) < new Date().setHours(0, 0, 0, 0) ? 'overdue' : (item.status === 'pending' ? undefined : item.status)}
+                  overdueDays={item.status === 'pending' && item.dueDate && new Date(item.dueDate).setHours(0, 0, 0, 0) < new Date().setHours(0, 0, 0, 0) ? Math.max(0, Math.floor((new Date().setHours(0, 0, 0, 0) - new Date(item.dueDate).setHours(0, 0, 0, 0)) / (1000 * 60 * 60 * 24))) : undefined}
+                  avatarUrl={item.globalType && item.globalType !== 'ticket' ? undefined : getSmartAvatarUrl(item.toUserObj?.phone, item.toUserObj?.avatarUrl)}
+                  hasUnreadChat={hasUnread}
+                  style={styles.transactionItem}
+                />
+              );
+            })}
+
+            {displayedTickets.filter(t => parseDateLiteral(t.dueDate) === selectedDay.getTime()).length === 0 && (
+              <Text style={styles.emptyDayText}>No hay movimientos registrados para este día</Text>
+            )}
+          </View>
+        )}
+
+        <View style={styles.summaryContainer}>
           <Text style={styles.summaryTitle}>Resumen del Mes</Text>
-          
+
           <View style={styles.summaryGrid}>
             <View style={styles.summaryCard}>
               <Text style={styles.summaryLabel}>Días en Rojo</Text>
@@ -309,7 +315,7 @@ export const CalendarScreen = () => {
               })()}
             </View>
           </View>
-  
+
           <View style={styles.legend}>
             <View style={styles.legendItem}>
               <View style={[styles.dot, { backgroundColor: '#10b981' }]} />
@@ -333,8 +339,8 @@ export const CalendarScreen = () => {
                 data={[{ id: null, name: 'Todas las billeteras' } as any, ...wallets]}
                 keyExtractor={item => item.id || 'all'}
                 renderItem={({ item }) => (
-                  <TouchableOpacity 
-                    style={styles.modalItem} 
+                  <TouchableOpacity
+                    style={styles.modalItem}
                     onPress={() => { setSelectedWalletId(item.id); setWalletModalVisible(false); }}
                   >
                     <Text style={[styles.modalItemText, selectedWalletId === item.id && styles.modalItemTextActive]}>

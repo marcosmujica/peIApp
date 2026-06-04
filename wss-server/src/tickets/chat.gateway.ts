@@ -75,11 +75,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       attachmentUrl?: string;
       attachmentType?: string;
       createdAt?: string;
+      replyToChatId?: string;
+      replyToMessage?: string;
+      replyToSenderName?: string;
     },
     @ConnectedSocket() client: Socket,
   ) {
     this.chatLog(`Message received from ${client.id} for ticket ${data.ticketId}: ${data.message || '[Attachment]'}`);
-    const { ticketId, senderId, message, senderName, chatId, attachmentUrl, attachmentType, createdAt } = data;
+    const { ticketId, senderId, message, senderName, chatId, attachmentUrl, attachmentType, createdAt, replyToChatId, replyToMessage, replyToSenderName } = data;
     
     try {
       let emitData;
@@ -95,6 +98,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
           attachmentUrl,
           attachmentType,
           createdAt: createdAt || new Date().toISOString(),
+          replyToChatId,
+          replyToMessage,
+          replyToSenderName,
         };
         this.chatLog(`Broadcasting existing message: ${chatId}`);
       } else {
@@ -105,7 +111,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
           message, 
           senderName,
           attachmentUrl,
-          attachmentType
+          attachmentType,
+          replyToChatId,
+          replyToMessage,
+          replyToSenderName
         );
         emitData = {
           chatId: saved.chatId,
@@ -116,6 +125,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
           attachmentUrl: saved.attachmentUrl,
           attachmentType: saved.attachmentType,
           createdAt: saved.createdAt,
+          replyToChatId: saved.replyToChatId,
+          replyToMessage: saved.replyToMessage,
+          replyToSenderName: saved.replyToSenderName,
         };
         this.chatLog(`Saved and broadcasting new message: ${saved.chatId}`);
       }

@@ -4,8 +4,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { TransactionItem } from '../ui';
 import { Colors, FontFamily } from '@/constants/theme';
 import { getRubroIcon, getRubroLabel } from '@/constants/rubros';
-import { LocalTicket } from '@/storage/tickets.local';
+import { LocalTicket, isTicketChatUnread } from '@/storage/tickets.local';
 import { getContactAvatarStatic } from '@/store/contacts.store';
+import { useAuthStore } from '@/store/auth.store';
 
 interface RecentMovementsPanelProps {
   movements: LocalTicket[];
@@ -20,11 +21,12 @@ export const RecentMovementsPanel: React.FC<RecentMovementsPanelProps> = ({
   onPressItem,
   onPressViewAll
 }) => {
+  const { user } = useAuthStore();
   return (
-    <View style={{ 
-      backgroundColor: Colors.white, 
-      borderRadius: 24, 
-      padding: 16, 
+    <View style={{
+      backgroundColor: Colors.white,
+      borderRadius: 24,
+      padding: 16,
       ...Platform.select({
         web: { boxShadow: '0px 2px 15px rgba(0, 0, 0, 0.05)' },
         default: {
@@ -35,11 +37,11 @@ export const RecentMovementsPanel: React.FC<RecentMovementsPanelProps> = ({
           elevation: 2,
         }
       }),
-      borderWidth: 1, 
-      borderColor: '#eceae3' 
+      borderWidth: 1,
+      borderColor: '#eceae3'
     }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-        <TouchableOpacity 
+        <TouchableOpacity
           onPress={onPressViewAll}
           style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}
           activeOpacity={0.7}
@@ -52,18 +54,22 @@ export const RecentMovementsPanel: React.FC<RecentMovementsPanelProps> = ({
       <View style={{ flexDirection: 'column' }}>
         {movements.length > 0 ? (
           movements.map((item, index) => {
-            const isOverdue = item.status === 'pending' && item.dueDate && new Date(item.dueDate).setHours(0,0,0,0) < new Date().setHours(0,0,0,0);
-            
+            const isOverdue = item.status === 'pending' && item.dueDate && new Date(item.dueDate).setHours(0, 0, 0, 0) < new Date().setHours(0, 0, 0, 0);
+
             const otherPartyPhone = userPhoneNumber === item.ownerId ? item.toUser : item.ownerId;
-            const otherPartyAvatar = (userPhoneNumber === item.ownerId 
-              ? item.toUserAvatarUrl 
+            const otherPartyAvatar = (userPhoneNumber === item.ownerId
+              ? item.toUserAvatarUrl
               : item.ownerAvatarUrl) || getContactAvatarStatic(otherPartyPhone);
-            
+
+            const baseSubtitle = new Date(item.dueDate && item.dueDate !== '' ? item.dueDate : item.createdAt).toLocaleDateString('es-AR', { day: 'numeric', month: 'short' });
+            const hasUnread = isTicketChatUnread(item, user?.id);
+            const subtitle = hasUnread ? `${item.lastChatMessage}` : baseSubtitle;
+
             return (
               <View key={item.id}>
                 <TransactionItem
                   title={item.description || getRubroLabel(item.rubro || (item.type === 'income' ? item.rubroIncome : item.rubroExpense), item.type, (item as any).globalType)}
-                  subtitle={new Date(item.dueDate && item.dueDate !== '' ? item.dueDate : item.createdAt).toLocaleDateString('es-AR', { day: 'numeric', month: 'short' })}
+                  subtitle={subtitle}
                   amount={`$${item.amount.toLocaleString('es-AR')}`}
                   currency={item.currency || 'UYU'}
                   iconName={getRubroIcon(item.rubro || (item.type === 'income' ? item.rubroIncome : item.rubroExpense), item.type, (item as any).globalType) as any}
@@ -72,6 +78,7 @@ export const RecentMovementsPanel: React.FC<RecentMovementsPanelProps> = ({
                   status={item.status === 'completed' ? 'completed' : (isOverdue ? 'overdue' : 'pending')}
                   amountColor={item.type === 'income' ? Colors.textPrimary : Colors.alertsError}
                   avatarUrl={otherPartyAvatar}
+                  hasUnreadChat={hasUnread}
                   style={{ height: 52 }}
                 />
                 {index < movements.length - 1 && (

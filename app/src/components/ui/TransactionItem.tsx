@@ -33,6 +33,7 @@ interface TransactionItemProps {
   rating?: number;
   avatarUrl?: string;
   overdueDays?: number;
+  hasUnreadChat?: boolean;
 }
 
 export const TransactionItem: React.FC<TransactionItemProps> = ({
@@ -49,6 +50,7 @@ export const TransactionItem: React.FC<TransactionItemProps> = ({
   rating,
   avatarUrl,
   overdueDays,
+  hasUnreadChat,
 }) => {
   const Wrapper = onPress ? TouchableOpacity : View;
   const [imageError, setImageError] = React.useState(false);
@@ -74,9 +76,11 @@ export const TransactionItem: React.FC<TransactionItemProps> = ({
 
       <View style={styles.textColumn}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-          <Text style={[styles.title, { flex: 1, marginRight: 8 }]} numberOfLines={1}>
-            {title}
-          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 8 }}>
+            <Text style={[styles.title, hasUnreadChat && { fontWeight: '700', color: '#111827' }]} numberOfLines={1}>
+              {title}
+            </Text>
+          </View>
           <View style={styles.right}>
             {amount ? (
               <View style={styles.amountContainer}>
@@ -99,6 +103,7 @@ export const TransactionItem: React.FC<TransactionItemProps> = ({
         ) : null}
 
         <View style={styles.subtitleRow}>
+          {hasUnreadChat && <View style={[styles.unreadDot, { marginLeft: 0, marginRight: 6 }]} />}
           {subtitle ? (
             <Text style={styles.subtitle} numberOfLines={1}>
               {subtitle}
@@ -121,6 +126,13 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
     width: "100%",
     paddingVertical: 14,
+  },
+  unreadDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#3a9e76',
+    marginLeft: 6,
   },
   iconContainer: {
     width: 36,

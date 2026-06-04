@@ -2,7 +2,8 @@ import { io, Socket } from 'socket.io-client';
 import { Platform } from 'react-native';
 
 // Cambia esto a la IP real del servidor si estás probando en un dispositivo físico
-const SERVER_URL = process.env.EXPO_PUBLIC_WSS_URL || process.env.EXPO_PUBLIC_WS_URL || (Platform.OS === 'android' ? 'http://10.0.2.2:3001' : 'https://wss.peiapp.tech');
+const rawServerUrl = process.env.EXPO_PUBLIC_WSS_URL || process.env.EXPO_PUBLIC_WS_URL || (Platform.OS === 'android' ? 'http://10.0.2.2:3001' : 'https://wss.peiapp.tech');
+const SERVER_URL = Platform.OS === 'android' ? rawServerUrl.replace('localhost', '10.0.2.2') : rawServerUrl;
 
 export class SocketService {
   private static instance: Socket | null = null;

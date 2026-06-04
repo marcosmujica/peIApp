@@ -190,48 +190,52 @@ export const QuickEntryScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="chevron-back" size={28} color="#333" />
-        </TouchableOpacity>
-        <Typography variant="headingH3">Carga Rápida</Typography>
-        <TouchableOpacity 
-          onPress={handleSave} 
-          disabled={isSaving} 
-          style={styles.saveButtonHeader}
-          activeOpacity={0.7}
-        >
-          {isSaving ? (
-            <ActivityIndicator size="small" color={Colors.primary} />
-          ) : (
-            <Typography variant="labelBaseStrong" style={{ color: Colors.primary }}>
-              Guardar
-            </Typography>
-          )}
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.walletSelectorContainer}>
-        <Typography variant="labelSmall" color={Colors.textTertiary} style={{ marginLeft: 16, marginBottom: 8 }}>
-          Billetera:
-        </Typography>
-        <TouchableOpacity 
-          style={styles.walletCombo} 
-          onPress={() => setWalletModalVisible(true)}
-        >
-          <Ionicons name="wallet-outline" size={18} color={Colors.primary} />
-          <Typography variant="labelBase" style={{ flex: 1, marginLeft: 8 }}>
-            {selectedWallet?.name || 'Seleccionar billetera'}
-          </Typography>
-          <Ionicons name="chevron-down" size={18} color="#666" />
-        </TouchableOpacity>
-      </View>
-
       <KeyboardAvoidingView 
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined} 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
         style={{ flex: 1 }}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
       >
-        <ScrollView contentContainerStyle={styles.scrollContent}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <Ionicons name="chevron-back" size={28} color="#333" />
+          </TouchableOpacity>
+          <Typography variant="headingH3">Carga Rápida</Typography>
+          <TouchableOpacity 
+            onPress={handleSave} 
+            disabled={isSaving} 
+            style={styles.saveButtonHeader}
+            activeOpacity={0.7}
+          >
+            {isSaving ? (
+              <ActivityIndicator size="small" color={Colors.primary} />
+            ) : (
+              <Typography variant="labelBaseStrong" style={{ color: Colors.primary }}>
+                Guardar
+              </Typography>
+            )}
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.walletSelectorContainer}>
+          <Typography variant="labelSmall" color={Colors.textTertiary} style={{ marginLeft: 16, marginBottom: 8 }}>
+            Billetera:
+          </Typography>
+          <TouchableOpacity 
+            style={styles.walletCombo} 
+            onPress={() => setWalletModalVisible(true)}
+          >
+            <Ionicons name="wallet-outline" size={18} color={Colors.primary} />
+            <Typography variant="labelBase" style={{ flex: 1, marginLeft: 8 }}>
+              {selectedWallet?.name || 'Seleccionar billetera'}
+            </Typography>
+            <Ionicons name="chevron-down" size={18} color="#666" />
+          </TouchableOpacity>
+        </View>
+
+        <ScrollView 
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+        >
           <Typography variant="labelSmall" color={Colors.textTertiary} style={{ marginBottom: 12 }}>
             Importes por categoría:
           </Typography>

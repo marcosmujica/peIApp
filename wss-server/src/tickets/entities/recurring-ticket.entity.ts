@@ -10,7 +10,7 @@ export class RecurringTicket {
   @PrimaryGeneratedColumn("uuid")
   id: string;
 
-  @Column({ name: "owner_id", length: 20 })
+  @Column({ name: "owner_id", type: "uuid" })
   ownerId: string;
 
   @ManyToOne(() => User)

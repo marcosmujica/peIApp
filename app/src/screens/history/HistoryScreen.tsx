@@ -4,7 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Colors, FontFamily, Shadows, BorderRadius, Spacing } from "@/constants/theme";
 import { Ionicons } from "@expo/vector-icons";
-import { getLocalTickets, LocalTicket, mergeServerTickets } from "@/storage/tickets.local";
+import { getLocalTickets, LocalTicket, mergeServerTickets, isTicketChatUnread } from "@/storage/tickets.local";
 import { getLocalWallets, LocalWallet, mergeServerWallets } from "@/storage/wallets.local";
 import { walletsApi } from "@/api/wallets.api";
 import { ticketsApi } from "@/api/tickets.api";
@@ -319,24 +319,31 @@ export const HistoryScreen: React.FC = () => {
           <View key={group.title} style={styles.group}>
             <SectionHeader title={group.title} />
             <Card variant="surface" style={styles.transactionsCard}>
-              {group.data.map((item, idx) => (
-                <TransactionItem
-                  key={item.id}
-                  title={item.description || getRubroLabel(item.type === 'income' ? item.rubroIncome : item.rubroExpense, item.type, item.globalType)}
-                  subtitle={new Date(item.dueDate && item.dueDate !== '' ? item.dueDate : item.createdAt).toLocaleDateString('es-AR', { day: 'numeric', month: 'short' })}
-                  amount={`$${item.amount.toLocaleString('es-AR')}`}
-                  currency={item.currency || 'UYU'}
-                  iconName={getRubroIcon(item.type === 'income' ? item.rubroIncome : item.rubroExpense, item.type, item.globalType) as any}
-                  iconColor={item.type === 'income' ? Colors.alertsSuccess : Colors.alertsError}
-                  onPress={() => navigation.navigate('AddMovementModal', { ticketId: item.id })}
-                  status={item.status === 'pending' && item.dueDate && new Date(item.dueDate).setHours(0,0,0,0) < new Date().setHours(0,0,0,0) ? 'overdue' : (item.status === 'pending' ? undefined : item.status)}
-                  overdueDays={item.status === 'pending' && item.dueDate && new Date(item.dueDate).setHours(0,0,0,0) < new Date().setHours(0,0,0,0) ? Math.max(0, Math.floor((new Date().setHours(0,0,0,0) - new Date(item.dueDate).setHours(0,0,0,0)) / (1000 * 60 * 60 * 24))) : undefined}
-                  amountColor={item.type === 'income' ? Colors.textPrimary : Colors.alertsError}
-                  avatarUrl={item.globalType && item.globalType !== 'ticket' ? undefined : getSmartAvatarUrl(item.toUserObj?.phone, item.toUserObj?.avatarUrl)}
-                  rating={user?.id === item.ownerId ? item.ownerRating : item.participantRating}
-                  style={[styles.item, idx === group.data.length - 1 && { borderBottomWidth: 0 }]}
-                />
-              ))}
+              {group.data.map((item, idx) => {
+                const baseSubtitle = new Date(item.dueDate && item.dueDate !== '' ? item.dueDate : item.createdAt).toLocaleDateString('es-AR', { day: 'numeric', month: 'short' });
+                const hasUnread = isTicketChatUnread(item, user?.id);
+                const subtitle = hasUnread ? item.lastChatMessage : baseSubtitle;
+
+                return (
+                  <TransactionItem
+                    key={item.id}
+                    title={item.description || getRubroLabel(item.type === 'income' ? item.rubroIncome : item.rubroExpense, item.type, item.globalType)}
+                    subtitle={subtitle}
+                    amount={`$${item.amount.toLocaleString('es-AR')}`}
+                    currency={item.currency || 'UYU'}
+                    iconName={getRubroIcon(item.type === 'income' ? item.rubroIncome : item.rubroExpense, item.type, item.globalType) as any}
+                    iconColor={item.type === 'income' ? Colors.alertsSuccess : Colors.alertsError}
+                    onPress={() => navigation.navigate('AddMovementModal', { ticketId: item.id })}
+                    status={item.status === 'pending' && item.dueDate && new Date(item.dueDate).setHours(0,0,0,0) < new Date().setHours(0,0,0,0) ? 'overdue' : (item.status === 'pending' ? undefined : item.status)}
+                    overdueDays={item.status === 'pending' && item.dueDate && new Date(item.dueDate).setHours(0,0,0,0) < new Date().setHours(0,0,0,0) ? Math.max(0, Math.floor((new Date().setHours(0,0,0,0) - new Date(item.dueDate).setHours(0,0,0,0)) / (1000 * 60 * 60 * 24))) : undefined}
+                    amountColor={item.type === 'income' ? Colors.textPrimary : Colors.alertsError}
+                    avatarUrl={item.globalType && item.globalType !== 'ticket' ? undefined : getSmartAvatarUrl(item.toUserObj?.phone, item.toUserObj?.avatarUrl)}
+                    rating={user?.id === item.ownerId ? item.ownerRating : item.participantRating}
+                    style={[styles.item, idx === group.data.length - 1 && { borderBottomWidth: 0 }]}
+                    hasUnreadChat={hasUnread}
+                  />
+                );
+              })}
             </Card>
           </View>
         ))}

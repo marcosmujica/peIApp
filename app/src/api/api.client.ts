@@ -2,8 +2,8 @@ import axios from 'axios';
 import { Platform, Alert } from 'react-native';
 import { useAuthStore } from '../store/auth.store';
 
-const LOCALHOST = Platform.OS === 'android' ? 'http://10.0.2.2' : 'http://localhost:3000';
-export const API_URL = process.env.EXPO_PUBLIC_API_URL || `${LOCALHOST}`;
+const rawApiUrl = process.env.EXPO_PUBLIC_API_URL || (Platform.OS === 'android' ? 'http://10.0.2.2:3000' : 'http://localhost:3000');
+export const API_URL = Platform.OS === 'android' ? rawApiUrl.replace('localhost', '10.0.2.2') : rawApiUrl;
 export const AVATARS_URL = process.env.EXPO_PUBLIC_AVATARS_URL || API_URL;
 export const WEB_SHARE_URL = process.env.EXPO_PUBLIC_WEB_SHARE_URL || 'http://localhost:5173' //'https://pei-app-ticket-web.vercel.app';
 export const API_TIMEOUT = Number(process.env.EXPO_PUBLIC_API_TIMEOUT) || 15000;

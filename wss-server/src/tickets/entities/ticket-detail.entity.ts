@@ -18,7 +18,7 @@ export class TicketDetail {
   @JoinColumn({ name: "ticket_id" })
   ticket: Ticket;
 
-  @Column({ name: "user_id", length: 20 })
+  @Column({ name: "user_id", type: "uuid" })
   userId: string;
 
   @ManyToOne(() => User, { createForeignKeyConstraints: false })

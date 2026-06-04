@@ -17,7 +17,7 @@ export class TicketChat {
   @JoinColumn({ name: "ticket_id" })
   ticket: Ticket;
 
-  @Column({ name: "sender_id", length: 20 })
+  @Column({ name: "sender_id", type: "uuid" })
   senderId: string;
 
   @ManyToOne(() => User)
@@ -35,6 +35,15 @@ export class TicketChat {
 
   @Column({ name: "attachment_type", length: 20, nullable: true })
   attachmentType?: string;
+
+  @Column({ name: "reply_to_chat_id", type: "uuid", nullable: true })
+  replyToChatId?: string;
+
+  @Column({ name: "reply_to_message", type: "text", nullable: true })
+  replyToMessage?: string;
+
+  @Column({ name: "reply_to_sender_name", length: 100, nullable: true })
+  replyToSenderName?: string;
 
   @CreateDateColumn({ name: "created_at", type: "timestamptz" })
   createdAt: Date;

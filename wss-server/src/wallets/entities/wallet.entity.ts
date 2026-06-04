@@ -63,7 +63,7 @@ export class Wallet {
   @Column({ name: "include_in_general_balance", type: "boolean", default: true })
   includeInGeneralBalance: boolean;
 
-  @Column({ name: "owner_id", length: 20 })
+  @Column({ name: "owner_id", type: "uuid" })
   ownerId: string;
 
   @OneToMany(() => WalletDistributionList, (list) => list.wallet)

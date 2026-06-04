@@ -15,7 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { FontFamily, Colors, Shadows, BorderRadius } from '@/constants/theme';
-import { getLocalTickets, LocalTicket } from '@/storage/tickets.local';
+import { getLocalTickets, LocalTicket, isTicketChatUnread } from '@/storage/tickets.local';
 import { useAuthStore } from '@/store/auth.store';
 import { useContactsStore } from '@/store/contacts.store';
 import { getSmartDisplayName, getSmartAvatarUrl } from '@/utils/userDisplay';
@@ -723,7 +723,9 @@ export const WalletDetailsScreen: React.FC<Props> = ({ route, navigation }) => {
                             const title = ticket.description || getRubroLabel(ticket.rubro || (ticket.type === 'income' ? ticket.rubroIncome : ticket.rubroExpense), ticket.type, ticket.globalType);
                             const otherPartyPhone = ticket.toUserObj?.phone;
                             const otherPartyName = ticket.toUserObj?.displayName;
-                            const subtitle = `${otherPartyPhone ? getSmartDisplayName(otherPartyPhone, otherPartyName) + ' • ' : ''}${new Date(ticket.dueDate && ticket.dueDate !== '' ? ticket.dueDate : ticket.createdAt).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })}`;
+                            const baseSubtitle = `${otherPartyPhone ? getSmartDisplayName(otherPartyPhone, otherPartyName) + ' • ' : ''}${new Date(ticket.dueDate && ticket.dueDate !== '' ? ticket.dueDate : ticket.createdAt).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })}`;
+                            const hasUnread = isTicketChatUnread(ticket, user?.id);
+                            const subtitle = hasUnread ? ticket.lastChatMessage : baseSubtitle;
 
                             return (
                               <TransactionItem
@@ -741,7 +743,7 @@ export const WalletDetailsScreen: React.FC<Props> = ({ route, navigation }) => {
                                 status={ticket.status === 'pending' && ticket.dueDate && new Date(ticket.dueDate).setHours(0, 0, 0, 0) < new Date().setHours(0, 0, 0, 0) ? 'overdue' : (ticket.status === 'pending' ? undefined : ticket.status)}
                                 overdueDays={ticket.status === 'pending' && ticket.dueDate && new Date(ticket.dueDate).setHours(0, 0, 0, 0) < new Date().setHours(0, 0, 0, 0) ? Math.max(0, Math.floor((new Date().setHours(0, 0, 0, 0) - new Date(ticket.dueDate).setHours(0, 0, 0, 0)) / (1000 * 60 * 60 * 24))) : undefined}
                                 avatarUrl={ticket.globalType && ticket.globalType !== 'ticket' ? undefined : getSmartAvatarUrl(otherPartyPhone, ticket.toUserObj?.avatarUrl)}
-                                compact
+                                hasUnreadChat={hasUnread}
                                 style={{
                                   borderBottomWidth: tIdx === filteredTickets.length - 1 ? 0 : 1,
                                   borderBottomColor: Colors.strokeSubtle

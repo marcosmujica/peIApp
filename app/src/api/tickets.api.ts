@@ -56,6 +56,9 @@ export interface TicketResponse extends CreateTicketDto {
     displayName?: string;
     avatarUrl?: string;
   };
+  lastChatMessage?: string;
+  lastChatMessageTimestamp?: string;
+  lastChatSenderId?: string;
 }
 
 
@@ -86,13 +89,19 @@ export const ticketsApi = {
     message?: string, 
     senderName?: string,
     attachmentUrl?: string,
-    attachmentType?: string
+    attachmentType?: string,
+    replyToChatId?: string,
+    replyToMessage?: string,
+    replyToSenderName?: string
   ): Promise<any> => {
     const response = await apiClient.post(`/tickets/${ticketId}/chat`, { 
       message, 
       senderName,
       attachmentUrl,
       attachmentType,
+      replyToChatId,
+      replyToMessage,
+      replyToSenderName,
     });
     return response.data;
   },

@@ -38,14 +38,32 @@ export const normalizePhone = (phone?: string) => {
       }
     }
   }
+
+  const prefixDigits = prefix.replace(/\+/g, '');
+  
+  // If the number already starts with the user's prefix, it is already normalized
+  if (cleaned.startsWith(prefixDigits)) {
+    return cleaned;
+  }
+  
+  // Check if it starts with any other known Latin American prefix and has international length (>= 10 digits)
+  const otherLatamPrefixes = [
+    '598', '54', '55', '56', '57', '58', '51', '52', '595', '591', '593', 
+    '506', '503', '502', '509', '504', '505', '507'
+  ];
+  for (const latamP of otherLatamPrefixes) {
+    if (cleaned.startsWith(latamP) && cleaned.length >= 10) {
+      return cleaned;
+    }
+  }
   
   // Remove leading local zero if present (common in Argentina and other countries)
   if (cleaned.startsWith('0')) {
     cleaned = cleaned.substring(1);
   }
   
-  const final = prefix + cleaned;
-  return final.replace(/\+/g, '');
+  const final = prefixDigits + cleaned;
+  return final;
 };
 
 const generateMockContacts = (count: number): PhoneContact[] => {

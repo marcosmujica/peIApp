@@ -320,7 +320,10 @@ export class TicketsService {
     message?: string, 
     senderName?: string,
     attachmentUrl?: string,
-    attachmentType?: string
+    attachmentType?: string,
+    replyToChatId?: string,
+    replyToMessage?: string,
+    replyToSenderName?: string,
   ) {
     const chat = this.chatRepo.create({
       ticketId,
@@ -329,8 +332,20 @@ export class TicketsService {
       senderName,
       attachmentUrl,
       attachmentType,
+      replyToChatId,
+      replyToMessage,
+      replyToSenderName,
     });
-    return this.chatRepo.save(chat);
+    const saved = await this.chatRepo.save(chat);
+    
+    const lastMsgText = message || (attachmentType === 'image' ? '📸 Imagen' : '📄 Archivo');
+    await this.ticketRepo.update(ticketId, {
+      lastChatMessage: lastMsgText,
+      lastChatMessageTimestamp: saved.createdAt,
+      lastChatSenderId: senderId,
+    });
+
+    return saved;
   }
 
   async findOne(ticketId: string) {
@@ -447,7 +462,12 @@ export class TicketsService {
           attachmentUrl: data.attachmentUrl,
           attachmentType: data.attachmentUrl ? 'image' : undefined
         });
-        await manager.save(chatMsg);
+        const savedChatMsg = await manager.save(chatMsg);
+        await manager.update(Ticket, ticketId, {
+          lastChatMessage: savedChatMsg.message,
+          lastChatMessageTimestamp: savedChatMsg.createdAt || new Date(),
+          lastChatSenderId: dbUserId,
+        });
 
         // Recalculate wallets for all participants
         const details = await manager.find(TicketDetail, { where: { ticketId } });
@@ -531,7 +551,12 @@ export class TicketsService {
         message: `*** Cambio la fecha de pago para el ${formattedDate}`,
         senderName: 'Sistema',
       });
-      await manager.save(chat);
+      const savedChat = await manager.save(chat);
+      await manager.update(Ticket, ticketId, {
+        lastChatMessage: savedChat.message,
+        lastChatMessageTimestamp: savedChat.createdAt || new Date(),
+        lastChatSenderId: userId,
+      });
 
       // Notify
       const formattedDateNotif = newDate.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
@@ -578,7 +603,12 @@ export class TicketsService {
         message: `📅 Fecha de pago cambiada para el ${formattedDate} (vía Web)`,
         senderName: 'Sistema',
       });
-      await manager.save(chat);
+      const savedChat = await manager.save(chat);
+      await manager.update(Ticket, ticket.ticketId, {
+        lastChatMessage: savedChat.message,
+        lastChatMessageTimestamp: savedChat.createdAt || new Date(),
+        lastChatSenderId: ticket.ownerId,
+      });
 
       // Notify
       await this.sendTicketNotification(
@@ -630,7 +660,12 @@ export class TicketsService {
         message: `*** Ticket ANULADO. Motivo: ${reason || 'Sin especificar'}`,
         senderName: 'Sistema',
       });
-      await manager.save(chat);
+      const savedChat = await manager.save(chat);
+      await manager.update(Ticket, ticketId, {
+        lastChatMessage: savedChat.message,
+        lastChatMessageTimestamp: savedChat.createdAt || new Date(),
+        lastChatSenderId: userId,
+      });
 
       // Recalculate affected wallets
       const details = await manager.find(TicketDetail, { where: { ticketId } });
@@ -681,7 +716,12 @@ export class TicketsService {
         message: `🚫 Ticket CANCELADO vía Web. ${reason ? `Motivo: ${reason}` : ''}`,
         senderName: 'Sistema',
       });
-      await manager.save(chat);
+      const savedChat = await manager.save(chat);
+      await manager.update(Ticket, ticket.ticketId, {
+        lastChatMessage: savedChat.message,
+        lastChatMessageTimestamp: savedChat.createdAt || new Date(),
+        lastChatSenderId: ticket.ownerId,
+      });
 
       // Recalculate affected wallets
       const details = await manager.find(TicketDetail, { where: { ticketId: ticket.ticketId } });

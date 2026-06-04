@@ -1,5 +1,5 @@
-import { 
-  Injectable, NotFoundException, ForbiddenException, BadRequestException, Logger 
+import {
+  Injectable, NotFoundException, ForbiddenException, BadRequestException, Logger
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository, EntityManager, Brackets, LessThan, MoreThanOrEqual, Between } from 'typeorm';
@@ -57,7 +57,7 @@ export class TicketsService {
     private notificationsService: NotificationsService,
     private aiService: AIService,
     private configService: ConfigService,
-  ) {}
+  ) { }
 
   async sendTicketNotification(ticketId: string, senderId: string, content: string, senderNameOverride?: string, manager?: EntityManager) {
     this.logger.log(`[sendTicketNotification] START - ticketId=${ticketId}, senderId=${senderId}`);
@@ -77,20 +77,20 @@ export class TicketsService {
 
       const participants = await ticketDetailRepo.find({ where: { ticketId } });
       this.logger.log(`[sendTicketNotification] Found ${participants.length} participants for ticket ${ticketId}`);
-      
+
       let targetUserId: string | null = null;
-      
+
       if (senderId === ticket.ownerId) {
-        // El dueÃ±o realizÃ³ el cambio -> Notificar al destinatario principal
-        // Buscamos cualquier participante que no sea el dueÃ±o
-        const targetDetail = participants.find(p => 
-          p.userId !== ticket.ownerId && 
+        // El dueño realizó el cambio -> Notificar al destinatario principal
+        // Buscamos cualquier participante que no sea el dueño
+        const targetDetail = participants.find(p =>
+          p.userId !== ticket.ownerId &&
           (p.role === 'user_id' || p.role === 'receiver' || p.role === 'member' || p.role === 'participant')
         ) || participants.find(p => p.userId !== ticket.ownerId);
 
         targetUserId = targetDetail ? targetDetail.userId : null;
       } else {
-        // Alguien mÃ¡s (destinatario o invitado) realizÃ³ el cambio -> Notificar al dueÃ±o
+        // Alguien más (destinatario o invitado) realizó el cambio -> Notificar al dueño
         targetUserId = ticket.ownerId;
       }
 
@@ -103,9 +103,9 @@ export class TicketsService {
         const baseUrl = this.configService.get<string>('WEB_SHARE_URL') || 'http://localhost:5173';
         const publicLink = ticket.shortId ? `\nLink: ${baseUrl}/t/${ticket.shortId}` : '';
         const ticketInfo = `\nTicket: ${ticket.description || 'Sin detalle'} (${ticket.currency} ${Number(ticket.amount).toLocaleString('es-AR')})`;
-        
+
         const fullContent = `${senderName}: ${content}${ticketInfo}${publicLink}`;
-        
+
         this.logger.log(`[sendTicketNotification] SENDING to ${targetUserId}: ${fullContent}`);
         await this.notificationsService.sendNotification(targetUserId, fullContent, 'peIApp', { ticketId, type: 'ticket' });
       } else {
@@ -134,31 +134,31 @@ export class TicketsService {
     return await this.dataSource.transaction(async (manager) => {
       const ticket = await manager.findOne(Ticket, { where: { ticketId: id } });
       if (!ticket) throw new Error('Ticket not found');
-      
-      const userDetail = await manager.findOne(TicketDetail, { 
-        where: { ticketId: id, userId } 
+
+      const userDetail = await manager.findOne(TicketDetail, {
+        where: { ticketId: id, userId }
       });
 
       if (!userDetail) {
         throw new Error('No tienes permiso para participar en este ticket');
       }
 
-      // Guardar wallet vieja para recÃ¡lculo si cambia
+      // Guardar wallet vieja para recálculo si cambia
       const oldWalletId = userDetail.walletId;
 
-      // 1. Si es el dueÃ±o, puede editar datos globales del Ticket
+      // 1. Si es el dueño, puede editar datos globales del Ticket
       if (ticket.ownerId === userId) {
         // Campos que pueden venir en data y son globales
         const globalFields = [
-          'amount', 'currency', 'description', 'dueDate', 'status', 
-          'paymentMethod', 'paymentProcedure', 'privateNote', 
-          'generatePeilink', 'helpToCollect', 'reference', 
+          'amount', 'currency', 'description', 'dueDate', 'status',
+          'paymentMethod', 'paymentProcedure', 'privateNote',
+          'generatePeilink', 'helpToCollect', 'reference',
           'expenses', 'expensesDetail', 'attachmentUrl',
           'source', 'sourceInfo', 'comment', 'ownerRating', 'participantRating',
           'shortId'
         ];
 
-        
+
         for (const field of globalFields) {
           if (data[field] !== undefined) {
             (ticket as any)[field] = data[field];
@@ -167,18 +167,18 @@ export class TicketsService {
         await manager.save(ticket);
       }
 
-      // 2. Todos los participantes pueden editar SU propia configuraciÃ³n (wallet, rubro, descripcion)
+      // 2. Todos los participantes pueden editar SU propia configuración (wallet, rubro, descripcion)
       if (data.walletId !== undefined) userDetail.walletId = data.walletId;
       if (data.type !== undefined) userDetail.type = data.type;
       if (data.description !== undefined) userDetail.description = data.description;
       if (data.privateNote !== undefined) userDetail.privateNote = data.privateNote;
-      
+
       // Manejar el rubro (puede venir como 'rubro', 'rubroIncome' o 'rubroExpense')
       const incomeRubro = data.rubroIncome || (data.type === 'income' ? data.rubro : undefined);
       const expenseRubro = data.rubroExpense || (data.type === 'expense' ? data.rubro : undefined);
-      
+
       const newRubro = data.rubro || (userDetail.type === 'income' ? incomeRubro : expenseRubro);
-      
+
       if (newRubro !== undefined) {
         userDetail.rubro = newRubro;
       } else if (data.rubroIncome !== undefined && userDetail.type === 'income') {
@@ -186,9 +186,9 @@ export class TicketsService {
       } else if (data.rubroExpense !== undefined && userDetail.type === 'expense') {
         userDetail.rubro = data.rubroExpense;
       }
-      
+
       await manager.save(userDetail);
-      
+
       // 3. Recalcular billeteras involucradas
       if (oldWalletId) {
         await this.internalRecalculate(manager, oldWalletId);
@@ -199,16 +199,16 @@ export class TicketsService {
 
       // Notify the counterpart if the owner modified global fields
       if (ticket.ownerId === userId) {
-        await this.sendTicketNotification(ticket.ticketId, userId, 'modificÃ³ los detalles del ticket', undefined, manager);
-        
+        await this.sendTicketNotification(ticket.ticketId, userId, 'modificó los detalles del ticket', undefined, manager);
+
         // Trigger AI prediction for others if description changed
         if (data.description && data.description !== ticket.description) {
-           const participants = await manager.find(TicketDetail, { where: { ticketId: id } });
-           for (const p of participants) {
-             if (p.userId !== userId && !p.rubro) {
-                this.triggerAsyncAIPrediction(id, p.userId, data.description, p.type);
-             }
-           }
+          const participants = await manager.find(TicketDetail, { where: { ticketId: id } });
+          for (const p of participants) {
+            if (p.userId !== userId && !p.rubro) {
+              this.triggerAsyncAIPrediction(id, p.userId, data.description, p.type);
+            }
+          }
         }
       }
 
@@ -225,25 +225,25 @@ export class TicketsService {
       .leftJoinAndMapOne('ticket.otherUserObj', User, 'u', 'u.userId = other.userId')
       .where('detail.userId = :userId', { userId });
 
-    // Regla: Si el ticket estÃ¡ asociado a una billetera (detail.walletId is not null),
+    // Regla: Si el ticket está asociado a una billetera (detail.walletId is not null),
     // el usuario DEBE ser miembro activo de esa billetera para verlo.
     // Excepto si es el ownerId global del ticket (que siempre lo ve?) o si es un ticket sin billetera (walletId null)
-    // Pero si el usuario es dueÃ±o del ticket pero ya no tiene acceso a la billetera donde lo puso? 
-    // Generalmente, el dueÃ±o de una billetera no se puede ir de ella (es el owner).
-    
-    // Implementamos filtro dinÃ¡mico:
+    // Pero si el usuario es dueño del ticket pero ya no tiene acceso a la billetera donde lo puso? 
+    // Generalmente, el dueño de una billetera no se puede ir de ella (es el owner).
+
+    // Implementamos filtro dinámico:
     qb.andWhere(new Brackets(innerQb => {
-        innerQb.where('detail.walletId IS NULL')
-               .orWhere(sub => {
-                 const subQuery = sub.subQuery()
-                    .select('wm.member_id')
-                    .from('wallet_members', 'wm')
-                    .where('wm.wallet_id = detail.walletId')
-                    .andWhere('wm.user_id = :userId', { userId })
-                    .andWhere('wm.deleted_at IS NULL')
-                    .getQuery();
-                 return 'EXISTS (' + subQuery + ')';
-               });
+      innerQb.where('detail.walletId IS NULL')
+        .orWhere(sub => {
+          const subQuery = sub.subQuery()
+            .select('wm.member_id')
+            .from('wallet_members', 'wm')
+            .where('wm.wallet_id = detail.walletId')
+            .andWhere('wm.user_id = :userId', { userId })
+            .andWhere('wm.deleted_at IS NULL')
+            .getQuery();
+          return 'EXISTS (' + subQuery + ')';
+        });
     }));
 
     const details = await qb.orderBy('ticket.createdAt', 'DESC').getMany();
@@ -252,23 +252,23 @@ export class TicketsService {
     });
 
     return details.map(d => ({
-       ...d.ticket,
-       description: d.description !== null && d.description !== undefined ? d.description : d.ticket.description,
-       privateNote: d.privateNote || '',
-       walletId: d.walletId || systemWallet?.walletId,
-       type: d.type,
-       globalType: d.ticket.type,
-       rubro: d.rubro,
-       role: d.role,
-       toUser: (d.ticket as any).otherParticipant?.userId,
-         toRubro: (d.ticket as any).otherParticipant?.rubro,
-       toUserObj: (d.ticket as any).otherUserObj,
-       ownerUserObj: d.ticket.owner,
+      ...d.ticket,
+      description: d.description !== null && d.description !== undefined ? d.description : d.ticket.description,
+      privateNote: d.privateNote || '',
+      walletId: d.walletId || systemWallet?.walletId,
+      type: d.type,
+      globalType: d.ticket.type,
+      rubro: d.rubro,
+      role: d.role,
+      toUser: (d.ticket as any).otherParticipant?.userId,
+      toRubro: (d.ticket as any).otherParticipant?.rubro,
+      toUserObj: (d.ticket as any).otherUserObj,
+      ownerUserObj: d.ticket.owner,
     }));
   }
 
   /**
-   * MÃ©todo interno para sincronizar saldos de una billetera llamando a la funciÃ³n de la DB
+   * Método interno para sincronizar saldos de una billetera llamando a la función de la DB
    */
   private async internalRecalculate(manager: EntityManager, walletId: string) {
     try {
@@ -278,7 +278,7 @@ export class TicketsService {
     }
   }
 
-  // Mantenemos este para compatibilidad o procesos fuera de transacciÃ³n simple
+  // Mantenemos este para compatibilidad o procesos fuera de transacción simple
   async recalculateWalletBalance(walletId: string) {
     await this.dataSource.transaction(async (manager) => {
       await this.internalRecalculate(manager, walletId);
@@ -317,19 +317,22 @@ export class TicketsService {
       rubro: d.rubro,
       role: d.role,
       toUser: (d.ticket as any).otherParticipant?.userId,
-         toRubro: (d.ticket as any).otherParticipant?.rubro,
+      toRubro: (d.ticket as any).otherParticipant?.rubro,
       toUserObj: (d.ticket as any).otherUserObj,
       ownerUserObj: d.ticket.owner,
     }));
   }
 
   async addChatMessage(
-    ticketId: string, 
-    senderId: string, 
-    message?: string, 
+    ticketId: string,
+    senderId: string,
+    message?: string,
     senderName?: string,
     attachmentUrl?: string,
-    attachmentType?: string
+    attachmentType?: string,
+    replyToChatId?: string,
+    replyToMessage?: string,
+    replyToSenderName?: string,
   ) {
     const chat = this.chatRepo.create({
       ticketId,
@@ -338,8 +341,20 @@ export class TicketsService {
       senderName,
       attachmentUrl,
       attachmentType,
+      replyToChatId,
+      replyToMessage,
+      replyToSenderName,
     });
-    return this.chatRepo.save(chat);
+    const saved = await this.chatRepo.save(chat);
+    
+    const lastMsgText = message || (attachmentType === 'image' ? '📸 Imagen' : '📄 Archivo');
+    await this.ticketRepo.update(ticketId, {
+      lastChatMessage: lastMsgText,
+      lastChatMessageTimestamp: saved.createdAt,
+      lastChatSenderId: senderId,
+    });
+
+    return saved;
   }
 
   async findOne(ticketId: string) {
@@ -354,13 +369,13 @@ export class TicketsService {
       relations: ['owner']
     });
     if (!ticket) throw new NotFoundException('Ticket no encontrado');
-    
+
     // Fetch logs
     const logs = await this.logRepo.find({
       where: { ticketId: ticket.ticketId },
       order: { createdAt: 'DESC' }
     });
-    
+
     return {
       ...ticket,
       logs
@@ -387,7 +402,7 @@ export class TicketsService {
         .where('log.ticketId = :ticketId', { ticketId })
         .orderBy('log.createdAt', 'ASC')
         .getMany();
-      
+
       return logs;
     } catch (error) {
       console.error(`[GetLogs] Error:`, error);
@@ -395,9 +410,9 @@ export class TicketsService {
     }
   }
 
-  async recordPayment(ticketId: string, userId: string, data: { 
-    amount: number, 
-    paymentMethod: string, 
+  async recordPayment(ticketId: string, userId: string, data: {
+    amount: number,
+    paymentMethod: string,
     description?: string,
     attachmentUrl?: string,
     isPublic?: boolean
@@ -441,7 +456,7 @@ export class TicketsService {
             action: 'status_completed',
             oldValue: oldStatus,
             newValue: 'completed',
-            comment: data.isPublic ? 'Completado vÃ­a Web' : 'Pago total recibido',
+            comment: data.isPublic ? 'Completado vía Web' : 'Pago total recibido',
           });
           await manager.save(statusLog);
         }
@@ -451,12 +466,17 @@ export class TicketsService {
         const chatMsg = manager.create(TicketChat, {
           ticketId,
           senderId: dbUserId,
-          message: `âœ… Pago recibido${data.isPublic ? ' vÃ­a Web' : ''}: ${amountStr} (${data.paymentMethod})${data.description ? ` - ${data.description}` : ''}${ticket.status === 'completed' ? '\nðŸ Ticket COMPLETADO' : ''}`,
+          message: `Pago recibido${data.isPublic ? ' ví­a Web' : ''}: ${amountStr} (${data.paymentMethod})${data.description ? ` - ${data.description}` : ''}${ticket.status === 'completed' ? '\nðŸ Ticket COMPLETADO' : ''}`,
           senderName: data.isPublic ? 'Invitado Web' : 'Sistema',
           attachmentUrl: data.attachmentUrl,
           attachmentType: data.attachmentUrl ? 'image' : undefined
         });
-        await manager.save(chatMsg);
+        const savedChatMsg = await manager.save(chatMsg);
+        await manager.update(Ticket, ticketId, {
+          lastChatMessage: savedChatMsg.message,
+          lastChatMessageTimestamp: savedChatMsg.createdAt || new Date(),
+          lastChatSenderId: dbUserId,
+        });
 
         // Recalculate wallets for all participants
         const details = await manager.find(TicketDetail, { where: { ticketId } });
@@ -471,9 +491,9 @@ export class TicketsService {
         const remainingStr = remaining > 0 ? `. Resta pagar: ${ticket.currency} ${remaining.toLocaleString('es-AR')}` : '';
 
         await this.sendTicketNotification(
-          ticketId, 
-          userId, 
-          `RegistrÃ³ un pago de ${amountStr} (${data.paymentMethod}) para el ticket "${ticket.description || 'Sin descripciÃ³n'}"${ticket.status === 'completed' ? '. Â¡Ticket completado!' : remainingStr}`,
+          ticketId,
+          userId,
+          `Registró un pago de ${amountStr} (${data.paymentMethod}) para el ticket "${ticket.description || 'Sin descripción'}"${ticket.status === 'completed' ? '. Â¡Ticket completado!' : remainingStr}`,
           undefined,
           manager
         );
@@ -486,9 +506,9 @@ export class TicketsService {
     }
   }
 
-  async recordPaymentPublic(shortId: string, data: { 
-    amount: number, 
-    paymentMethod: string, 
+  async recordPaymentPublic(shortId: string, data: {
+    amount: number,
+    paymentMethod: string,
     description?: string,
     attachmentUrl?: string,
   }) {
@@ -496,7 +516,7 @@ export class TicketsService {
     return this.recordPayment(ticket.ticketId, 'public_guest', {
       ...data,
       isPublic: true,
-      description: data.description ? `(VÃ­a Web) ${data.description}` : '(VÃ­a Web)'
+      description: data.description ? `(Vía Web) ${data.description}` : '(vía Web)'
     });
   }
 
@@ -514,7 +534,7 @@ export class TicketsService {
       if (!isParticipant) throw new Error('No tienes permiso para editar este ticket');
 
       const oldDate = ticket.dueDate;
-      
+
       // Update Ticket
       ticket.dueDate = newDate;
       if (ticket.initialDueDate === null || ticket.initialDueDate === undefined) {
@@ -540,14 +560,19 @@ export class TicketsService {
         message: `*** Cambio la fecha de pago para el ${formattedDate}`,
         senderName: 'Sistema',
       });
-      await manager.save(chat);
+      const savedChat = await manager.save(chat);
+      await manager.update(Ticket, ticketId, {
+        lastChatMessage: savedChat.message,
+        lastChatMessageTimestamp: savedChat.createdAt || new Date(),
+        lastChatSenderId: userId,
+      });
 
       // Notify
       const formattedDateNotif = newDate.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
       await this.sendTicketNotification(
         ticketId,
         userId,
-        `CambiÃ³ la fecha de vencimiento: El ticket "${ticket.description || 'Sin descripciÃ³n'}" ahora vence el ${formattedDateNotif}`,
+        `Cambió la fecha de vencimiento: El ticket "${ticket.description || 'Sin descripción'}" ahora vence el ${formattedDateNotif}`,
         undefined,
         manager
       );
@@ -558,7 +583,7 @@ export class TicketsService {
 
   async updateDueDatePublic(shortId: string, newDate: Date) {
     const t = await this.findByShortId(shortId);
-    
+
     return await this.dataSource.transaction(async (manager) => {
       const ticket = await manager.findOne(Ticket, { where: { ticketId: t.ticketId } });
       if (!ticket) throw new NotFoundException('Ticket no encontrado');
@@ -575,7 +600,7 @@ export class TicketsService {
         action: 'due_date_change',
         oldValue: oldDate?.toISOString(),
         newValue: newDate.toISOString(),
-        comment: 'Cambio realizado vÃ­a link pÃºblico',
+        comment: 'Cambio realizado vía link público',
       });
       await manager.save(log);
 
@@ -584,17 +609,22 @@ export class TicketsService {
       const chat = manager.create(TicketChat, {
         ticketId: ticket.ticketId,
         senderId: ticket.ownerId,
-        message: `ðŸ“… Fecha de pago cambiada para el ${formattedDate} (vÃ­a Web)`,
+        message: `Fecha de pago cambiada para el ${formattedDate} (vía Web)`,
         senderName: 'Sistema',
       });
-      await manager.save(chat);
+      const savedChat = await manager.save(chat);
+      await manager.update(Ticket, ticket.ticketId, {
+        lastChatMessage: savedChat.message,
+        lastChatMessageTimestamp: savedChat.createdAt || new Date(),
+        lastChatSenderId: ticket.ownerId,
+      });
 
       // Notify
       await this.sendTicketNotification(
         ticket.ticketId,
         'public_guest',
-        `Se cambiÃ³ la fecha de pago vÃ­a web para el ${formattedDate}`,
-        'Invitado vÃ­a Web',
+        `Se cambió la fecha de pago vía web para el ${formattedDate}`,
+        'Invitado vía Web',
         manager
       );
 
@@ -606,10 +636,10 @@ export class TicketsService {
     return await this.dataSource.transaction(async (manager) => {
       const ticket = await manager.findOne(Ticket, { where: { ticketId } });
       if (!ticket) throw new NotFoundException('Ticket no encontrado');
-      
+
       const participants = await manager.find(TicketDetail, { where: { ticketId } });
       const isParticipant = participants.some(p => p.userId === userId);
-      
+
       if (!isParticipant) throw new ForbiddenException('No tienes permiso para cancelar este ticket');
       if (ticket.status === 'cancelled') return ticket;
       if (ticket.status !== 'pending') throw new BadRequestException('Solo se pueden cancelar tickets pendientes');
@@ -639,7 +669,12 @@ export class TicketsService {
         message: `*** Ticket ANULADO. Motivo: ${reason || 'Sin especificar'}`,
         senderName: 'Sistema',
       });
-      await manager.save(chat);
+      const savedChat = await manager.save(chat);
+      await manager.update(Ticket, ticketId, {
+        lastChatMessage: savedChat.message,
+        lastChatMessageTimestamp: savedChat.createdAt || new Date(),
+        lastChatSenderId: userId,
+      });
 
       // Recalculate affected wallets
       const details = await manager.find(TicketDetail, { where: { ticketId } });
@@ -651,7 +686,7 @@ export class TicketsService {
       await this.sendTicketNotification(
         ticketId,
         userId,
-        `ANULÃ“ el ticket: "${ticket.description || 'Sin descripciÃ³n'}". ${reason ? `Motivo: ${reason}` : ''}`,
+        `ANULÃ“ el ticket: "${ticket.description || 'Sin descripción'}". ${reason ? `Motivo: ${reason}` : ''}`,
         undefined,
         manager
       );
@@ -662,11 +697,11 @@ export class TicketsService {
 
   async cancelPublic(shortId: string, reason?: string) {
     const t = await this.findByShortId(shortId);
-    
+
     return await this.dataSource.transaction(async (manager) => {
       const ticket = await manager.findOne(Ticket, { where: { ticketId: t.ticketId } });
       if (!ticket) throw new NotFoundException('Ticket no encontrado');
-      
+
       if (ticket.status === 'cancelled') return ticket;
       if (ticket.status !== 'pending') throw new Error('Solo se pueden cancelar tickets pendientes');
 
@@ -680,17 +715,22 @@ export class TicketsService {
         action: 'status_cancelled',
         oldValue: oldStatus,
         newValue: 'cancelled',
-        comment: `Cancelado vÃ­a Web. Motivo: ${reason || 'Sin especificar'}`,
+        comment: `Cancelado vía Web. Motivo: ${reason || 'Sin especificar'}`,
       });
       await manager.save(log);
 
       const chat = manager.create(TicketChat, {
         ticketId: ticket.ticketId,
         senderId: ticket.ownerId,
-        message: `ðŸš« Ticket CANCELADO vÃ­a Web. ${reason ? `Motivo: ${reason}` : ''}`,
+        message: `ðŸš« Ticket CANCELADO vía Web. ${reason ? `Motivo: ${reason}` : ''}`,
         senderName: 'Sistema',
       });
-      await manager.save(chat);
+      const savedChat = await manager.save(chat);
+      await manager.update(Ticket, ticket.ticketId, {
+        lastChatMessage: savedChat.message,
+        lastChatMessageTimestamp: savedChat.createdAt || new Date(),
+        lastChatSenderId: ticket.ownerId,
+      });
 
       // Recalculate affected wallets
       const details = await manager.find(TicketDetail, { where: { ticketId: ticket.ticketId } });
@@ -702,7 +742,7 @@ export class TicketsService {
       await this.sendTicketNotification(
         ticket.ticketId,
         'public_guest',
-        `Se cancelÃ³ el ticket vÃ­a web: "${ticket.description || 'Sin descripciÃ³n'}"${reason ? `. Motivo: ${reason}` : ''}`,
+        `Se canceló el ticket vía web: "${ticket.description || 'Sin descripción'}"${reason ? `. Motivo: ${reason}` : ''}`,
         'Invitado Web',
         manager
       );
@@ -770,7 +810,7 @@ export class TicketsService {
     console.log('[Cron] Checking recurring tickets...');
     const now = new Date();
     const pendings = await this.recurringRepo.find({
-      where: { 
+      where: {
         isActive: true,
       }
     });
@@ -784,11 +824,11 @@ export class TicketsService {
 
   private async generateTicketFromRecurring(r: RecurringTicket) {
     console.log(`[Recurring] Generating ticket for ${r.id} (Installment ${r.currentInstallment + 1}/${r.totalInstallments})`);
-    
+
     await this.dataSource.transaction(async (manager) => {
       const nextInstallment = r.currentInstallment + 1;
       const installmentLabel = `(${nextInstallment}/${r.totalInstallments})`;
-      
+
       const ticketData = {
         amount: r.amount,
         currency: r.currency,
@@ -816,11 +856,11 @@ export class TicketsService {
       r.currentInstallment = nextInstallment;
       r.lastGeneratedDate = new Date();
       r.nextGenerationDate = this.calculateNextDate(r.nextGenerationDate, r.frequency);
-      
+
       if (r.currentInstallment >= r.totalInstallments) {
         r.isActive = false;
       }
-      
+
       await manager.save(r);
     });
   }
@@ -839,10 +879,10 @@ export class TicketsService {
   }
 
   private async internalCreateTicket(manager: EntityManager, ownerId: string, data: any) {
-    // 1. Crear el ticket Ãºnico
+    // 1. Crear el ticket único
     console.log(`[TicketsService.internalCreateTicket] Creating main ticket entity...`);
     const globalType = (data.type === 'income' || data.type === 'expense') ? 'ticket' : (data.type || 'ticket');
-    
+
     const ticketParams = {
       ...data,
       ownerId,
@@ -889,14 +929,14 @@ export class TicketsService {
     if (data.toUser) {
       const isUuid = data.toUser.includes('-');
       if (!isUuid) {
-         const cleanPhone = data.toUser.replace(/[^\d]/g, '');
-         recipientPhone = cleanPhone;
-         let toUserExists = await manager.findOne(User, { where: { phone: cleanPhone } });
-         if (!toUserExists) {
-             toUserExists = manager.create(User, { phone: cleanPhone });
-             await manager.save(toUserExists);
-         }
-         data.toUser = toUserExists.userId;
+        const cleanPhone = data.toUser.replace(/[^\d]/g, '');
+        recipientPhone = cleanPhone;
+        let toUserExists = await manager.findOne(User, { where: { phone: cleanPhone } });
+        if (!toUserExists) {
+          toUserExists = manager.create(User, { phone: cleanPhone });
+          await manager.save(toUserExists);
+        }
+        data.toUser = toUserExists.userId;
       }
       allParticipants.add(data.toUser);
     }
@@ -908,7 +948,7 @@ export class TicketsService {
       const isOwner = userId === ownerId;
       const isReceiver = userId === data.toUser;
       const isWalletMember = walletMembers.includes(userId);
-      
+
       let userType = data.subType || data.type;
       if (isReceiver && !isWalletMember) {
         userType = userType === 'income' ? 'expense' : 'income';
@@ -953,7 +993,7 @@ export class TicketsService {
         }
       } catch (dErr) {
         console.error(`[TicketsService.internalCreateTicket] Failed to save detail for user=${userId}:`, dErr.message);
-        throw dErr; 
+        throw dErr;
       }
     }
 
@@ -994,15 +1034,15 @@ export class TicketsService {
       const ownerName = owner?.displayName || ownerId;
       const amountStr = `${savedTicket.currency} ${Number(savedTicket.amount).toLocaleString('es-AR')}`;
       const concept = savedTicket.description || 'Sin concepto';
-      // Mensaje detallado como pidiÃ³ el usuario: nuevo ticket, moneda, importe y detalle
+      // Mensaje detallado como pidió el usuario: nuevo ticket, moneda, importe y detalle
       const baseUrl = this.configService.get<string>('WEB_SHARE_URL') || 'http://localhost:5173';
       const publicLink = savedTicket.shortId ? `\nLink: ${baseUrl}/t/${savedTicket.shortId}` : '';
-      
+
       // Notificar SOLO al destinatario principal (si existe y no es el sender)
       if (data.toUser && data.toUser !== ownerId) {
         const pmSuffix = (savedTicket.status === 'completed' && savedTicket.paymentMethod) ? ` (${savedTicket.paymentMethod})` : '';
         const notificationContent = `Nuevo Ticket de ${ownerName}: ${concept} por ${amountStr}${pmSuffix}.${publicLink}`;
-        
+
         console.log(`[internalCreateTicket] Notifying primary recipient ${data.toUser}`);
         await this.notificationsService.sendNotification(data.toUser, notificationContent, 'peIApp', { ticketId: savedTicket.ticketId, type: 'ticket', phone: recipientPhone });
       }
@@ -1014,7 +1054,7 @@ export class TicketsService {
   }
 
   /**
-   * Proceso asincrÃ³nico para determinar el rubro de un participante mediante IA
+   * Proceso asincrónico para determinar el rubro de un participante mediante IA
    */
   private async triggerAsyncAIPrediction(ticketId: string, userId: string, description: string, type: any) {
     console.log(`[TicketsService.triggerAsyncAIPrediction] START - ticket=${ticketId}, user=${userId}, type=${type}`);
@@ -1023,10 +1063,10 @@ export class TicketsService {
 
       // 1. Llamar a la IA
       const predictedRubro = await this.aiService.predictRubro(description, type);
-      
+
       if (predictedRubro) {
         console.log(`[TicketsService.triggerAsyncAIPrediction] AI predicted rubro: ${predictedRubro} for user ${userId}. Updating TicketDetail...`);
-        
+
         // 2. Actualizar el TicketDetail si no tiene uno ya asignado
         await this.ticketDetailRepo.update(
           { ticketId, userId },
@@ -1042,11 +1082,11 @@ export class TicketsService {
   async getFinancialSummary(userId: string) {
     const now = new Date();
     now.setHours(0, 0, 0, 0);
-    
+
     const today = new Date(now);
     const tomorrow = new Date(now);
     tomorrow.setDate(tomorrow.getDate() + 1);
-    
+
     const nextWeek = new Date(now);
     nextWeek.setDate(nextWeek.getDate() + 8); // +1 to +7 full days
 
@@ -1067,7 +1107,7 @@ export class TicketsService {
       const ticket = detail.ticket;
       const dueDate = new Date(ticket.dueDate);
       dueDate.setHours(0, 0, 0, 0);
-      
+
       const remainingAmount = Number(ticket.amount) - (Number(ticket.amountPaid) || 0);
       if (remainingAmount <= 0) continue;
 
@@ -1097,8 +1137,8 @@ export class TicketsService {
       .leftJoinAndSelect('log.user', 'logUser')
       .innerJoinAndSelect(TicketDetail, 'td', 'td.ticket_id = log.ticketId AND td.user_id = :userId', { userId })
       .leftJoinAndSelect('td.wallet', 'userWallet')
-      .where('log.action IN (:...actions)', { 
-        actions: ['payment_received', 'paid'] 
+      .where('log.action IN (:...actions)', {
+        actions: ['payment_received', 'paid']
       })
       .orderBy('log.createdAt', 'DESC')
       .getRawAndEntities();
@@ -1106,7 +1146,7 @@ export class TicketsService {
     // getRawAndEntities returns both entities and raw columns (useful for the td join)
     return logs.entities.map((log, index) => {
       const raw = logs.raw[index];
-      
+
       // Extract wallet from raw columns (TypeORM prefixes them)
       const walletId = raw.userWallet_wallet_id || raw.userWallet_walletId;
       const userWallet = walletId ? {

@@ -15,13 +15,15 @@ import {
   Pressable,
   ActivityIndicator,
   Linking,
+  Animated,
+  PanResponder,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '@/navigation/RootNavigator';
 import { FontFamily } from '@/constants/theme';
-import { getLocalTickets, LocalTicket, updateLocalTicket } from '@/storage/tickets.local';
+import { getLocalTickets, LocalTicket, updateLocalTicket, markTicketAsOpened } from '@/storage/tickets.local';
 import { getTicketMessages, addTicketMessage, saveTicketMessages, ChatMessage } from '@/storage/chat.local';
 
 import { ticketsApi } from '@/api/tickets.api';
@@ -42,6 +44,88 @@ import { normalizeUrl } from '@/utils/url.util';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ChatDetail'>;
 
+interface SwipeToReplyProps {
+  onReply: () => void;
+  children: React.ReactNode;
+  onLayout?: (event: any) => void;
+}
+
+const SwipeToReply: React.FC<SwipeToReplyProps> = ({ onReply, children, onLayout }) => {
+  const pan = useRef(new Animated.ValueXY()).current;
+  const isTriggered = useRef(false);
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => false,
+      onMoveShouldSetPanResponder: (_, gestureState) => {
+        // Only capture horizontal movements to the right
+        return Math.abs(gestureState.dx) > Math.abs(gestureState.dy) * 2 && gestureState.dx > 15;
+      },
+      onPanResponderMove: (_, gestureState) => {
+        const newX = Math.max(0, Math.min(80, gestureState.dx));
+        pan.setValue({ x: newX, y: 0 });
+        if (newX >= 50 && !isTriggered.current) {
+          isTriggered.current = true;
+        } else if (newX < 50 && isTriggered.current) {
+          isTriggered.current = false;
+        }
+      },
+      onPanResponderRelease: () => {
+        if (isTriggered.current) {
+          onReply();
+        }
+        isTriggered.current = false;
+        Animated.spring(pan, {
+          toValue: { x: 0, y: 0 },
+          useNativeDriver: true,
+          tension: 40,
+          friction: 5,
+        }).start();
+      },
+    })
+  ).current;
+
+  return (
+    <View style={{ position: 'relative', width: '100%' }} onLayout={onLayout}>
+      <Animated.View
+        style={[
+          {
+            position: 'absolute',
+            left: 15,
+            top: '50%',
+            marginTop: -10,
+            opacity: pan.x.interpolate({
+              inputRange: [0, 50],
+              outputRange: [0, 1],
+              extrapolate: 'clamp',
+            }),
+            transform: [
+              {
+                scale: pan.x.interpolate({
+                  inputRange: [0, 50],
+                  outputRange: [0.5, 1.2],
+                  extrapolate: 'clamp',
+                }),
+              },
+            ],
+          },
+        ]}
+      >
+        <Ionicons name="arrow-undo" size={20} color="#3a9e76" />
+      </Animated.View>
+      <Animated.View
+        {...panResponder.panHandlers}
+        style={{
+          transform: [{ translateX: pan.x }],
+          width: '100%',
+        }}
+      >
+        {children}
+      </Animated.View>
+    </View>
+  );
+};
+
 export const ChatScreen: React.FC<Props> = ({ route, navigation }) => {
   const { ticketId } = route.params;
   const { user } = useAuthStore();
@@ -49,6 +133,7 @@ export const ChatScreen: React.FC<Props> = ({ route, navigation }) => {
   const [ticket, setTicket] = useState<LocalTicket | null>(null);
   const [inputText, setInputText] = useState('');
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [replyingTo, setReplyingTo] = useState<ChatMessage | null>(null);
   const [showPlusMenu, setShowPlusMenu] = useState(false);
   const [viewerVisible, setViewerVisible] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -58,6 +143,21 @@ export const ChatScreen: React.FC<Props> = ({ route, navigation }) => {
 
   const socket = useRef(SocketService.getInstance());
   const scrollViewRef = useRef<ScrollView>(null);
+  const messageLayouts = useRef<{ [key: string]: number }>({});
+  const inputRef = useRef<TextInput>(null);
+  const [highlightedMessageId, setHighlightedMessageId] = useState<string | null>(null);
+
+  const handleQuotePress = (replyToChatId?: string) => {
+    if (!replyToChatId) return;
+    const y = messageLayouts.current[replyToChatId];
+    if (y !== undefined) {
+      scrollViewRef.current?.scrollTo({ y: Math.max(0, y - 50), animated: true });
+      setHighlightedMessageId(replyToChatId);
+      setTimeout(() => {
+        setHighlightedMessageId(null);
+      }, 1500);
+    }
+  };
 
   useEffect(() => {
     // 1. Join Room and handle reconnection
@@ -87,6 +187,10 @@ export const ChatScreen: React.FC<Props> = ({ route, navigation }) => {
         attachmentType: msg.attachmentType,
         time: new Date(msg.createdAt || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         createdAt: msg.createdAt || new Date().toISOString(),
+        senderName: msg.senderName,
+        replyToChatId: msg.replyToChatId,
+        replyToMessage: msg.replyToMessage,
+        replyToSenderName: msg.replyToSenderName,
       };
       
       setMessages(prev => {
@@ -108,7 +212,8 @@ export const ChatScreen: React.FC<Props> = ({ route, navigation }) => {
       await updateLocalTicket(ticketId, {
         lastChatMessage: mapped.text || (mapped.attachmentType === 'image' ? '📸 Imagen' : '📄 Archivo'),
         lastChatIsSeen: isMe,
-        lastChatSenderId: msg.senderId
+        lastChatSenderId: msg.senderId,
+        lastOpenedAt: new Date().toISOString()
       });
 
       if (ticket?.walletId) {
@@ -127,6 +232,7 @@ export const ChatScreen: React.FC<Props> = ({ route, navigation }) => {
     const loadSession = async () => {
       if (!ticketId) return;
       try {
+        await markTicketAsOpened(ticketId);
         const found = (await getLocalTickets()).find(t => t.id === ticketId);
         if (found) setTicket(found);
         
@@ -147,6 +253,10 @@ export const ChatScreen: React.FC<Props> = ({ route, navigation }) => {
                 attachmentType: m.attachmentType,
                 time: new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
                 createdAt: m.createdAt,
+                senderName: m.senderName,
+                replyToChatId: m.replyToChatId,
+                replyToMessage: m.replyToMessage,
+                replyToSenderName: m.replyToSenderName,
               };
             });
             setMessages(mappedMessages);
@@ -173,6 +283,8 @@ export const ChatScreen: React.FC<Props> = ({ route, navigation }) => {
     if (!text?.trim() && !attachUrl) return;
     
     setInputText('');
+    const currentReply = replyingTo;
+    setReplyingTo(null);
 
     // Update Optimista (ID Temporal)
     const tempId = 'temp-' + Date.now();
@@ -185,6 +297,10 @@ export const ChatScreen: React.FC<Props> = ({ route, navigation }) => {
       attachmentType: attachType,
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       createdAt: new Date().toISOString(),
+      senderName: user.displayName,
+      replyToChatId: currentReply?.id,
+      replyToMessage: currentReply?.text,
+      replyToSenderName: currentReply?.sender === 'me' ? user.displayName : (currentReply?.senderName || 'Usuario'),
     };
     setMessages(prev => [...prev, tempMsg]);
     setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: true }), 100);
@@ -192,7 +308,16 @@ export const ChatScreen: React.FC<Props> = ({ route, navigation }) => {
     try {
       // 1. Upload if it's a local URI (placeholder: we do it before calling handleSend in practice)
       // 2. Persistencia en BD vía API
-      const saved = await ticketsApi.addChatMessage(ticketId, text, user.displayName, attachUrl, attachType);
+      const saved = await ticketsApi.addChatMessage(
+        ticketId, 
+        text, 
+        user.displayName, 
+        attachUrl, 
+        attachType,
+        currentReply?.id,
+        currentReply?.text,
+        currentReply?.sender === 'me' ? user.displayName : (currentReply?.senderName || 'Usuario')
+      );
       
       // 3. Notificar vía Socket
       socket.current.emit('sendMessage', {
@@ -204,6 +329,9 @@ export const ChatScreen: React.FC<Props> = ({ route, navigation }) => {
         attachmentUrl: attachUrl,
         attachmentType: attachType,
         createdAt: saved.createdAt,
+        replyToChatId: currentReply?.id,
+        replyToMessage: currentReply?.text,
+        replyToSenderName: currentReply?.sender === 'me' ? user.displayName : (currentReply?.senderName || 'Usuario'),
       });
 
       // 4. Actualizar cache real
@@ -260,6 +388,10 @@ export const ChatScreen: React.FC<Props> = ({ route, navigation }) => {
             time: new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
             attachmentUrl: m.attachmentUrl,
             attachmentType: (m.attachmentType === 'image' || m.attachmentType === 'file') ? m.attachmentType : undefined,
+            senderName: m.senderName,
+            replyToChatId: m.replyToChatId,
+            replyToMessage: m.replyToMessage,
+            replyToSenderName: m.replyToSenderName,
           };
         });
         setMessages(mappedMessages);
@@ -447,19 +579,54 @@ export const ChatScreen: React.FC<Props> = ({ route, navigation }) => {
           contentContainerStyle={styles.messagesContent}
           onContentSizeChange={() => scrollViewRef.current?.scrollToEnd({ animated: true })}
         >
-          {messages.map((item) => (
-            <View 
-              key={item.id} 
-              style={[
-                styles.messageRow, 
-                item.sender === 'me' ? styles.messageRowMe : styles.messageRowOther
-              ]}
-            >
-              <View style={[
-                styles.bubble, 
-                item.sender === 'me' ? styles.bubbleMe : styles.bubbleOther,
-                (item.attachmentUrl && item.attachmentType === 'image') && { padding: 4 }
-              ]}>
+          {messages.map((item) => {
+            const isMe = item.sender === 'me';
+            const counterpartName = ticket.role === 'owner_id' ? (ticket.toUserDisplayName || ticket.contactName) : (ticket.ownerDisplayName || 'Propietario');
+            const authorName = isMe ? user?.displayName : (item.senderName || counterpartName || 'Usuario');
+            
+            return (
+              <SwipeToReply
+                key={item.id}
+                onReply={() => {
+                  setReplyingTo({ ...item, senderName: authorName });
+                  inputRef.current?.focus();
+                }}
+                onLayout={(e) => {
+                  messageLayouts.current[item.id] = e.nativeEvent.layout.y;
+                }}
+              >
+                <View 
+                  style={[
+                    styles.messageRow, 
+                    isMe ? styles.messageRowMe : styles.messageRowOther
+                  ]}
+                >
+                  <View style={[
+                    styles.bubble, 
+                    isMe ? styles.bubbleMe : styles.bubbleOther,
+                    item.id === highlightedMessageId && (isMe ? styles.bubbleMeHighlighted : styles.bubbleOtherHighlighted),
+                    (item.attachmentUrl && item.attachmentType === 'image') && { padding: 4 }
+                  ]}>
+                    {/* Quoted Message Preview inside Bubble */}
+                    {item.replyToMessage && (
+                      <TouchableOpacity
+                        activeOpacity={0.7}
+                        onPress={() => handleQuotePress(item.replyToChatId)}
+                        style={[
+                          styles.quoteBubbleContainer,
+                          isMe ? styles.quoteBubbleMe : styles.quoteBubbleOther
+                        ]}
+                      >
+                        <View style={styles.quoteContent}>
+                          <Text style={[styles.quoteSenderName, { color: item.replyToSenderName === user?.displayName ? '#3a9e76' : '#0284c7' }]} numberOfLines={1}>
+                            {item.replyToSenderName}
+                          </Text>
+                          <Text style={styles.quoteText} numberOfLines={2}>
+                            {item.replyToMessage}
+                          </Text>
+                        </View>
+                      </TouchableOpacity>
+                    )}
                 {/* Renderizar Imagen si existe adjunto de tipo imagen */}
                 {item.attachmentUrl && item.attachmentType === 'image' && (
                   <TouchableOpacity 
@@ -532,11 +699,34 @@ export const ChatScreen: React.FC<Props> = ({ route, navigation }) => {
                     {item.text}
                   </Text>
                 )}
-              </View>
-              <Text style={styles.messageTime}>{item.time}</Text>
-            </View>
-          ))}
+                  </View>
+                  <Text style={styles.messageTime}>{item.time}</Text>
+                </View>
+              </SwipeToReply>
+            );
+          })}
         </ScrollView>
+
+        {/* Reply Preview Bar */}
+        {replyingTo && (
+          <View style={styles.replyPreviewBar}>
+            <View style={styles.replyPreviewBarIndicator} />
+            <View style={styles.replyPreviewBarContent}>
+              <Text style={styles.replyPreviewBarTitle} numberOfLines={1}>
+                Respondiendo a {replyingTo.sender === 'me' ? 'vos' : (replyingTo.senderName || 'Usuario')}
+              </Text>
+              <Text style={styles.replyPreviewBarText} numberOfLines={1}>
+                {replyingTo.text || (replyingTo.attachmentType === 'image' ? '📸 Imagen' : '📄 Archivo')}
+              </Text>
+            </View>
+            <TouchableOpacity 
+              onPress={() => setReplyingTo(null)}
+              style={styles.replyPreviewBarClose}
+            >
+              <Ionicons name="close-circle" size={20} color="#9ca3af" />
+            </TouchableOpacity>
+          </View>
+        )}
 
         {/* Input Bar */}
         <View style={styles.inputBar}>
@@ -549,6 +739,7 @@ export const ChatScreen: React.FC<Props> = ({ route, navigation }) => {
             <Ionicons name="add" size={24} color="#737373" />
           </TouchableOpacity>
           <TextInput
+            ref={inputRef}
             style={styles.textInput}
             placeholder="Escribí un mensaje..."
             value={inputText}
@@ -855,11 +1046,18 @@ const styles = StyleSheet.create({
     backgroundColor: '#171717',
     borderBottomRightRadius: 4,
   },
+  bubbleMeHighlighted: {
+    backgroundColor: '#196342',
+  },
   bubbleOther: {
     backgroundColor: '#FFFFFF',
     borderBottomLeftRadius: 4,
     borderWidth: 1,
     borderColor: '#F3F4F6',
+  },
+  bubbleOtherHighlighted: {
+    backgroundColor: '#e3ddf5',
+    borderColor: '#7465b5',
   },
   messageText: {
     fontSize: 15,
@@ -1059,5 +1257,69 @@ const styles = StyleSheet.create({
   },
   headerSpacer: {
     width: 32,
+  },
+  // Reply feature styles
+  quoteBubbleContainer: {
+    flexDirection: 'row',
+    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+    borderRadius: 6,
+    padding: 6,
+    marginBottom: 6,
+    overflow: 'hidden',
+  },
+  quoteBubbleMe: {
+    borderLeftWidth: 3,
+    borderLeftColor: '#3a9e76',
+  },
+  quoteBubbleOther: {
+    borderLeftWidth: 3,
+    borderLeftColor: '#0284c7',
+  },
+  quoteContent: {
+    flex: 1,
+  },
+  quoteSenderName: {
+    fontFamily: 'PlusJakarta-Bold',
+    fontSize: 12,
+    marginBottom: 2,
+  },
+  quoteText: {
+    fontFamily: FontFamily.regular,
+    fontSize: 12,
+    color: '#4b5563',
+  },
+  replyPreviewBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f9fafb',
+    borderTopWidth: 1,
+    borderTopColor: '#e5e7eb',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+  },
+  replyPreviewBarIndicator: {
+    width: 4,
+    height: '100%',
+    backgroundColor: '#3a9e76',
+    borderRadius: 2,
+    marginRight: 12,
+  },
+  replyPreviewBarContent: {
+    flex: 1,
+  },
+  replyPreviewBarTitle: {
+    fontFamily: 'PlusJakarta-Bold',
+    fontSize: 13,
+    color: '#3a9e76',
+  },
+  replyPreviewBarText: {
+    fontFamily: FontFamily.regular,
+    fontSize: 12,
+    color: '#6b7280',
+    marginTop: 2,
+  },
+  replyPreviewBarClose: {
+    marginLeft: 12,
+    padding: 4,
   },
 });

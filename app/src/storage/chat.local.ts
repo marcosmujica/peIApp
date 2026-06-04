@@ -11,6 +11,10 @@ export interface ChatMessage {
   attachmentType?: 'image' | 'file';
   time: string;
   createdAt: string;
+  senderName?: string;
+  replyToChatId?: string;
+  replyToMessage?: string;
+  replyToSenderName?: string;
 }
 
 /** Obtiene los mensajes de un ticket específico */

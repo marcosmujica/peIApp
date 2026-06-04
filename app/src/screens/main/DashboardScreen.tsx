@@ -5,7 +5,7 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuthStore } from '@/store/auth.store';
 import { useContactsStore, getContactNameStatic, getContactAvatarStatic } from '@/store/contacts.store';
-import { getLocalTickets, LocalTicket, mergeServerTickets } from '@/storage/tickets.local';
+import { getLocalTickets, LocalTicket, mergeServerTickets, isTicketChatUnread } from '@/storage/tickets.local';
 import { getLocalWallets, LocalWallet, mergeServerWallets } from '@/storage/wallets.local';
 import { walletsApi } from '@/api/wallets.api';
 import { ticketsApi } from '@/api/tickets.api';
@@ -729,11 +729,15 @@ export const DashboardScreen: React.FC = () => {
                     otherPartyName = null;
                   }
 
+                  const baseSubtitle = `${otherPartyName ? otherPartyName + ' · ' : ''}${new Date(item.dueDate && item.dueDate !== '' ? item.dueDate : item.createdAt).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })}`;
+                  const hasUnread = isTicketChatUnread(item, user?.id);
+                  const subtitle = hasUnread ? item.lastChatMessage : baseSubtitle;
+
                   return (
                     <TransactionItem
                       key={item.id}
                       title={item.description || getRubroLabel(item.rubro || (item.type === 'income' ? item.rubroIncome : item.rubroExpense), item.type, (item as any).globalType)}
-                      subtitle={`${otherPartyName ? otherPartyName + ' · ' : ''}${new Date(item.dueDate && item.dueDate !== '' ? item.dueDate : item.createdAt).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })}`}
+                      subtitle={subtitle}
                       amount={`$${item.amount.toLocaleString('es-AR')}`}
                       currency={item.currency || 'UYU'}
                       iconName={getRubroIcon(item.rubro || (item.type === 'income' ? item.rubroIncome : item.rubroExpense), item.type, (item as any).globalType) as any}
@@ -745,6 +749,7 @@ export const DashboardScreen: React.FC = () => {
                       avatarUrl={otherPartyAvatar}
                       rating={isOwner ? item.ownerRating : item.participantRating}
                       style={index < items.length - 1 ? { borderBottomWidth: 1, borderBottomColor: '#eceae3' } : {}}
+                      hasUnreadChat={hasUnread}
                     />
                   );
                 })}

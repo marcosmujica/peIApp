@@ -10,7 +10,7 @@ export class Ticket {
   @PrimaryGeneratedColumn("uuid", { name: "ticket_id" })
   ticketId: string;
 
-  @Column({ name: "owner_id", length: 20 })
+  @Column({ name: "owner_id", type: "uuid" })
   ownerId: string;
 
   @ManyToOne(() => User)
@@ -100,4 +100,13 @@ export class Ticket {
 
   @Column({ name: "short_id", length: 10, nullable: true })
   shortId: string;
+
+  @Column({ name: "last_chat_message", type: "text", nullable: true })
+  lastChatMessage?: string;
+
+  @Column({ name: "last_chat_message_timestamp", type: "timestamptz", nullable: true })
+  lastChatMessageTimestamp?: Date;
+
+  @Column({ name: "last_chat_sender_id", type: "uuid", nullable: true })
+  lastChatSenderId?: string;
 }

@@ -47,7 +47,7 @@ export interface LocalWallet {
   }>;
   distributionLists?: DistributionList[]; // Nuevo
   goals?: WalletGoal[]; // Nuevo: Metas de corto/largo plazo
-  
+
   // Chat integration (Last message from any ticket in this wallet)
   lastChatMessage?: string;
   lastChatSenderAvatar?: string;

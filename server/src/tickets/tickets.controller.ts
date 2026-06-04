@@ -109,8 +109,8 @@ export class TicketsController {
       return { success: true, message: 'Mocked successful chat' };
     }
     const userId = req.user.sub;
-    const { message, senderName, attachmentUrl, attachmentType } = body;
-    return this.ticketsService.addChatMessage(id, userId, message, senderName, attachmentUrl, attachmentType);
+    const { message, senderName, attachmentUrl, attachmentType, replyToChatId, replyToMessage, replyToSenderName } = body;
+    return this.ticketsService.addChatMessage(id, userId, message, senderName, attachmentUrl, attachmentType, replyToChatId, replyToMessage, replyToSenderName);
   }
 
   @Post('chat/upload')

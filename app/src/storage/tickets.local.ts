@@ -57,10 +57,13 @@ export interface LocalTicket {
   rubroIncome?: string;
   rubroExpense?: string;
   rubro?: string; // Unified rubro filter
+  toRubro?: string;
   globalType?: 'ticket' | 'transfer' | 'adjustment';
 
   // Chat integration
   lastChatMessage?: string;
+  lastChatMessageTimestamp?: string;
+  lastOpenedAt?: string; // local-only
   lastChatSenderAvatar?: string;
   lastChatIsSeen?: boolean;
   lastChatSenderId?: string;
@@ -160,6 +163,10 @@ export async function mergeServerTickets(serverTickets: any[]): Promise<LocalTic
       toRubro: st.toRubro,
       globalType: st.globalType,
       shortId: st.shortId,
+      lastChatMessage: st.lastChatMessage,
+      lastChatMessageTimestamp: st.lastChatMessageTimestamp,
+      lastChatSenderId: st.lastChatSenderId || existing?.lastChatSenderId,
+      lastOpenedAt: existing?.lastOpenedAt,
     });
   }
 
@@ -180,5 +187,24 @@ export async function mergeServerTickets(serverTickets: any[]): Promise<LocalTic
 
 export async function clearLocalTickets(): Promise<void> {
   await AsyncStorage.removeItem(TICKETS_KEY);
+}
+
+export async function markTicketAsOpened(ticketId: string): Promise<void> {
+  const all = await getLocalTickets();
+  const idx = all.findIndex(x => x.id === ticketId);
+  if (idx !== -1) {
+    all[idx] = {
+      ...all[idx],
+      lastOpenedAt: new Date().toISOString()
+    };
+    await saveLocalTickets(all);
+  }
+}
+
+export function isTicketChatUnread(ticket: LocalTicket, currentUserId?: string | number): boolean {
+  if (!ticket.lastChatMessage || !ticket.lastChatMessageTimestamp) return false;
+  if (ticket.lastChatSenderId && currentUserId && ticket.lastChatSenderId.toString() === currentUserId.toString()) return false;
+  if (!ticket.lastOpenedAt) return true;
+  return new Date(ticket.lastChatMessageTimestamp).getTime() > new Date(ticket.lastOpenedAt).getTime();
 }
 

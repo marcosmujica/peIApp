@@ -100,4 +100,13 @@ export class Ticket {
 
   @Column({ name: "short_id", length: 10, nullable: true })
   shortId: string;
+
+  @Column({ name: "last_chat_message", type: "text", nullable: true })
+  lastChatMessage?: string;
+
+  @Column({ name: "last_chat_message_timestamp", type: "timestamptz", nullable: true })
+  lastChatMessageTimestamp?: Date;
+
+  @Column({ name: "last_chat_sender_id", type: "uuid", nullable: true })
+  lastChatSenderId?: string;
 }
