@@ -7,6 +7,7 @@ import { v4 as uuidv4 } from 'uuid';
 import * as bcrypt from 'bcryptjs';
 import { PhoneOtp } from './entities/phone-otp.entity';
 import { User } from '../users/entities/user.entity';
+import { ensureE164Phone } from '../notifications/notifications.service';
 
 @Injectable()
 export class AuthService {
@@ -27,7 +28,7 @@ export class AuthService {
     const otpHash = await bcrypt.hash(code, 10);
     const expiresAt = new Date(Date.now() + ttl * 60 * 1000);
 
-    const cleanPhoneNumber = phoneNumber.replace(/[^\d]/g, '');
+    const cleanPhoneNumber = ensureE164Phone(phoneNumber);
 
     let user = await this.userRepo.findOne({ where: { phone: cleanPhoneNumber } });
     if (!user) {
@@ -89,7 +90,7 @@ export class AuthService {
   }> {
     const isMock = this.config.get<string>('OTP_MOCK') === 'true';
 
-    const cleanPhoneNumber = phoneNumber.replace(/[^\d]/g, '');
+    const cleanPhoneNumber = ensureE164Phone(phoneNumber);
 
     const user = await this.userRepo.findOne({ where: { phone: cleanPhoneNumber } });
     if (!user) throw new UnauthorizedException('Usuario no encontrado');

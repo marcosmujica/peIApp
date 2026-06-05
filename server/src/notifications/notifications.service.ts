@@ -51,7 +51,7 @@ export class NotificationsService {
       const smsUrl = (this.configService.get<string>('NOTIFICATION_SERVER_URL') || 'http://localhost:4000/send').replace('/send', '/send-sms');
       
       const userPhone = user?.phone || data?.phone || userId;
-      const cleanPhone = userPhone.replace(/[^\d]/g, '');
+      const cleanPhone = ensureE164Phone(userPhone);
       const response = await fetch(smsUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -71,4 +71,22 @@ export class NotificationsService {
       return false;
     }
   }
+}
+
+export function ensureE164Phone(phone: string): string {
+  if (!phone) return '';
+  let cleaned = phone.replace(/[^\d]/g, '');
+  const countryCodes = [
+    '598', '54', '55', '56', '57', '58', '51', '52', '595', '591', '593',
+    '506', '503', '502', '509', '504', '505', '507', '1'
+  ];
+  for (const cc of countryCodes) {
+    if (cleaned.startsWith(cc) && cleaned.length >= 10) {
+      return cleaned;
+    }
+  }
+  if (cleaned.startsWith('0')) {
+    cleaned = cleaned.substring(1);
+  }
+  return '598' + cleaned;
 }

@@ -7,6 +7,7 @@ import { v4 as uuidv4 } from 'uuid';
 import * as bcrypt from 'bcryptjs';
 import { PhoneOtp } from './entities/phone-otp.entity';
 import { User } from '../users/entities/user.entity';
+import { ensureE164Phone } from '../notifications/notifications.service';
 
 @Injectable()
 export class AuthService {
@@ -27,7 +28,7 @@ export class AuthService {
     const otpHash = await bcrypt.hash(code, 10);
     const expiresAt = new Date(Date.now() + ttl * 60 * 1000);
 
-    const cleanPhoneNumber = phoneNumber.replace(/[^\d]/g, '');
+    const cleanPhoneNumber = ensureE164Phone(phoneNumber);
 
     let user = await this.userRepo.findOne({ where: { phone: cleanPhoneNumber } });
     if (!user) {
@@ -40,7 +41,7 @@ export class AuthService {
     await this.otpRepo.save({ userId: user.userId, otpHash, expiresAt });
 
     if (isMock) {
-      console.log(`[DEV OTP] ${phoneNumber} → ${code}`);
+      console.log(`[DEV OTP] ${cleanPhoneNumber} → ${code}`);
     } else {
       const notifUrl = this.config.get('NOTIFICATION_SERVER_URL', 'http://localhost:4000/send');
       const smsUrl = notifUrl.replace('/send', '/send-sms');
@@ -90,8 +91,12 @@ export class AuthService {
     const isMock = this.config.get<string>('OTP_MOCK') === 'true';
 
 
+    const cleanPhoneNumber = ensureE164Phone(phoneNumber);
+    const user = await this.userRepo.findOne({ where: { phone: cleanPhoneNumber } });
+    if (!user) throw new UnauthorizedException('Usuario no encontrado');
+
     const otp = await this.otpRepo.findOne({
-      where: { userId: phoneNumber, usedAt: undefined as any },
+      where: { userId: user.userId, usedAt: undefined as any },
       order: { createdAt: 'DESC' },
     });
 
@@ -103,9 +108,6 @@ export class AuthService {
 
     otp.usedAt = new Date();
     await this.otpRepo.save(otp);
-
-    const cleanPhoneNumber = phoneNumber.replace(/[^\d]/g, '');
-    const user = await this.userRepo.findOneOrFail({ where: { phone: cleanPhoneNumber } });
 
     const payload = { sub: user.userId, phone: user.phone };
     const access_token = await this.jwtService.signAsync(payload);

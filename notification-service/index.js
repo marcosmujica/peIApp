@@ -61,6 +61,24 @@ const expo = new Expo();
 // Key: userId, Value: { phone, pushEnabled, notificationId }
 let usersCache = new Map();
 
+function ensureE164Phone(phone) {
+  if (!phone) return '';
+  let cleaned = phone.replace(/[^\d]/g, '');
+  const countryCodes = [
+    '598', '54', '55', '56', '57', '58', '51', '52', '595', '591', '593',
+    '506', '503', '502', '509', '504', '505', '507', '1'
+  ];
+  for (const cc of countryCodes) {
+    if (cleaned.startsWith(cc) && cleaned.length >= 10) {
+      return cleaned;
+    }
+  }
+  if (cleaned.startsWith('0')) {
+    cleaned = cleaned.substring(1);
+  }
+  return '598' + cleaned;
+}
+
 /**
  * Initialize Tables in Notification DB
  */
@@ -90,11 +108,11 @@ async function initNotifDb() {
 async function loadUsersToMemory() {
   console.log('⏳ Loading users from main DB...');
   try {
-    const result = await mainDb.query('SELECT user_id, push_enabled, notification_id FROM users');
+    const result = await mainDb.query('SELECT user_id, phone, push_enabled, notification_id FROM users');
     usersCache.clear();
     result.rows.forEach(user => {
       usersCache.set(user.user_id, {
-        phone: user.user_id,
+        phone: user.phone ? ensureE164Phone(user.phone) : '',
         pushEnabled: user.push_enabled,
         notificationId: user.notification_id
       });
@@ -160,11 +178,11 @@ app.post('/updateuser', async (req, res) => {
 async function getOrFetchUser(userId) {
   if (usersCache.has(userId)) return usersCache.get(userId);
   try {
-    const result = await mainDb.query('SELECT user_id, push_enabled, notification_id FROM users WHERE user_id = $1', [userId]);
+    const result = await mainDb.query('SELECT user_id, phone, push_enabled, notification_id FROM users WHERE user_id = $1', [userId]);
     if (result.rows.length > 0) {
       const u = result.rows[0];
       const userData = {
-        phone: u.user_id,
+        phone: u.phone ? ensureE164Phone(u.phone) : '',
         pushEnabled: u.push_enabled,
         notificationId: u.notification_id
       };
@@ -238,18 +256,20 @@ app.post('/send', async (req, res) => {
     }
   } else if (user) {
     // Existe pero no tiene token de push
+    const cleanUserPhone = ensureE164Phone(user.phone);
     if (process.env.ENABLE_NOTIFICATIONS === 'true') {
-      fileLog(`[WHATSAPP] Sending to ${user.phone}: ${content}`);
+      fileLog(`[WHATSAPP] Sending to ${cleanUserPhone}: ${content}`);
     } else {
-      fileLog(`[WHATSAPP-LOG-ONLY] Would have sent to ${user.phone}: ${content}`);
+      fileLog(`[WHATSAPP-LOG-ONLY] Would have sent to ${cleanUserPhone}: ${content}`);
       status = 'logged_only';
     }
   } else {
     // Usuario no existe en BD
+    const cleanUserId = ensureE164Phone(userId);
     if (process.env.ENABLE_NOTIFICATIONS === 'true') {
-      fileLog(`[WHATSAPP] External/Unknown User ${userId}: ${content}`);
+      fileLog(`[WHATSAPP] External/Unknown User ${cleanUserId}: ${content}`);
     } else {
-      fileLog(`[WHATSAPP-LOG-ONLY] Would have sent to External/Unknown User ${userId}: ${content}`);
+      fileLog(`[WHATSAPP-LOG-ONLY] Would have sent to External/Unknown User ${cleanUserId}: ${content}`);
       status = 'logged_only';
     }
   }
@@ -274,12 +294,14 @@ app.post('/send-sms', async (req, res) => {
   const { phone, content, title } = req.body || {};
   if (!phone || !content) return res.status(400).json({ error: 'phone and content are required' });
 
+  const cleanPhone = ensureE164Phone(phone);
+
   // 1. Registrar primero en la BD con estado 'pending'
   let logId = null;
   try {
     const insertRes = await notifDb.query(
       'INSERT INTO notification_logs (user_id, content, type, status) VALUES ($1, $2, $3, $4) RETURNING id',
-      [phone, content, 'sms', 'pending']
+      [cleanPhone, content, 'sms', 'pending']
     );
     logId = insertRes.rows[0].id;
   } catch (dbErr) {
@@ -292,11 +314,11 @@ app.post('/send-sms', async (req, res) => {
   let responseData = null;
 
   if (process.env.SMS_MOCK === 'true') {
-    fileLog(`[SMS-MOCK] Simulating SMS to ${phone}: ${content}`);
+    fileLog(`[SMS-MOCK] Simulating SMS to ${cleanPhone}: ${content}`);
     status = 'mocked';
     responseData = { success: true, message: 'Mocked SMS', type: 'sms', status };
   } else if (process.env.ENABLE_NOTIFICATIONS !== 'true') {
-    fileLog(`[SMS-LOG-ONLY] Would have sent SMS to ${phone}: ${content}`);
+    fileLog(`[SMS-LOG-ONLY] Would have sent SMS to ${cleanPhone}: ${content}`);
     status = 'logged_only';
     responseData = { success: true, message: 'SMS Logged Only', type: 'sms', status };
   } else {
@@ -312,7 +334,8 @@ app.post('/send-sms', async (req, res) => {
         try {
           const auth = Buffer.from(`${sid}:${token}`).toString('base64');
           const body = new URLSearchParams();
-          body.append('To', phone);
+          const formattedPhone = cleanPhone.startsWith('+') ? cleanPhone : '+' + cleanPhone;
+          body.append('To', formattedPhone);
           body.append('From', from);
           body.append('Body', content);
 
