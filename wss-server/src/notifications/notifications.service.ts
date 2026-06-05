@@ -51,10 +51,11 @@ export class NotificationsService {
       const smsUrl = (this.configService.get<string>('NOTIFICATION_SERVER_URL') || 'http://localhost:4000/send').replace('/send', '/send-sms');
       
       const userPhone = user?.phone || data?.phone || userId;
+      const cleanPhone = userPhone.replace(/[^\d]/g, '');
       const response = await fetch(smsUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: userPhone.startsWith('+') ? userPhone : `+${userPhone}`, content: `${title}: ${content}` })
+        body: JSON.stringify({ phone: cleanPhone, content: `${title}: ${content}` })
       });
 
       if (response.ok) {

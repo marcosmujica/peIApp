@@ -52,7 +52,7 @@ export class AuthService {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            phone: `+${cleanPhoneNumber}`,
+            phone: cleanPhoneNumber,
             content: `Tu codigo de verificacion de peIApp es: ${code}`,
           }),
         });
