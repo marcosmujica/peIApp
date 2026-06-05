@@ -27,7 +27,6 @@ import { getLocalWallets } from '@/storage/wallets.local';
 import { useAuthStore } from '@/store/auth.store';
 import { getRubroLabel, GENERAL_RUBROS_INGRESOS, GENERAL_RUBROS_GASTOS, WALLET_RUBROS_MAP, getPartitionedRubros } from '@/constants/rubros';
 
-// â”€â”€â”€ Constants â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const FREQ_LABELS: Record<string, string> = {
   weekly: '1 vez por semana',
@@ -642,7 +641,7 @@ const styles = StyleSheet.create({
 
   sectionSep: { height: 1, backgroundColor: '#f2f2f0', marginTop: 20 },
 
-  // Billetera | CategorÃ­a
+  // Billetera | Categoría
   infoDualRow: {
     flexDirection: 'row', alignItems: 'center',
     paddingVertical: 14, marginBottom: 4,

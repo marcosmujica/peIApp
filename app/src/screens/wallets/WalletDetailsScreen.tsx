@@ -32,7 +32,7 @@ import { Avatar } from '@/components/ui/Avatar';
 import { getRubroLabel, getRubroIcon } from '@/constants/rubros';
 import { SYSTEM_WALLET_NAME } from '@/constants';
 import { calculateWalletStats } from '@/utils/walletCalculations';
-import { MonthSummaryPanel, SalesByAmountPanel, SalesByCountPanel, ExpensesByCategoryPanel, GoalsPanel, ActiveWeeksPanel, GainsComparisonPanel, UpcomingPaymentsPanel, WeeklyCashFlowPanel, ActiveHoursPanel, ExpensesByPaymentMethodPanel, IncomeByPaymentMethodPanel, WalletHealthPanel } from '@/components/wallet/DashboardPanels';
+import { MonthSummaryPanel, SalesByAmountPanel, SalesByCountPanel, ExpensesByCategoryPanel, GoalsPanel, ActiveWeeksPanel, GainsComparisonPanel, UpcomingPaymentsPanel, WeeklyCashFlowPanel, ActiveHoursPanel, ExpensesByPaymentMethodPanel, IncomeByPaymentMethodPanel, WalletHealthPanel, IncomeExpenseEvolutionPanel } from '@/components/wallet/DashboardPanels';
 import { RecentMovementsPanel } from '@/components/dashboard/RecentMovementsPanel';
 import { Modal, FlatList, TextInput } from 'react-native';
 import { getLocalWallets, saveLocalWallets, LocalWallet, WalletGoal } from '@/storage/wallets.local';
@@ -55,6 +55,7 @@ const AVAILABLE_PANELS = [
   { id: 'gastos_por_medio_pago', title: 'Cuanto pague por medio de pago', subtitle: 'Gastos según el método', icon: 'wallet' },
   { id: 'cobros_por_medio_pago', title: 'Cuanto cobre por medio de pago', subtitle: 'Ingresos según el método', icon: 'trending-up' },
   { id: 'last_movements', title: 'Últimos movimientos', subtitle: 'Los últimos 10 cobros o pagos', icon: 'time' },
+  { id: 'evolucion_ingresos_egresos', title: 'Evolución de ingresos y egresos', subtitle: 'Gráfica comparativa de ingresos (verde) y egresos (rojo) últimos 3 meses', icon: 'analytics' },
 ];
 
 type Props = NativeStackScreenProps<RootStackParamList, 'WalletDetails'>;
@@ -768,6 +769,7 @@ export const WalletDetailsScreen: React.FC<Props> = ({ route, navigation }) => {
                   if (panelId === 'gastos_por_medio_pago') return <ExpensesByPaymentMethodPanel key={panelId} tickets={tickets} currency={screenCurrency} />;
                   if (panelId === 'cobros_por_medio_pago') return <IncomeByPaymentMethodPanel key={panelId} tickets={tickets} currency={screenCurrency} />;
                   if (panelId === 'indicador_situacion') return <WalletHealthPanel key={panelId} tickets={tickets} currency={screenCurrency} />;
+                  if (panelId === 'evolucion_ingresos_egresos') return <IncomeExpenseEvolutionPanel key={panelId} tickets={tickets} currency={screenCurrency} />;
 
                   return null;
                 })}

@@ -79,8 +79,8 @@ const addMonths = (date: Date, months: number): Date => {
 };
 
 /**
- * Normaliza una fecha para evitar el desfase de zona horaria (clásico error de un dÃ­a menos).
- * Si es un string YYYY-MM-DD, lo trata como local. Si es ISO, asegura que no cambie de dÃ­a al mostrarlo.
+ * Normaliza una fecha para evitar el desfase de zona horaria (clásico error de un día menos).
+ * Si es un string YYYY-MM-DD, lo trata como local. Si es ISO, asegura que no cambie de día al mostrarlo.
  */
 const parseSafeDate = (dateSource: any): Date => {
   if (!dateSource) return new Date();
@@ -88,10 +88,10 @@ const parseSafeDate = (dateSource: any): Date => {
   if (isNaN(d.getTime())) return new Date();
 
   // Si el string no incluye hora (ej: "2023-10-25"), JS lo interpreta como UTC 00:00.
-  // Al pasarlo a local en zonas horarias negativas (América), resta un dÃ­a.
+  // Al pasarlo a local en zonas horarias negativas (América), resta un día.
   if (typeof dateSource === 'string' && dateSource.length <= 10) {
     // Reemplazar guiones por barras para que JS lo trate como local en algunos navegadores
-    // o simplemente añadir una hora segura al mediodÃ­a.
+    // o simplemente añadir una hora segura al mediodía.
     return new Date(dateSource.replace(/-/g, '/') + ' 12:00:00');
   }
 
@@ -111,6 +111,7 @@ const BASE_PAYMENT_METHODS = [
 
 const DATE_QUICK_OPTIONS = [
   { id: 'today', label: 'Hoy' },
+  { id: 'tomorrow', label: 'Mañana' },
   { id: '1week', label: 'Dentro de 1 semana' },
   { id: '15days', label: 'Dentro de 15 días' },
   { id: '1month', label: 'Dentro de 1 mes' },
@@ -135,7 +136,7 @@ const MOCK_CONTACTS: ContactInfo[] = [
   { name: 'DEMO_NO_NORMALIZADO', phone: '096775523323' },
   { name: 'Ana Gómez', phone: '+5491112345678' },
   { name: 'Carlos López', phone: '+5491123456789' },
-  { name: 'LucÃ­a Fernández', phone: '+5491134567890' },
+  { name: 'Lucía Fernández', phone: '+5491134567890' },
   { name: 'Mario Torres', phone: '+5491145678901' },
   { name: 'Cliente Frecuente', phone: '1156789012' },
 ];
@@ -306,7 +307,7 @@ export const AddMovementScreen = () => {
     try {
       const userName = user?.displayName || user?.phoneNumber || 'Un usuario';
       const shareUrl = `${WEB_SHARE_URL}/t/${sid}`;
-      const message = `${userName} te envió un ticket de PeiApp.\n\nPodés ver los detalles, postergar la fecha o cargar un pago acá:\n${shareUrl}\n\nÂ¡Mejorá tus finanzas con PeiApp! www.peiapp.tech`;
+      const message = `${userName} te envió un ticket de PeIApp.\n\nPodés ver los detalles, postergar la fecha o cargar un pago acá:\n${shareUrl}\n\n¡Mejorá tus finanzas grátis con PeiApp! www.peiapp.tech`;
 
       await Share.share({
         message,
@@ -410,7 +411,7 @@ export const AddMovementScreen = () => {
           setOriginalAmount(t.amount.toString());
           setInitialAmount(t.initialAmount ?? null);
           setInitialDueDate(t.initialDueDate ?? null);
-          // Cargar logs y mensajes de auditorÃ­a del chat
+          // Cargar logs y mensajes de auditoría del chat
           setLoadingLogs(true);
           try {
             const [logsRes, chatRes] = await Promise.all([
@@ -418,7 +419,7 @@ export const AddMovementScreen = () => {
               ticketsApi.getChatMessages(ticketId)
             ]);
 
-            // Convertir mensajes de auditorÃ­a (que empiezan con ***) en logs sintéticos
+            // Convertir mensajes de auditoría (que empiezan con ***) en logs sintéticos
             const auditLogs = chatRes
               .filter(m => m.message && m.message.trim().startsWith('***'))
               .map(m => ({
@@ -605,7 +606,7 @@ export const AddMovementScreen = () => {
       console.log(`[AI-Pred] Predicted ID: ${predictedId}`);
 
       // Si la IA no está segura o no encuentra uno consistente entre los permitidos, 1
-      // el backend deberÃ­a devolver null y aquÃ­ no actualizamos nada.
+      // el backend debería devolver null y aquÃ­ no actualizamos nada.
       if (predictedId) {
         setSelectedRubroId(predictedId);
       } else {
@@ -1403,12 +1404,15 @@ export const AddMovementScreen = () => {
     }
 
     let newDate = new Date();
-    // Forzamos mediodÃ­a para evitar errores de zona horaria
+    // Forzamos mediodía para evitar errores de zona horaria
     newDate.setHours(12, 0, 0, 0);
 
     switch (optionId) {
       case 'today':
         // Ya es hoy
+        break;
+      case 'tomorrow':
+        newDate.setDate(newDate.getDate() + 1);
         break;
       case '1week':
         newDate.setDate(newDate.getDate() + 7);
@@ -2254,7 +2258,7 @@ export const AddMovementScreen = () => {
                       disabled={status === 'cancelled'}
                     >
                       <Ionicons name="image-outline" size={24} color="#363630" />
-                      <Text style={{ fontSize: 16, color: '#363630' }}>GalerÃ­a de imágenes</Text>
+                      <Text style={{ fontSize: 16, color: '#363630' }}>Galería de imágenes</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={{ backgroundColor: '#f2f2f0', borderRadius: 16, padding: 20, flexDirection: 'row', alignItems: 'center', gap: 16, opacity: status === 'cancelled' ? 0.5 : 1 }}
@@ -2630,7 +2634,7 @@ export const AddMovementScreen = () => {
                                 }}
                               >
                                 <Ionicons name="image-outline" size={18} color="#363630" />
-                                <Text style={{ fontSize: 14, color: '#363630', fontFamily: FontFamily.medium }}>GalerÃ­a</Text>
+                                <Text style={{ fontSize: 14, color: '#363630', fontFamily: FontFamily.medium }}>Galería</Text>
                               </TouchableOpacity>
                               <TouchableOpacity
                                 style={{ flex: 1, backgroundColor: '#f2f2f0', borderRadius: 12, paddingVertical: 12, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 8 }}
@@ -2679,7 +2683,7 @@ export const AddMovementScreen = () => {
               <TouchableWithoutFeedback>
                 <View style={{ backgroundColor: '#fff', borderRadius: 24, padding: 24, width: '85%', alignItems: 'center' }}>
                   <Text style={{ fontSize: 18, fontFamily: FontFamily.bold, color: '#363630', marginBottom: 20, textAlign: 'center' }}>
-                    {isCustomDateActive ? 'Seleccionar Fecha' : 'Â¿Cuándo vence?'}
+                    {isCustomDateActive ? 'Seleccionar Fecha' : '¿Cuándo vence?'}
                   </Text>
 
                   {!isCustomDateActive ? (
@@ -2765,7 +2769,7 @@ export const AddMovementScreen = () => {
             <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' }}>
               <TouchableWithoutFeedback>
                 <View style={{ backgroundColor: '#fff', borderRadius: 24, padding: 24, width: '85%' }}>
-                  <Text style={{ fontSize: 18, fontFamily: FontFamily.bold, color: '#363630', marginBottom: 8, textAlign: 'center' }}>Â¿Cancelar Ticket?</Text>
+                  <Text style={{ fontSize: 18, fontFamily: FontFamily.bold, color: '#363630', marginBottom: 8, textAlign: 'center' }}>¿Cancelar Ticket?</Text>
                   <Text style={{ fontSize: 14, color: '#878778', marginBottom: 20, textAlign: 'center' }}>Explica brevemente el motivo de la cancelación.</Text>
                   <TextInput
                     style={{ backgroundColor: '#f2f2f0', borderRadius: 12, padding: 16, fontSize: 16, color: '#363630', minHeight: 80 }}
@@ -3024,7 +3028,7 @@ export const AddMovementScreen = () => {
                   <View style={{ padding: 12 }}>
                     {[
                       { id: 'weekly', label: '1 vez por semana' },
-                      { id: 'biweekly', label: '1 vez cada 15 dÃ­as' },
+                      { id: 'biweekly', label: '1 vez cada 15 días' },
                       { id: 'monthly', label: '1 vez por mes' },
                       { id: 'bimonthly', label: '1 vez cada 2 meses' },
                       { id: 'semi-annually', label: '1 vez cada 6 meses' },

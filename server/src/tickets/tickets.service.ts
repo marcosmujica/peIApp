@@ -346,7 +346,7 @@ export class TicketsService {
       replyToSenderName,
     });
     const saved = await this.chatRepo.save(chat);
-    
+
     const lastMsgText = message || (attachmentType === 'image' ? '📸 Imagen' : '📄 Archivo');
     await this.ticketRepo.update(ticketId, {
       lastChatMessage: lastMsgText,
@@ -493,7 +493,7 @@ export class TicketsService {
         await this.sendTicketNotification(
           ticketId,
           userId,
-          `Registró un pago de ${amountStr} (${data.paymentMethod}) para el ticket "${ticket.description || 'Sin descripción'}"${ticket.status === 'completed' ? '. Â¡Ticket completado!' : remainingStr}`,
+          `Registró un pago de ${amountStr} (${data.paymentMethod}) para el ticket "${ticket.description || 'Sin descripción'}"${ticket.status === 'completed' ? '. ¡Ticket completado!' : remainingStr}`,
           undefined,
           manager
         );

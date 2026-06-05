@@ -824,6 +824,7 @@ export const ChatScreen: React.FC<Props> = ({ route, navigation }) => {
              </View>
              {[
                { id: 'today', label: 'Hoy' },
+               { id: 'tomorrow', label: 'Mañana' },
                { id: '1week', label: 'Dentro de 1 semana' },
                { id: '15days', label: 'Dentro de 15 días' },
                { id: '1month', label: 'Dentro de 1 mes' },
@@ -850,7 +851,8 @@ export const ChatScreen: React.FC<Props> = ({ route, navigation }) => {
                      setShowDatePicker(true);
                    } else {
                      let d = today;
-                     if (item.id === '1week') d = addDays(today, 7);
+                     if (item.id === 'tomorrow') d = addDays(today, 1);
+                     else if (item.id === '1week') d = addDays(today, 7);
                      else if (item.id === '15days') d = addDays(today, 15);
                      else if (item.id === '1month') d = addMonths(today, 1);
                      applyDateChange(d);

@@ -1249,6 +1249,121 @@ export const WalletHealthPanel: React.FC<PanelProps> = ({ tickets }) => {
   );
 };
 
+/**
+ * Panel: Evolución de Ingresos y Egresos (Últimos 3 meses)
+ */
+export const IncomeExpenseEvolutionPanel: React.FC<PanelProps> = ({ tickets }) => {
+  const chartData = useMemo(() => {
+    const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+    const data = [];
+    
+    // Obtener los últimos 3 meses (incluyendo el actual)
+    for (let i = 2; i >= 0; i--) {
+      const d = new Date();
+      d.setMonth(d.getMonth() - i);
+      const m = d.getMonth();
+      const y = d.getFullYear();
+      
+      const monthTickets = tickets.filter(t => {
+        const td = new Date(t.createdAt);
+        return td.getMonth() === m && td.getFullYear() === y && t.status !== 'cancelled';
+      });
+      
+      const income = monthTickets.reduce((sum, t) => t.type === 'income' ? sum + t.amount : sum, 0);
+      const expense = monthTickets.reduce((sum, t) => t.type === 'expense' ? sum + t.amount : sum, 0);
+      
+      data.push({ label: months[m], income, expense });
+    }
+
+    const maxAmt = Math.max(...data.flatMap(d => [d.income, d.expense]), 1000);
+    const range = maxAmt; // assuming min is 0
+
+    // Mapear los puntos para el SVG (ancho 280, alto 110)
+    // El eje X va de i = 0 a 2. Espaciados en x = (i * 100) + 40
+    // El eje Y va de 20 a 80
+    const points = data.map((d, i) => {
+      const x = (i * 100) + 40;
+      const incomeY = 80 - (d.income / range * 60);
+      const expenseY = 80 - (d.expense / range * 60);
+      return { x, incomeY, expenseY, ...d };
+    });
+
+    const hasData = data.some(d => d.income > 0 || d.expense > 0);
+
+    return { points, hasData };
+  }, [tickets]);
+
+  const incomePath = `M ${chartData.points.map(p => `${p.x},${p.incomeY}`).join(' L ')}`;
+  const expensePath = `M ${chartData.points.map(p => `${p.x},${p.expenseY}`).join(' L ')}`;
+
+  return (
+    <View style={styles.panelClassicCard}>
+      <View style={styles.panelHeader}>
+        <View style={[styles.iconBox, { backgroundColor: '#F0FDF4' }]}>
+          <Ionicons name="trending-up-outline" size={20} color="#10B981" />
+        </View>
+        <View style={{ flex: 1 }}>
+          <Typography variant="bodyLargeStrong">Evolución de Pagos y Cobros</Typography>
+          <Typography variant="captionBase" color="tertiary">Últimos 3 meses</Typography>
+        </View>
+      </View>
+
+      {chartData.hasData ? (
+        <View>
+          <View style={{ height: 130, justifyContent: 'center', alignItems: 'center' }}>
+            <Svg width="280" height="120" viewBox="0 0 280 120">
+              {/* Ejes y líneas de cuadrícula */}
+              <Path d="M 20 90 L 260 90" stroke="#F3F4F6" strokeWidth="1" />
+              <Path d="M 20 60 L 260 60" stroke="#F9FAFB" strokeWidth="1" />
+              <Path d="M 20 30 L 260 30" stroke="#F9FAFB" strokeWidth="1" />
+              
+              {/* Líneas de tendencia */}
+              <Path d={incomePath} fill="none" stroke="#10B981" strokeWidth="3" strokeLinejoin="round" strokeLinecap="round" />
+              <Path d={expensePath} fill="none" stroke="#EF4444" strokeWidth="3" strokeLinejoin="round" strokeLinecap="round" />
+              
+              {/* Puntos y Etiquetas */}
+              {chartData.points.map((p, i) => (
+                <React.Fragment key={i}>
+                  {/* Puntos ingresos */}
+                  <Circle cx={p.x} cy={p.incomeY} r="4" fill="#10B981" stroke="white" strokeWidth="1.5" />
+                  <SvgText x={p.x} y={p.incomeY - 8} fontSize="9" fontWeight="bold" fill="#10B981" textAnchor="middle">
+                    ${p.income >= 1000 ? `${(p.income/1000).toFixed(1)}k` : Math.round(p.income)}
+                  </SvgText>
+
+                  {/* Puntos egresos */}
+                  <Circle cx={p.x} cy={p.expenseY} r="4" fill="#EF4444" stroke="white" strokeWidth="1.5" />
+                  <SvgText x={p.x} y={p.expenseY + 14} fontSize="9" fontWeight="bold" fill="#EF4444" textAnchor="middle">
+                    ${p.expense >= 1000 ? `${(p.expense/1000).toFixed(1)}k` : Math.round(p.expense)}
+                  </SvgText>
+
+                  {/* Mes */}
+                  <SvgText x={p.x} y={115} fontSize="9" fill="#9CA3AF" textAnchor="middle">{p.label}</SvgText>
+                </React.Fragment>
+              ))}
+            </Svg>
+          </View>
+
+          {/* Leyenda */}
+          <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 16, marginTop: 12 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+              <View style={{ width: 8, height: 8, borderRadius: 2, backgroundColor: '#10B981' }} />
+              <Typography variant="labelXSmall" color="secondary">Cobros</Typography>
+            </View>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+              <View style={{ width: 8, height: 8, borderRadius: 2, backgroundColor: '#EF4444' }} />
+              <Typography variant="labelXSmall" color="secondary">Pagos</Typography>
+            </View>
+          </View>
+        </View>
+      ) : (
+        <View style={{ paddingVertical: 20, alignItems: 'center' }}>
+          <Typography variant="captionBase" color="secondary">No hay suficientes datos registrados</Typography>
+        </View>
+      )}
+    </View>
+  );
+};
+
 const styles = StyleSheet.create({
   panelClassicCard: {
     backgroundColor: Colors.white,
