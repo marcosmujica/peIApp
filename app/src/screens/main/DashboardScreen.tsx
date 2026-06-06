@@ -92,16 +92,25 @@ export const DashboardScreen: React.FC = () => {
     // Auto-register for push notifications if missing
     const checkPushToken = async () => {
       const { user, token, updateUser } = useAuthStore.getState();
-      if (user && !user.notificationId && token && Platform.OS !== 'web') {
-        const { registerForPushNotificationsAsync, saveNotificationId } = require('@/services/notification.service');
-        try {
-          const pushToken = await registerForPushNotificationsAsync();
-          if (pushToken) {
-            await saveNotificationId(user.id, pushToken, token);
-            updateUser({ notificationId: pushToken });
+      console.log('[Dashboard LOG] Checking push token. User exists:', !!user, 'Token exists:', !!token);
+      if (user && token && Platform.OS !== 'web') {
+        console.log('[Dashboard LOG] user.notificationId is:', user.notificationId);
+        if (!user.notificationId) {
+          const { registerForPushNotificationsAsync, saveNotificationId } = require('@/services/notification.service');
+          try {
+            console.log('[Dashboard LOG] Attempting push registration...');
+            const pushToken = await registerForPushNotificationsAsync();
+            console.log('[Dashboard LOG] pushToken returned:', pushToken);
+            if (pushToken) {
+              console.log('[Dashboard LOG] Saving pushToken to server...');
+              await saveNotificationId(user.id, pushToken, token);
+              updateUser({ notificationId: pushToken });
+            } else {
+              console.log('[Dashboard LOG] No pushToken available to save.');
+            }
+          } catch (err) {
+            console.error("[Dashboard LOG] Push registration failed", err);
           }
-        } catch (err) {
-          console.error("[Dashboard] Push registration failed", err);
         }
       }
     };

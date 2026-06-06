@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, Put, Req, UploadedFile, UseGuards, UseInterceptors, InternalServerErrorException } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Put, Req, UploadedFile, UseGuards, UseInterceptors, InternalServerErrorException, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UsersService } from './users.service';
@@ -6,6 +6,7 @@ import { diskStorage } from 'multer';
 import { extname, join, resolve } from 'path';
 import * as path from 'path';
 import * as fs from 'fs';
+import { ClientLogDto } from './dto/client-log.dto';
 
 @Controller('users')
 export class UsersController {
@@ -13,6 +14,24 @@ export class UsersController {
     private readonly usersService: UsersService,
     private config: ConfigService,
   ) {}
+
+  @Post('client-log')
+  async logFromClient(@Body() dto: ClientLogDto) {
+    const context = dto.context || 'ClientApp';
+    const level = dto.level || 'log';
+    const platform = dto.platform || 'unknown';
+    const msg = `[${platform.toUpperCase()}] ${dto.message}`;
+    
+    const logger = new Logger(context);
+    if (level === 'error') {
+      logger.error(msg);
+    } else if (level === 'warn') {
+      logger.warn(msg);
+    } else {
+      logger.log(msg);
+    }
+    return { success: true };
+  }
 
   @Get(':id')
   findOne(@Param('id') id: string) {

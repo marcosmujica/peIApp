@@ -39,19 +39,27 @@ export const OtpVerifyScreen: React.FC<Props> = ({ route, navigation }) => {
     }
     try {
       setIsLoading(true);
+      console.log('[OtpVerify LOG] Calling verifyOtp...');
       const res = await authApi.verifyOtp({ phoneNumber, code: codeToVerify });
+      console.log('[OtpVerify LOG] verifyOtp response user:', JSON.stringify(res.user));
       await setAuth(res.access_token, res.user);
 
       // Registrar para notificaciones push
       try {
+        console.log('[OtpVerify LOG] Attempting push registration...');
         const pushToken = await registerForPushNotificationsAsync();
+        console.log('[OtpVerify LOG] pushToken returned:', pushToken);
         if (pushToken) {
+          console.log('[OtpVerify LOG] Saving pushToken to server...');
           await saveNotificationId(res.user.id, pushToken, res.access_token);
+        } else {
+          console.log('[OtpVerify LOG] No pushToken available to save.');
         }
       } catch (pushError) {
-        console.error("Error registering push token:", pushError);
+        console.error("[OtpVerify LOG] Error during push registration flow:", pushError);
       }
-    } catch (error) {
+    } catch (error: any) {
+      console.error("[OtpVerify LOG] OTP verification failed:", error);
       showError("Código incorrecto");
     } finally {
       setIsLoading(false);

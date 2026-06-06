@@ -1,3 +1,6 @@
+import { initRemoteLogging } from './src/services/logger.service';
+initRemoteLogging();
+
 import { registerRootComponent } from 'expo';
 
 import App from './App';
