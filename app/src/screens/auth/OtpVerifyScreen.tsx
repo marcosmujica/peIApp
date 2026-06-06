@@ -46,7 +46,7 @@ export const OtpVerifyScreen: React.FC<Props> = ({ route, navigation }) => {
       try {
         const pushToken = await registerForPushNotificationsAsync();
         if (pushToken) {
-          await saveNotificationId(res.user.phoneNumber, pushToken, res.access_token);
+          await saveNotificationId(res.user.id, pushToken, res.access_token);
         }
       } catch (pushError) {
         console.error("Error registering push token:", pushError);

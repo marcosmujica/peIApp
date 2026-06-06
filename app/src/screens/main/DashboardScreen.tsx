@@ -97,7 +97,7 @@ export const DashboardScreen: React.FC = () => {
         try {
           const pushToken = await registerForPushNotificationsAsync();
           if (pushToken) {
-            await saveNotificationId(user.phoneNumber, pushToken, token);
+            await saveNotificationId(user.id, pushToken, token);
             updateUser({ notificationId: pushToken });
           }
         } catch (err) {
