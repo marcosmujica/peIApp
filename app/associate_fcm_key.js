@@ -95,7 +95,7 @@ async function associateKey() {
       }
     `, {
       appId: PROJECT_ID,
-      applicationIdentifier: 'com.peiapp.app',
+      applicationIdentifier: 'com.marcosmujica.peiapp',
       androidAppCredentialsInput: {
         fcmV1Credential: { googleServiceAccountKeyId: KEY_ID },
       },

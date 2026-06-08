@@ -72,6 +72,12 @@ const generateMockContacts = (count: number): PhoneContact[] => {
   
   const mockContacts: PhoneContact[] = [
     {
+      id: 'mock-marcos',
+      name: 'DEMO_MARCOS',
+      initials: 'DM',
+      phoneNumbers: ['+59896725662'],
+    },
+    {
       id: 'mock-virginia',
       name: 'DEMO_1',
       initials: 'D1',

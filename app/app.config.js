@@ -47,6 +47,7 @@ export default {
     },
     android: {
       package: "com.marcosmujica.peiapp",
+      googleServicesFile: "./google-services.json",
       adaptiveIcon: {
         foregroundImage: "./assets/android-icon-foreground.png",
         backgroundColor: "#ffffff"
