@@ -803,6 +803,7 @@ export const AddMovementScreen = () => {
           const createDto = {
             ...commonDto,
             toUser: recipient && recipient.phone ? (recipient.phone.includes('-') && recipient.phone.length > 20 ? recipient.phone : normalizePhone(recipient.phone)) : undefined,
+            shortId: recipients.length > 1 ? generateShortId() : commonDto.shortId,
           };
 
           try {
