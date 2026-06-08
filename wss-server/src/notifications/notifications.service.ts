@@ -14,56 +14,24 @@ export class NotificationsService {
   ) {}
 
   async sendNotification(userId: string, content: string, title: string = 'peIApp', data: any = {}) {
-    this.logger.log(`Attempting to notify user ${userId}...`);
+    this.logger.log(`Attempting to notify user ${userId} via standalone notification-service...`);
     
     try {
-      const user = await this.usersService.findById(userId);
-      const pushToken = user?.notificationId;
-
-      // SI TIENE TOKEN VALIDO -> EXPO
-      if (pushToken && pushToken.includes('ExponentPushToken')) {
-        this.logger.log(`Using Expo Push for ${userId}`);
-        const response = await fetch(this.EXPO_PUSH_URL, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'Accept-encoding': 'gzip, deflate',
-          },
-          body: JSON.stringify({
-            to: pushToken,
-            title: title,
-            body: content,
-            sound: 'default',
-            data: { userId, content },
-          }),
-        });
-
-        if (response.ok) {
-          this.logger.log(`Push notification SENT to ${userId} via Expo`);
-          return true;
-        }
-        this.logger.warn(`Expo Push failed for ${userId}, falling back to SMS...`);
-      }
-
-      // SI NO TIENE TOKEN O FALLO EXPO -> SMS
-      this.logger.log(`Using SMS for ${userId}`);
-      const smsUrl = (this.configService.get<string>('NOTIFICATION_SERVER_URL') || 'http://localhost:4000/send').replace('/send', '/send-sms');
+      const url = this.configService.get<string>('NOTIFICATION_SERVER_URL') || 'http://localhost:4000/send';
       
-      const userPhone = user?.phone || data?.phone || userId;
-      const cleanPhone = ensureE164Phone(userPhone);
-      const response = await fetch(smsUrl, {
+      const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: cleanPhone, content: `${title}: ${content}` })
+        body: JSON.stringify({ userId, content, title, data })
       });
 
       if (response.ok) {
-        this.logger.log(`SMS notification SENT to ${userId}`);
+        this.logger.log(`Notification sent request successful for ${userId}`);
         return true;
       }
-
-      this.logger.error(`ALL notification channels FAILED for ${userId}`);
+      
+      const responseText = await response.text();
+      this.logger.error(`Notification server returned status ${response.status} for ${userId}. Response: ${responseText}`);
       return false;
 
     } catch (err) {
