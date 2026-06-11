@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { 
-  Calendar, 
-  CreditCard, 
-  XCircle, 
-  CheckCircle2, 
-  Clock, 
-  AlertCircle, 
+import {
+  Calendar,
+  CreditCard,
+  XCircle,
+  CheckCircle2,
+  Clock,
+  AlertCircle,
   Upload,
   ChevronRight,
   DollarSign,
@@ -56,7 +56,7 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [view, setView] = useState<'details' | 'pay' | 'reschedule' | 'cancel'>('details');
-  
+
   // Form states
   const [payAmount, setPayAmount] = useState('');
   const [payMethod, setPayMethod] = useState('Efectivo');
@@ -207,14 +207,14 @@ function App() {
           <span className="slogan">Mis finanzas gratis</span>
         </div>
         <div className="store-badges">
-          <img 
-            src="https://upload.wikimedia.org/wikipedia/commons/3/3c/Download_on_the_App_Store_Badge.svg" 
-            alt="App Store" 
+          <img
+            src="https://upload.wikimedia.org/wikipedia/commons/3/3c/Download_on_the_App_Store_Badge.svg"
+            alt="App Store"
             className="store-badge"
           />
-          <img 
-            src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg" 
-            alt="Play Store" 
+          <img
+            src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg"
+            alt="Play Store"
             className="store-badge"
           />
         </div>
@@ -223,7 +223,7 @@ function App() {
       <main className="main-content">
         <AnimatePresence mode="wait">
           {view === 'details' && (
-            <motion.div 
+            <motion.div
               key="details"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -231,16 +231,16 @@ function App() {
               className="ticket-card"
             >
               <div className="status-badge" data-status={ticket.status}>
-                {ticket.status === 'completed' ? <CheckCircle2 size={16} /> : 
-                 ticket.status === 'cancelled' ? <XCircle size={16} /> : 
-                 <Clock size={16} />}
-                {ticket.status === 'completed' ? 'Pagado' : 
-                 ticket.status === 'cancelled' ? 'Cancelado' : 
-                 'Pendiente'}
+                {ticket.status === 'completed' ? <CheckCircle2 size={16} /> :
+                  ticket.status === 'cancelled' ? <XCircle size={16} /> :
+                    <Clock size={16} />}
+                {ticket.status === 'completed' ? 'Pagado' :
+                  ticket.status === 'cancelled' ? 'Cancelado' :
+                    'Pendiente'}
               </div>
 
               <h1 className="ticket-desc">{ticket.description || 'Sin descripción'}</h1>
-              
+
               <div className="amount-grid">
                 <div className="amount-item">
                   <div className="label-row">
@@ -335,7 +335,7 @@ function App() {
                     {ticket.logs.map((log) => {
                       let actionText = '';
                       let actionIcon = <Clock size={16} className="text-slate-400" />;
-                      
+
                       switch (log.action) {
                         case 'created':
                         case 'ticket_created':
@@ -347,6 +347,7 @@ function App() {
                           actionText = `Pago registrado: ${ticket.currency} ${formatAmount(amountPaid)}`;
                           actionIcon = <DollarSign size={16} className="text-success" />;
                           break;
+                        case 'due_date_change':
                         case 'due_date_changed':
                         case 'rescheduled':
                           const formattedDate = log.newValue ? format(new Date(log.newValue.split('T')[0] + 'T12:00:00'), "d 'de' MMM, yyyy", { locale: es }) : '';
@@ -354,8 +355,13 @@ function App() {
                           actionIcon = <Calendar size={16} className="text-warning" />;
                           break;
                         case 'cancelled':
+                        case 'status_cancelled':
                           actionText = 'Ticket cancelado';
                           actionIcon = <XCircle size={16} className="text-danger" />;
+                          break;
+                        case 'status_completed':
+                          actionText = 'Ticket completado';
+                          actionIcon = <CheckCircle2 size={16} className="text-success" />;
                           break;
                         default:
                           actionText = log.action || 'Acción registrada';
@@ -410,10 +416,10 @@ function App() {
 
                           {log.attachmentUrl && (
                             <div style={{ marginTop: '8px' }}>
-                              <a 
-                                href={log.attachmentUrl} 
-                                target="_blank" 
-                                rel="noreferrer" 
+                              <a
+                                href={log.attachmentUrl}
+                                target="_blank"
+                                rel="noreferrer"
                                 className="attachment-link"
                                 style={{
                                   display: 'inline-flex',
@@ -440,7 +446,7 @@ function App() {
           )}
 
           {view === 'pay' && (
-            <motion.div 
+            <motion.div
               key="pay"
               initial={{ opacity: 0, x: 50 }}
               animate={{ opacity: 1, x: 0 }}
@@ -451,17 +457,17 @@ function App() {
                 <ChevronRight style={{ transform: 'rotate(180deg)' }} size={20} /> Volver
               </button>
               <h2 className="text-2xl font-bold mb-6">Cargar Pago</h2>
-              
+
               <form onSubmit={handlePayment} className="space-y-4">
                 <div className="form-group">
                   <label>Monto a pagar ({ticket.currency})</label>
                   <div className="input-with-icon">
                     <DollarSign size={18} />
-                    <input 
-                      type="number" 
-                      value={payAmount} 
+                    <input
+                      type="number"
+                      value={payAmount}
                       onChange={(e) => setPayAmount(e.target.value)}
-                      required 
+                      required
                       max={remaining}
                       min={1}
                     />
@@ -481,8 +487,8 @@ function App() {
 
                 <div className="form-group">
                   <label>Nota / Comentario</label>
-                  <textarea 
-                    value={payDesc} 
+                  <textarea
+                    value={payDesc}
                     onChange={(e) => setPayDesc(e.target.value)}
                     placeholder="Ej: Transferencia enviada por WhatsApp"
                   />
@@ -493,10 +499,10 @@ function App() {
                   <div className="file-upload">
                     <Upload size={24} />
                     <span>{payFile ? payFile.name : 'Toca para subir una imagen'}</span>
-                    <input 
+                    <input
                       id="file-input"
-                      type="file" 
-                      className="hidden-file" 
+                      type="file"
+                      className="hidden-file"
                       onChange={(e) => setPayFile(e.target.files?.[0] || null)}
                     />
                   </div>
@@ -510,7 +516,7 @@ function App() {
           )}
 
           {view === 'reschedule' && (
-            <motion.div 
+            <motion.div
               key="reschedule"
               initial={{ opacity: 0, x: 50 }}
               animate={{ opacity: 1, x: 0 }}
@@ -521,17 +527,17 @@ function App() {
                 <ChevronRight style={{ transform: 'rotate(180deg)' }} size={20} /> Volver
               </button>
               <h2 className="text-2xl font-bold mb-6">Nueva Fecha de Pago</h2>
-              
+
               <form onSubmit={handleReschedule} className="space-y-4">
                 <div className="form-group">
                   <label>¿Cuándo vas a pagar?</label>
                   <div className="input-with-icon">
                     <Calendar size={18} />
-                    <input 
-                      type="date" 
-                      value={newDueDate} 
+                    <input
+                      type="date"
+                      value={newDueDate}
                       onChange={(e) => setNewDueDate(e.target.value)}
-                      required 
+                      required
                       min={new Date().toISOString().split('T')[0]}
                     />
                   </div>
@@ -549,7 +555,7 @@ function App() {
           )}
 
           {view === 'cancel' && (
-            <motion.div 
+            <motion.div
               key="cancel"
               initial={{ opacity: 0, x: 50 }}
               animate={{ opacity: 1, x: 0 }}
@@ -561,12 +567,12 @@ function App() {
               </button>
               <h2 className="text-2xl font-bold mb-2 text-danger">Anular Ticket</h2>
               <p className="text-muted mb-6">Esta acción no se puede deshacer. Se le notificará al dueño del ticket.</p>
-              
+
               <form onSubmit={handleCancel} className="space-y-4">
                 <div className="form-group">
                   <label>Motivo (Opcional)</label>
-                  <textarea 
-                    value={cancelReason} 
+                  <textarea
+                    value={cancelReason}
                     onChange={(e) => setCancelReason(e.target.value)}
                     placeholder="Ej: Error en el monto, ya fue pagado por otro medio..."
                   />
@@ -583,7 +589,7 @@ function App() {
 
       <AnimatePresence>
         {successMsg && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 50 }}
@@ -596,7 +602,7 @@ function App() {
       </AnimatePresence>
 
       <footer className="app-footer">
-        <p>&copy; 2026 PeiApp Financial Services</p>
+        <p>&copy; peIApp Financial Services</p>
       </footer>
     </div>
   );

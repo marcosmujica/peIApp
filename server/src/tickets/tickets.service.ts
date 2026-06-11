@@ -75,7 +75,8 @@ export class TicketsService {
         return;
       }
 
-      const sender = await userRepo.findOne({ where: { userId: senderId } });
+      const isUuid = senderId && senderId.includes('-');
+      const sender = isUuid ? await userRepo.findOne({ where: { userId: senderId } }) : null;
       const senderName = sender?.displayName || senderNameOverride || 'Un usuario';
 
       const participants = await ticketDetailRepo.find({ where: { ticketId } });

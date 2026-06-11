@@ -28,7 +28,7 @@ const buildId = `${version} (${buildTime}-${gitCommit})`;
 
 export default {
   expo: {
-    name: "PeiApp",
+    name: "peIApp",
     slug: "peiapp",
     version: version,
     orientation: "portrait",

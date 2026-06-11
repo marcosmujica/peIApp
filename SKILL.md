@@ -119,7 +119,7 @@ npm install axios date-fns framer-motion lucide-react
 - Extrae `shortId` de la URL
 - API: `https://api.peiapp.tech/tickets/public/{shortId}`
 - Vistas: Details, Pay, Reschedule, Cancel
-- Configurar `vite.config.ts` con `allowedHosts: ['t.peiapp.tech']`
+- Configurar `vite.config.ts` con `allowedHosts: ['t.pei.uy']`
 
 ### Paso 6: App Expo
 
@@ -254,7 +254,7 @@ npm run build
 1. **Auth**: OTP de 6 dígitos → bcrypt hash → JWT con `sub: userId` (UUID)
 2. **Onboarding**: Crea billeteras del sistema (`mycollects`, `mypays`) + billetera según tipo de negocio
 3. **Tickets**: Crean `ticket_details` para cada participante con tipos invertidos (income↔expense)
-4. **PeiLinks**: `shortId` de 6 chars → URL pública `t.peiapp.tech/t/{shortId}`
+4. **PeiLinks**: `shortId` de 6 chars → URL pública `t.pei.uy/t/{shortId}`
 5. **Balance**: Recalculado desde `ticket_details`, no incremental
 6. **AI**: Gemini 2.5 Flash clasifica rubros + `pg_ia_query()` para consultas inteligentes
 7. **Cron**: Proceso standalone separado con `ENABLE_CRON=true`

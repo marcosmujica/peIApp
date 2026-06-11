@@ -53,7 +53,7 @@ export const PhoneInputScreen: React.FC<Props> = ({ navigation }) => {
         const res = await fetch("https://ipapi.co/json/");
         const data = await res.json();
         if (data?.country_calling_code) {
-          const matched = COUNTRIES.find(c => c.code === data.country_calling_code || c.code === `+${data.country_calling_code.replace('+','')}`);
+          const matched = COUNTRIES.find(c => c.code === data.country_calling_code || c.code === `+${data.country_calling_code.replace('+', '')}`);
           if (matched) setCountryCode(matched.code);
         }
       } catch (e) { console.log("IP Detection failed", e); }
@@ -72,7 +72,7 @@ export const PhoneInputScreen: React.FC<Props> = ({ navigation }) => {
 
   const handleContinue = async () => {
     let sanitizedPhone = phone.replace(/[^\d]/g, "");
-    
+
     // Norma E.164: Remover el cero inicial si el usuario lo ingresó (ej: 096... -> 96...)
     if (sanitizedPhone.startsWith('0')) {
       sanitizedPhone = sanitizedPhone.substring(1);
@@ -84,12 +84,12 @@ export const PhoneInputScreen: React.FC<Props> = ({ navigation }) => {
     }
     try {
       const fullNumber = `${countryCode}${sanitizedPhone}`;
-      
+
       // Lanzar el envío de OTP de forma asincrónica (sin await) para navegar de inmediato
-      authApi.requestOtp({ 
-        phoneNumber: fullNumber, 
-        country: currentCountry.iso, 
-        currency: currentCountry.currency 
+      authApi.requestOtp({
+        phoneNumber: fullNumber,
+        country: currentCountry.iso,
+        currency: currentCountry.currency
       }).catch(err => {
         console.error("Async OTP Request failed:", err);
         // Podríamos mostrar un mensaje en la siguiente pantalla si fuera necesario
@@ -99,17 +99,17 @@ export const PhoneInputScreen: React.FC<Props> = ({ navigation }) => {
       navigation.navigate("OtpVerify", { phoneNumber: fullNumber });
     } catch (error: any) {
       showToast(!error.response ? "Sin conexión 📶" : "Error al enviar código");
-    } finally { 
+    } finally {
       // Ya no bloqueamos la UI esperando la respuesta
-      setIsLoading(false); 
+      setIsLoading(false);
     }
   };
 
   return (
     <SafeAreaView style={styles.safe}>
       <Animated.View style={[styles.toast, { transform: [{ translateY: toastAnim }] }]}>
-          <Ionicons name="alert-circle" size={20} color={Colors.white} />
-          <Typography variant="bodyBase" color={Colors.white} style={{ marginLeft: 8 }}>{toastMsg}</Typography>
+        <Ionicons name="alert-circle" size={20} color={Colors.white} />
+        <Typography variant="bodyBase" color={Colors.white} style={{ marginLeft: 8 }}>{toastMsg}</Typography>
       </Animated.View>
 
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
@@ -127,7 +127,7 @@ export const PhoneInputScreen: React.FC<Props> = ({ navigation }) => {
               <Ionicons name="chevron-down" size={16} color={Colors.textTertiary} />
             </TouchableOpacity>
             <TextInput
-              style={[styles.phoneInput, {width:100}]}
+              style={[styles.phoneInput, { width: 100 }]}
               placeholder="1234 5678"
               keyboardType="phone-pad"
               value={phone}
@@ -140,19 +140,19 @@ export const PhoneInputScreen: React.FC<Props> = ({ navigation }) => {
 
           {/* ETIQUETA DE PAÍS SELECCIONADO */}
           <View style={styles.countryLabel}>
-             <Typography variant="labelXSmall" color={Colors.textTertiary} uppercase spacing={1}>
-                {currentCountry.name} {currentCountry.flag}
-             </Typography>
+            <Typography variant="labelXSmall" color={Colors.textTertiary} uppercase spacing={1}>
+              {currentCountry.name} {currentCountry.flag}
+            </Typography>
           </View>
         </View>
 
         <View style={styles.footer}>
-          <TouchableOpacity 
-            style={styles.legalLink} 
+          <TouchableOpacity
+            style={styles.legalLink}
             onPress={() => navigation.navigate("TermsAndConditions" as any)}
           >
             <Typography variant="labelSmall" color={Colors.textTertiary}>
-              Al continuar, aceptás nuestros <Typography variant="labelSmall" color={Colors.primary} style={{textDecorationLine:'underline'}}>Términos & Condiciones</Typography>
+              Al continuar, aceptás nuestros <Typography variant="labelSmall" color={Colors.primary} style={{ textDecorationLine: 'underline' }}>Términos & Condiciones</Typography>
             </Typography>
           </TouchableOpacity>
           {buildId ? (
@@ -177,7 +177,7 @@ export const PhoneInputScreen: React.FC<Props> = ({ navigation }) => {
               <View style={styles.modalHeader}>
                 <Typography variant="headingH3">Seleccioná tu país</Typography>
                 <TouchableOpacity onPress={() => setIsModalVisible(false)} style={styles.closeBtn}>
-                   <Ionicons name="close" size={24} color={Colors.textTertiary} />
+                  <Ionicons name="close" size={24} color={Colors.textTertiary} />
                 </TouchableOpacity>
               </View>
               <FlatList

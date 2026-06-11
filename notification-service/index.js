@@ -304,7 +304,7 @@ app.post('/send', async (req, res) => {
           const messages = [{
             to: user.notificationId,
             sound: 'default',
-            title: title || 'PeiApp',
+            title: title || 'peIApp',
             body: content,
             data: { userId, ...(req.body.data || {}) },
           }];
