@@ -101,7 +101,8 @@ export const HistoryScreen: React.FC = () => {
   const filteredTickets = useMemo(() => {
     return tickets.filter((t) => {
       if (selectedWalletId) {
-        const isSystemWallet = wallets.find(w => w.id === selectedWalletId)?.name.toLowerCase() === SYSTEM_WALLET_NAME.toLowerCase();
+        const sw = wallets.find(w => w.id === selectedWalletId);
+        const isSystemWallet = sw?.type === 'mycollects' || sw?.type === 'mypays' || sw?.name.toLowerCase().startsWith(SYSTEM_WALLET_NAME.toLowerCase());
         if (t.walletId !== selectedWalletId && (!isSystemWallet || t.walletId)) return false;
       }
       if (filter === 'income' && t.type !== 'income') return false;

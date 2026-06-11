@@ -145,7 +145,7 @@ export const WalletDetailsScreen: React.FC<Props> = ({ route, navigation }) => {
       }
 
       // Server Sync
-      if (wallet.name !== SYSTEM_WALLET_NAME) {
+      if (wallet.type !== 'mycollects' && wallet.type !== 'mypays' && !wallet.name.toLowerCase().startsWith(SYSTEM_WALLET_NAME.toLowerCase())) {
         try {
           await walletsApi.updateWallet(walletId, { goals: updatedGoals });
         } catch (e) {
@@ -194,7 +194,7 @@ export const WalletDetailsScreen: React.FC<Props> = ({ route, navigation }) => {
 
     // Server Sync
     try {
-      if (wallet.name !== SYSTEM_WALLET_NAME) {
+      if (wallet.type !== 'mycollects' && wallet.type !== 'mypays' && !wallet.name.toLowerCase().startsWith(SYSTEM_WALLET_NAME.toLowerCase())) {
         await walletsApi.updateWallet(walletId, { goals: updatedGoals });
       }
     } catch (e) { console.error('Failed to sync goals (remove)', e); }
@@ -231,7 +231,7 @@ export const WalletDetailsScreen: React.FC<Props> = ({ route, navigation }) => {
       }
 
       const allTickets = await getLocalTickets();
-      const isSystemWallet = w?.name.toLowerCase() === SYSTEM_WALLET_NAME.toLowerCase();
+      const isSystemWallet = w?.type === 'mycollects' || w?.type === 'mypays' || w?.name.toLowerCase().startsWith(SYSTEM_WALLET_NAME.toLowerCase());
       const walletTickets = allTickets.filter(t => {
         if (t.walletId === walletId) return true;
         if (isSystemWallet && !t.walletId) return true;
@@ -337,7 +337,7 @@ export const WalletDetailsScreen: React.FC<Props> = ({ route, navigation }) => {
 
       // Server Sync
       try {
-        if (wallet.name !== SYSTEM_WALLET_NAME) {
+        if (wallet.type !== 'mycollects' && wallet.type !== 'mypays' && !wallet.name.toLowerCase().startsWith(SYSTEM_WALLET_NAME.toLowerCase())) {
           await walletsApi.updateWallet(walletId, { enabledPanels: tempEnabledPanels });
         }
       } catch (e) { console.error('Failed to sync enabled panels', e); }
@@ -519,8 +519,8 @@ export const WalletDetailsScreen: React.FC<Props> = ({ route, navigation }) => {
               )}
 
               <Badge
-                variant={(walletName || '').toLowerCase() === SYSTEM_WALLET_NAME.toLowerCase() ? 'default' : 'paid'}
-                label={(walletName || '').toLowerCase() === SYSTEM_WALLET_NAME.toLowerCase() ? 'SISTEMA' : WALLET_TYPE_LABELS[wallet?.type || 'otro']}
+                variant={(walletName || '').toLowerCase().startsWith(SYSTEM_WALLET_NAME.toLowerCase()) || wallet?.type === 'mycollects' || wallet?.type === 'mypays' ? 'default' : 'paid'}
+                label={(walletName || '').toLowerCase().startsWith(SYSTEM_WALLET_NAME.toLowerCase()) || wallet?.type === 'mycollects' || wallet?.type === 'mypays' ? 'SISTEMA' : WALLET_TYPE_LABELS[wallet?.type || 'otro']}
               />
             </View>
           </View>

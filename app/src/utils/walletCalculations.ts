@@ -37,7 +37,7 @@ export function calculateWalletStats(
   wallet: LocalWallet,
   allTickets: LocalTicket[]
 ): WalletStats {
-  const isSystem = wallet.name.toLowerCase() === SYSTEM_WALLET_NAME.toLowerCase();
+  const isSystem = wallet.type === 'mycollects' || wallet.type === 'mypays';
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 

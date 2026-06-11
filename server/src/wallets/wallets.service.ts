@@ -1,6 +1,6 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, EntityManager } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
 import { Wallet, WalletType } from './entities/wallet.entity';
 import { WalletMember } from './entities/wallet-member.entity';
@@ -35,11 +35,26 @@ export class WalletsService {
     private notificationsService: NotificationsService,
   ) {}
 
-  async create(ownerId: string, name: string, type: WalletType, currency = 'USD', defaultPaymentMethod?: string, helpToCollect = false, warningThreshold = 0, alertThreshold = 0, defaultTransactionType?: "income" | "expense", includeInGeneralBalance = true) {
+  async create(ownerId: string, name: string, type: WalletType, currency = 'USD', defaultPaymentMethod?: string, helpToCollect = false, warningThreshold = 0, alertThreshold = 0, defaultTransactionType?: "income" | "expense", includeInGeneralBalance = true, manager?: EntityManager) {
     const isBusiness = type.includes('negocio') || type === 'business';
     const calculatedDefault = defaultTransactionType || (isBusiness ? 'income' : 'expense');
     
-    const wallet = await this.walletRepo.save({
+    // Si es tipo mycollects o mypays, le agregamos la sigla de la moneda al nombre
+    if (type === 'mycollects' || type === 'mypays') {
+      const suffix = ` (${currency.toUpperCase()})`;
+      if (!name.endsWith(suffix)) {
+        const baseName = name.replace(/\s*\([A-Za-z]{3}\)$/, '');
+        name = `${baseName}${suffix}`;
+      }
+    }
+
+    const walletRepo = manager ? manager.getRepository(Wallet) : this.walletRepo;
+    const memberRepo = manager ? manager.getRepository(WalletMember) : this.memberRepo;
+    const categoryRepo = manager ? manager.getRepository(WalletCategory) : this.categoryRepo;
+    const panelRepo = manager ? manager.getRepository(WalletPanel) : this.panelRepo;
+    const listRepo = manager ? manager.getRepository(WalletDistributionList) : this.listRepo;
+
+    const wallet = await walletRepo.save({
       walletId: uuidv4(),
       name,
       type,
@@ -54,7 +69,7 @@ export class WalletsService {
     });
 
     // Owner is also a member with role 'owner'
-    await this.memberRepo.save({
+    await memberRepo.save({
       walletId: wallet.walletId,
       userId: ownerId,
       role: 'owner',
@@ -74,7 +89,7 @@ export class WalletsService {
           type: cat.type,
           isEnabled: true,
         }));
-        await this.categoryRepo.save(categoriesToSave);
+        await categoryRepo.save(categoriesToSave);
       }
 
       // Panels
@@ -84,13 +99,13 @@ export class WalletsService {
           panelName: panel,
           isEnabled: true,
         }));
-        await this.panelRepo.save(panelsToSave);
+        await panelRepo.save(panelsToSave);
       }
 
       // AI Questions
       if (config.defaultQuestions.length > 0) {
         wallet.aiQuestions = config.defaultQuestions;
-        await this.walletRepo.save(wallet);
+        await walletRepo.save(wallet);
       }
 
       // Origins (Distribution Lists)
@@ -100,7 +115,7 @@ export class WalletsService {
           name: origin.name,
           contacts: origin.contacts,
         }));
-        await this.listRepo.save(listsToSave);
+        await listRepo.save(listsToSave);
       }
     }
 

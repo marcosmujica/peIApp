@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { TicketsService } from './tickets.service';
 import { TicketsController } from './tickets.controller';
@@ -11,11 +11,13 @@ import { User } from '../users/entities/user.entity';
 import { TicketLog } from './entities/ticket-log.entity';
 import { RecurringTicket } from './entities/recurring-ticket.entity';
 import { AIModule } from '../ai/ai.module';
+import { WalletsModule } from '../wallets/wallets.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Ticket, TicketChat, Wallet, TicketDetail, User, TicketLog, RecurringTicket]),
-    AIModule
+    AIModule,
+    forwardRef(() => WalletsModule)
   ],
   controllers: [],
   providers: [TicketsService, ChatGateway],

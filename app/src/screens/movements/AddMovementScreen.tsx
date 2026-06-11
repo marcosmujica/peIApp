@@ -471,7 +471,12 @@ export const AddMovementScreen = () => {
 
           let wId = t.walletId;
           if (!wId && wallets.length > 0) {
-            const systemWallet = wallets.find(w => w.name.toLowerCase() === SYSTEM_WALLET_NAME.toLowerCase());
+            const systemWallet = wallets.find(w => 
+              (w.type === 'mycollects' || w.name.toLowerCase().startsWith(SYSTEM_WALLET_NAME.toLowerCase())) 
+              && w.currency === t.currency
+            ) || wallets.find(w => 
+              w.type === 'mycollects' || w.name.toLowerCase().startsWith(SYSTEM_WALLET_NAME.toLowerCase())
+            );
             if (systemWallet) wId = systemWallet.id;
           }
           if (wId) setSelectedWalletId(wId);

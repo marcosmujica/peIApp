@@ -163,7 +163,7 @@ export class CronService {
             // 2. Registrar en Chat
             const chatEntry = this.chatRepo.create({
               ticketId: ticket.ticketId,
-              senderId: 'sistema',
+              senderId: ticket.ownerId,
               senderName: 'Sistema',
               message: `*** Recordatorio enviado al destinatario: ${messageTitle}\n${messageBody}`,
             });
@@ -172,7 +172,7 @@ export class CronService {
             // 3. Registrar en Log
             const logEntry = this.logRepo.create({
               ticketId: ticket.ticketId,
-              userId: 'sistema',
+              userId: ticket.ownerId,
               action: 'payment_agreement_sent',
               newValue: alertWeight,
               comment: messageTitle,

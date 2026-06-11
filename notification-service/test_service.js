@@ -19,8 +19,8 @@ async function runTests() {
     });
     console.log('Result:', sendRes.data);
 
-    // 3. Test send (WhatsApp for unknown user)
-    console.log('\nTesting /send (WhatsApp expected for unknown user)...');
+    // 3. Test send (SMS for unknown user)
+    console.log('\nTesting /send (SMS expected for unknown user)...');
     const unknownRes = await axios.post(`${BASE_URL}/send`, { 
       userId: '99999999', 
       content: 'Hello stranger!' 

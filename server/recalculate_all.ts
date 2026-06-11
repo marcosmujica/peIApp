@@ -28,7 +28,7 @@ async function run() {
   console.log(`Found ${wallets.length} wallets`);
 
   for (const wallet of wallets) {
-    const isSystemWallet = wallet.name.toLowerCase().trim() === SYSTEM_WALLET_NAME.toLowerCase();
+    const isSystemWallet = wallet.type === 'mycollects' || wallet.type === 'mypays';
     
     // Buscar detalles en TicketDetail
     const qb = dataSource.getRepository(TicketDetail).createQueryBuilder('detail')

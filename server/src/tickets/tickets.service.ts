@@ -1,6 +1,7 @@
 import {
-  Injectable, NotFoundException, ForbiddenException, BadRequestException, Logger
+  Injectable, NotFoundException, ForbiddenException, BadRequestException, Logger, Inject, forwardRef
 } from '@nestjs/common';
+import { WalletsService } from '../wallets/wallets.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository, EntityManager, Brackets, LessThan, MoreThanOrEqual, Between } from 'typeorm';
 import { Ticket } from './entities/ticket.entity';
@@ -57,6 +58,8 @@ export class TicketsService {
     private notificationsService: NotificationsService,
     private aiService: AIService,
     private configService: ConfigService,
+    @Inject(forwardRef(() => WalletsService))
+    private walletsService: WalletsService,
   ) { }
 
   async sendTicketNotification(ticketId: string, senderId: string, content: string, senderNameOverride?: string, manager?: EntityManager) {
@@ -97,9 +100,8 @@ export class TicketsService {
       this.logger.log(`[sendTicketNotification] Logic: sender=${senderId}, owner=${ticket.ownerId}, target=${targetUserId}`);
 
       const targetUser = targetUserId ? await userRepo.findOne({ where: { userId: targetUserId } }) : null;
-      const isActiveAccount = targetUser && (targetUser.lastAccess !== null || targetUser.notificationId !== null || targetUser.displayName !== null);
 
-      if (targetUserId && targetUserId !== senderId && isActiveAccount) {
+      if (targetUserId && targetUserId !== senderId && targetUser) {
         const baseUrl = this.configService.get<string>('WEB_SHARE_URL') || 'http://localhost:5173';
         const publicLink = ticket.shortId ? `\nLink: ${baseUrl}/t/${ticket.shortId}` : '';
         const ticketInfo = `\nTicket: ${ticket.description || 'Sin detalle'} (${ticket.currency} ${Number(ticket.amount).toLocaleString('es-AR')})`;
@@ -109,7 +111,7 @@ export class TicketsService {
         this.logger.log(`[sendTicketNotification] SENDING to ${targetUserId}: ${fullContent}`);
         await this.notificationsService.sendNotification(targetUserId, fullContent, 'peIApp', { ticketId, type: 'ticket' });
       } else {
-        this.logger.log(`[sendTicketNotification] SKIP: No target, target is sender, or target has no active account. target=${targetUserId}, active=${!!isActiveAccount}`);
+        this.logger.log(`[sendTicketNotification] SKIP: No target, target is sender, or target user record not found. target=${targetUserId}`);
       }
 
     } catch (err) {
@@ -248,7 +250,7 @@ export class TicketsService {
 
     const details = await qb.orderBy('ticket.createdAt', 'DESC').getMany();
     const systemWallet = await this.walletRepo.findOne({
-      where: { ownerId: userId, name: SYSTEM_WALLET_NAME }
+      where: { ownerId: userId, type: 'mycollects' }
     });
 
     return details.map(d => ({
@@ -287,7 +289,7 @@ export class TicketsService {
 
   async findByWallet(walletId: string, userId?: string) {
     const wallet = await this.walletRepo.findOne({ where: { walletId } });
-    const isUnassignedWallet = wallet?.name === SYSTEM_WALLET_NAME;
+    const isUnassignedWallet = wallet?.type === 'mycollects' || wallet?.type === 'mypays';
 
     const qb = this.ticketDetailRepo.createQueryBuilder('detail')
       .leftJoinAndSelect('detail.ticket', 'ticket')
@@ -569,6 +571,7 @@ export class TicketsService {
 
       // Notify
       const formattedDateNotif = newDate.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
+      console.log("ENTRO NOTIFICACION")
       await this.sendTicketNotification(
         ticketId,
         userId,
@@ -957,18 +960,31 @@ export class TicketsService {
       let userWalletId = isWalletMember ? data.walletId : (isReceiver ? data.toWalletId : null);
 
       if (!userWalletId) {
-        const targetSystemWalletName = userType === 'income' ? SYSTEM_WALLET_NAME : SYSTEM_EXPENSES_WALLET_NAME;
-        const systemWallet = await manager.findOne(Wallet, {
-          where: { ownerId: userId, name: targetSystemWalletName }
+        const targetType = userType === 'income' ? 'mycollects' : 'mypays';
+        const targetCurrency = savedTicket.currency || 'USD';
+        
+        let systemWallet = await manager.findOne(Wallet, {
+          where: { ownerId: userId, type: targetType as any, currency: targetCurrency }
         });
-        if (systemWallet) {
-          userWalletId = systemWallet.walletId;
+        
+        if (!systemWallet) {
+          const targetName = userType === 'income' ? SYSTEM_WALLET_NAME : SYSTEM_EXPENSES_WALLET_NAME;
+          const newWallet = await this.walletsService.create(
+            userId,
+            targetName,
+            targetType as any,
+            targetCurrency,
+            undefined,
+            false,
+            0,
+            0,
+            undefined,
+            true,
+            manager
+          );
+          userWalletId = newWallet.walletId;
         } else {
-          // Final fallback to any system wallet if the specific one is missing
-          const anySystemWallet = await manager.findOne(Wallet, {
-            where: { ownerId: userId, name: SYSTEM_WALLET_NAME }
-          });
-          userWalletId = anySystemWallet?.walletId;
+          userWalletId = systemWallet.walletId;
         }
       }
 
