@@ -232,8 +232,8 @@ async function sendSMSInternal(phone, content) {
 
         // Obfuscate links to bypass carrier violation (error 30007)
         const obfuscatedContent = content
-          .replace(/https?:\/\/t\.peiapp\.tech/g, 't [dot] peiapp [dot] tech')
-          .replace(/t\.peiapp\.tech/g, 't [dot] peiapp [dot] tech');
+          .replace(/https?:\/\/t\.peiapp\.tech/g, 't.pei.uy')
+          .replace(/t\.peiapp\.tech/g, 't.pei.uy');
         body.append('Body', obfuscatedContent);
 
         const twilioRes = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${sid}/Messages.json`, {
@@ -292,39 +292,39 @@ app.post('/send', async (req, res) => {
   status = 'sent';
   if (user && user.notificationId) {
     if (!Expo.isExpoPushToken(user.notificationId)) {
-        console.error(`Push token ${user.notificationId} is not a valid Expo push token`);
-        status = 'invalid_token';
+      console.error(`Push token ${user.notificationId} is not a valid Expo push token`);
+      status = 'invalid_token';
     } else {
-        const isEnabled = process.env.ENABLE_NOTIFICATIONS === 'true';
-        if (!isEnabled) {
-            fileLog(`[PUSH-LOG-ONLY] Would have sent to ${userId}: ${content}`);
-            status = 'logged_only';
-        } else {
+      const isEnabled = process.env.ENABLE_NOTIFICATIONS === 'true';
+      if (!isEnabled) {
+        fileLog(`[PUSH-LOG-ONLY] Would have sent to ${userId}: ${content}`);
+        status = 'logged_only';
+      } else {
+        try {
+          const messages = [{
+            to: user.notificationId,
+            sound: 'default',
+            title: title || 'PeiApp',
+            body: content,
+            data: { userId, ...(req.body.data || {}) },
+          }];
+
+          const chunks = expo.chunkPushNotifications(messages);
+          for (let chunk of chunks) {
             try {
-                 const messages = [{
-                     to: user.notificationId,
-                     sound: 'default',
-                     title: title || 'PeiApp',
-                     body: content,
-                     data: { userId, ...(req.body.data || {}) },
-                 }];
-                
-                const chunks = expo.chunkPushNotifications(messages);
-                for (let chunk of chunks) {
-                    try {
-                        const ticketChunk = await expo.sendPushNotificationsAsync(chunk);
-                        fileLog(`[PUSH] Expo ticket: ${JSON.stringify(ticketChunk)}`);
-                    } catch (error) {
-                        fileLog(`[PUSH] Error sending chunk: ${error.message}`);
-                        status = 'error';
-                    }
-                }
-                fileLog(`✅ [PUSH] Sent to ${userId}: ${content}`);
-            } catch (e) {
-                fileLog(`❌ [PUSH] Critical Error: ${e.message}`);
-                status = 'error';
+              const ticketChunk = await expo.sendPushNotificationsAsync(chunk);
+              fileLog(`[PUSH] Expo ticket: ${JSON.stringify(ticketChunk)}`);
+            } catch (error) {
+              fileLog(`[PUSH] Error sending chunk: ${error.message}`);
+              status = 'error';
             }
+          }
+          fileLog(`✅ [PUSH] Sent to ${userId}: ${content}`);
+        } catch (e) {
+          fileLog(`❌ [PUSH] Critical Error: ${e.message}`);
+          status = 'error';
         }
+      }
     }
   } else if (user) {
     // Existe pero no tiene token de push
