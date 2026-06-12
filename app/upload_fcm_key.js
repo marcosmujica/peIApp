@@ -67,7 +67,7 @@ async function uploadFcmV1Key() {
   // Step 3: Get existing Android app credentials
   console.log('\n3. Getting Android app credentials...');
   const appData = await gql(`
-    query GetApp($projectId: ID!) {
+    query GetApp($projectId: String!) {
       app {
         byId(appId: $projectId) {
           id

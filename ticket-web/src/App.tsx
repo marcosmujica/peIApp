@@ -19,7 +19,10 @@ import { es } from 'date-fns/locale';
 import { motion, AnimatePresence } from 'framer-motion';
 import './App.css';
 
-const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+const API_BASE = window.location.hostname === 'localhost' || 
+                 window.location.hostname === '127.0.0.1' || 
+                 window.location.port === '5173' || 
+                 window.location.port === '4173'
   ? 'http://localhost:3000'
   : 'https://api.peiapp.tech';
 

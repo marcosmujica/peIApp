@@ -1837,12 +1837,12 @@ export const AddMovementScreen = () => {
 
                 {/* Other details in info tab */}
                 <View style={{ width: '100%', marginTop: 16 }}>
-                  {!ticketId && (
+                  {(!ticketId || (canEditAsOwner && status === 'pending')) && (
                     <View style={{ borderBottomWidth: 1, borderBottomColor: '#f2f2f0' }}>
                       <TouchableOpacity
                         style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 12 }}
                         onPress={handlePickContact}
-                        disabled={!isOwner}
+                        disabled={!canEditAsOwner}
                       >
                         <Text style={{ fontSize: 15, color: '#363630' }}>Destinatario</Text>
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
@@ -1859,8 +1859,8 @@ export const AddMovementScreen = () => {
 
                       {(assignedContacts.length > 0) && (
                         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingBottom: 12 }}>
-                          {assignedContacts.length > 1 ? (
-                            <TouchableOpacity onPress={() => setReviewModalVisible(true)}>
+                          {assignedContacts.length >= 1 ? (
+                            <TouchableOpacity onPress={openNativeContacts}>
                               <Text style={{ fontSize: 13, color: '#3a9e76', fontFamily: FontFamily.semibold }}>Ver / Editar lista ({assignedContacts.length})</Text>
                             </TouchableOpacity>
                           ) : <View />}
@@ -1870,6 +1870,11 @@ export const AddMovementScreen = () => {
                           </TouchableOpacity>
                         </View>
                       )}
+                    </View>
+                  )}
+
+                  {!ticketId && (
+                    <View style={{ borderBottomWidth: 1, borderBottomColor: '#f2f2f0' }}>
 
                       {/* ALREADY PAID SWITCH */}
                       <View style={{ paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#f2f2f0' }}>
