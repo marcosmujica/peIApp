@@ -328,14 +328,29 @@ app.post('/send', async (req, res) => {
     }
   } else if (user) {
     // Existe pero no tiene token de push
-    const cleanUserPhone = ensureE164Phone(user.phone);
-    const smsResult = await sendSMSInternal(cleanUserPhone, content);
-    status = smsResult.status;
+    let phoneToUse = user.phone;
+    if (!phoneToUse || phoneToUse.length < 8) {
+        phoneToUse = req.body.phone || (req.body.data && req.body.data.phone) || '';
+    }
+    const cleanUserPhone = ensureE164Phone(phoneToUse);
+    if (!cleanUserPhone || cleanUserPhone.length < 8 || cleanUserPhone.length > 15) {
+        console.error(`[SMS] Invalid phone number for user ${userId}: ${phoneToUse}`);
+        status = 'invalid_phone';
+    } else {
+        const smsResult = await sendSMSInternal(cleanUserPhone, content);
+        status = smsResult.status;
+    }
   } else {
     // Usuario no existe en BD
-    const cleanUserId = ensureE164Phone(userId);
-    const smsResult = await sendSMSInternal(cleanUserId, content);
-    status = smsResult.status;
+    let phoneToUse = req.body.phone || (req.body.data && req.body.data.phone) || userId;
+    const cleanUserId = ensureE164Phone(phoneToUse);
+    if (!cleanUserId || cleanUserId.length < 8 || cleanUserId.length > 15) {
+        console.error(`[SMS] Invalid phone number (user not found) ${userId}: ${phoneToUse}`);
+        status = 'invalid_phone';
+    } else {
+        const smsResult = await sendSMSInternal(cleanUserId, content);
+        status = smsResult.status;
+    }
   }
 
   // 3. Actualizar estado en la BD de notificaciones
