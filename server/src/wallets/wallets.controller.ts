@@ -105,7 +105,7 @@ export class WalletsController {
 
         // 2. Create specific wallets based on businessType
         if (businessType === 'none') {
-          const w = await this.walletsService.create(userId, 'Mi Billetera', 'personal' as any, currency, undefined, false);
+          const w = await this.walletsService.create(userId, 'Mi Billetera', 'personal' as any, currency, undefined, true);
           defaultWalletId = w.walletId;
         } else if (businessType === 'services') {
           const w = await this.walletsService.create(userId, 'Mi Negocio de Servicios', 'negocio_servicios' as any, currency, undefined, true);

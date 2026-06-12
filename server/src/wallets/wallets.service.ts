@@ -35,7 +35,7 @@ export class WalletsService {
     private notificationsService: NotificationsService,
   ) {}
 
-  async create(ownerId: string, name: string, type: WalletType, currency = 'USD', defaultPaymentMethod?: string, helpToCollect = false, warningThreshold = 0, alertThreshold = 0, defaultTransactionType?: "income" | "expense", includeInGeneralBalance = true, manager?: EntityManager) {
+  async create(ownerId: string, name: string, type: WalletType, currency = 'USD', defaultPaymentMethod?: string, helpToCollect = true, warningThreshold = 0, alertThreshold = 0, defaultTransactionType?: "income" | "expense", includeInGeneralBalance = true, manager?: EntityManager) {
     const isBusiness = type.includes('negocio') || type === 'business';
     const calculatedDefault = defaultTransactionType || (isBusiness ? 'income' : 'expense');
     

@@ -19,9 +19,78 @@ export class AIService {
     }
   }
 
+  localPredict(description: string, type: 'income' | 'expense', allowedRubros?: any[]): string | null {
+    if (!description) return null;
+    const text = description.toLowerCase();
+
+    // Mapeo detallado de palabras clave a IDs de rubros reales
+    const keywordsMap: Record<string, string[]> = {
+      // Gastos (Egresos)
+      alquiler_expensas: ['alquiler', 'expensas', 'expensa', 'inmobiliaria', 'depto', 'departamento', 'casa', 'renta'],
+      servicios_basicos: ['luz', 'agua', 'gas', 'ute', 'ose', 'antel', 'edenor', 'edesur', 'aysa', 'metrogas', 'factura', 'servicios'],
+      internet_telefonia: ['wifi', 'internet', 'telefono', 'celular', 'movistar', 'claro', 'personal', 'fibertel', 'telecentro', 'netflix', 'spotify'],
+      sueldos_jornales: ['sueldo', 'jornal', 'aguinaldo', 'bono', 'sueldos', 'salarios', 'empleado', 'empleados', 'nomina'],
+      compra_mercaderia: ['mercaderia', 'insumo', 'stock', 'proveedor', 'proveedores', 'compra', 'compras', 'mercadería', 'mercaderías'],
+      transporte_viajes: ['uber', 'taxi', 'cabify', 'colectivo', 'bus', 'bondi', 'pasaje', 'pasajes', 'boleto', 'boletos', 'subte', 'tren', 'viaje', 'viajes'],
+      salud_farmacia: ['farmacia', 'medico', 'clinica', 'hospital', 'remedio', 'remedios', 'medicamento', 'medicamentos', 'obra social', 'prepaga', 'mutualista', 'dentista', 'odontologo'],
+      impuestos_tasas: ['afip', 'arba', 'dgi', 'bps', 'iva', 'impuesto', 'impuestos', 'tasa', 'tasas', 'patente', 'patentes', 'contribucion', 'contribuciones'],
+      mantenimiento_reparaciones: ['ferreteria', 'electricista', 'plomero', 'pintor', 'arreglo', 'arreglos', 'reparacion', 'reparaciones', 'painting', 'herramientas', 'repuesto', 'repuestos', 'jardin', 'jardineria'],
+      entretenimiento_ocio: ['bar', 'restaurante', 'boliche', 'cerveza', 'salida', 'cine', 'teatro', 'concierto', 'recital'],
+      comisiones_bancarias: ['comision', 'comisiones', 'banco', 'mantenimiento cuenta', 'interes', 'intereses', 'recargo', 'recargos'],
+      alimentacion: ['comida', 'super', 'supermercado', 'almacen', 'verduleria', 'carniceria', 'panaderia', 'rotiseria', 'almacén', 'verdulería', 'carnicería', 'panadería', 'rotisería', 'almuerzo', 'cena', 'desayuno', 'alimentos', 'mercadito'],
+      ropa_vestimenta: ['ropa', 'vestimenta', 'zapatillas', 'remera', 'pantalon', 'abrigo', 'camisa', 'zapatos', 'campera'],
+      aportes_patronales: ['aportes', 'aporte', 'jubilacion'],
+      recreacion: ['gimnasio', 'club', 'futbol', 'padel', 'tenis', 'deporte', 'deportes'],
+      asesoramiento_externo: ['contador', 'abogado', 'gestor', 'asesoria', 'consultoria'],
+      publicidad_promociones: ['instagram', 'facebook', 'google ads', 'publicidad', 'anuncios', 'promo', 'promocion', 'marketing'],
+      tarjetas_credito: ['tarjeta', 'visa', 'mastercard', 'oca', 'credito', 'crédito'],
+      viajes_vacaciones: ['hotel', 'avion', 'turismo'],
+      distribucion_envios: ['correo', 'dhl', 'fedex', 'cadete', 'flete', 'fletes', 'cadeteria', 'envio', 'envios', 'envío', 'envíos'],
+
+      // Ingresos
+      salarios_adelantos: ['sueldo', 'quincena', 'aguinaldo', 'nomina', 'salario', 'salarios'],
+      honorarios_profesionales: ['honorarios', 'honorario', 'servicio profesional', 'servicios profesionales', 'consulta', 'consultas', 'clase', 'clases'],
+      ventas_mercaderias: ['venta', 'ventas', 'cobro cliente', 'cobro clientes', 'facturado', 'facturacion', 'producto', 'productos', 'pedido', 'pedidos', 'vivero', 'viveros'],
+      cobros_servicios: ['servicio', 'servicios', 'cobro servicio', 'cobro servicios', 'trabajo', 'trabajos', 'mano de obra'],
+      comisiones_ventas: ['comisiones', 'porcentaje', 'afiliado', 'afiliados'],
+      cobros_extraordinarios: ['extraordinario', 'extraordinarios', 'premio', 'premios', 'sorteo'],
+      intereses_rentas: ['rendimiento', 'plazo fijo', 'dividendo', 'dividendos'],
+      reembolso_gastos: ['reembolso', 'reembolsos', 'devolucion', 'devoluciones', 'reintegro', 'reintegros'],
+      regalos_premios: ['regalo', 'regalos', 'cumple', 'cumpleaños', 'donacion', 'donaciones'],
+      adelantos_clientes: ['adelanto', 'adelantos', 'seña', 'señas', 'anticipo', 'anticipos', 'reserva', 'reservas'],
+      ahorro_emergencia: ['ahorro', 'ahorros', 'fondo', 'fondo de emergencia', 'alcancia'],
+    };
+
+    const rubros = (allowedRubros && allowedRubros.length > 0) 
+      ? allowedRubros 
+      : (type === 'income' ? AI_RUBROS_INGRESOS : AI_RUBROS_GASTOS);
+
+    const allowedIds = rubros.map((r: any) => r.id);
+
+    // Iterar para encontrar coincidencia
+    for (const [id, keywords] of Object.entries(keywordsMap)) {
+      if (allowedIds.includes(id)) {
+        if (keywords.some(kw => text.includes(kw))) {
+          this.logger.log(`[AIService] Local fallback match: "${id}" for description: "${description}"`);
+          return id;
+        }
+      }
+    }
+
+    // Si no encuentra nada, retornar el primero de la lista de permitidos o el más genérico
+    const genericId = type === 'income' ? 'cobros_varios' : 'alimentacion';
+    if (allowedIds.includes(genericId)) {
+      return genericId;
+    }
+    return allowedIds[0] || null;
+  }
+
   async predictRubro(description: string, type: 'income' | 'expense', allowedRubros?: any[]): Promise<string | null> {
     const apiKey = this.configService.get<string>('GEMINI_API_KEY');
-    if (!apiKey) return null;
+    if (!apiKey) {
+      this.logger.warn('[AIService] No GEMINI_API_KEY found. Using local prediction fallback.');
+      return this.localPredict(description, type, allowedRubros);
+    }
 
     try {
       const rubros = (allowedRubros && allowedRubros.length > 0) ? allowedRubros : (type === 'income' ? AI_RUBROS_INGRESOS : AI_RUBROS_GASTOS);
@@ -66,15 +135,16 @@ Reglas:
           this.logger.error('[AIService] Quota exceeded (429). The new API key is being rate-limited by Google.');
         } else if (status === 404) {
           this.logger.error('[AIService] Model not found (404). Trying fallback model...');
-          // Fallback final a gemini-1.5-flash
-          return this.fallbackPredict(prompt, apiKey, rubros);
+          const fallbackRes = await this.fallbackPredict(prompt, apiKey, rubros);
+          if (fallbackRes) return fallbackRes;
         } else {
           this.logger.error(`[AIService] Gemini API error (${status}): ${JSON.stringify(errData)}`);
         }
         
         await this.logIARequest(prompt, `HTTP ERROR ${status}: ${JSON.stringify(errData)}`, 0, 'FAILURE', delay);
         
-        return null;
+        // Fallback local ante fallos de API de Gemini (leaks, limit, etc.)
+        return this.localPredict(description, type, allowedRubros);
       }
 
       const data: any = await response.json();
@@ -83,12 +153,15 @@ Reglas:
       
       await this.logIARequest(prompt, JSON.stringify(data), totalTokens, cleanResponse, delay);
       
+      if (!cleanResponse) {
+        return this.localPredict(description, type, allowedRubros);
+      }
       return cleanResponse;
 
     } catch (err: any) {
       this.logger.error(`[AIService] FATAL Error: ${err.message}`);
       await this.logIARequest(description, `ERROR: ${err.message}`, 0, 'ERROR', 0);
-      return null;
+      return this.localPredict(description, type, allowedRubros);
     }
   }
 
@@ -178,7 +251,7 @@ Reglas:
    */
   private async logIAQuery(question: string, sql: string, results: any, delay: number) {
     try {
-      const logFile = path.resolve(process.cwd(), 'logs', 'ia-query.log');
+      const logFile = path.resolve(process.cwd(), '../logs', 'ia-query.log');
       const logDir = path.dirname(logFile);
       if (!require('fs').existsSync(logDir)) {
         require('fs').mkdirSync(logDir, { recursive: true });
@@ -246,7 +319,7 @@ Reglas:
 
   private async logIARequest(prompt: string, fullResponse: string, tokens: number, result: string | null, delay: number) {
     try {
-      const logFile = path.resolve(process.cwd(), 'logs', 'ia-request.log');
+      const logFile = path.resolve(process.cwd(), '../logs', 'ia.log');
       const logDir = path.dirname(logFile);
       if (!require('fs').existsSync(logDir)) {
         require('fs').mkdirSync(logDir, { recursive: true });
@@ -266,7 +339,7 @@ Reglas:
 
       await fs.appendFile(logFile, JSON.stringify(logEntry) + '\n');
     } catch (err) {
-      this.logger.warn(`Could not write to ia-request.log: ${err.message}`);
+      this.logger.warn(`Could not write to ia.log: ${err.message}`);
     }
   }
 }

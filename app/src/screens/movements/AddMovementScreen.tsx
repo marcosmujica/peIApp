@@ -604,25 +604,32 @@ export const AddMovementScreen = () => {
         }
       }
 
-      // Si no hay rubros permitidos definidos para esta billetera, no predecimos
-      if (!allowedRubros || allowedRubros.length === 0) return;
+      // Si no hay rubros específicos para esta billetera/tipo, usar la lista completa
+      if (!allowedRubros || allowedRubros.length === 0) {
+        allowedRubros = type === 'income' ? GENERAL_RUBROS_INGRESOS : GENERAL_RUBROS_GASTOS;
+        console.log(`[AI-Pred] No specific rubros for wallet, using full ${type} list (${allowedRubros.length} items)`);
+      }
+      console.log(`[AI-Pred] Selected Wallet: ${selectedWallet ? `${selectedWallet.name} (${selectedWallet.type})` : 'null'}, Type: ${type}, Allowed Rubros:`, allowedRubros.map(r => r.id));
 
       const predictedId = await aiApi.predictRubro(description, type, allowedRubros);
-      console.log(`[AI-Pred] Predicted ID: ${predictedId}`);
+      console.log(`[AI-Pred] Predicted ID: "${predictedId}", type: ${type}, current selectedRubroId: "${selectedRubroId}"`);
 
       // Si la IA no está segura o no encuentra uno consistente entre los permitidos, 1
-      // el backend debería devolver null y aquÃ­ no actualizamos nada.
+      // el backend debería devolver null y aquí no actualizamos nada.
       if (predictedId) {
+        console.log(`[AI-Pred] ✅ Setting selectedRubroId to: "${predictedId}"`);
         setSelectedRubroId(predictedId);
       } else {
+        console.log(`[AI-Pred] ⚠️ No prediction received, keeping current selection`);
         // Opcional: Si queremos borrar la selección previa si la IA ya no está segura
         // setSelectedRubroId(null); 
       }
 
       // Predecir siempre el rubro contrario, sin importar si ya seleccionó contacto o no.
-      // AsÃ­ ya lo tenemos guardado para cuando asigne el contacto y guarde el ticket.
+      // Así ya lo tenemos guardado para cuando asigne el contacto y guarde el ticket.
       const oppType = type === 'income' ? 'expense' : 'income';
       const oppPredictedId = await aiApi.predictRubro(description, oppType);
+      console.log(`[AI-Pred] Opposite predicted ID: "${oppPredictedId}" (type: ${oppType})`);
       if (oppPredictedId) {
         setToRubroId(oppPredictedId);
       }

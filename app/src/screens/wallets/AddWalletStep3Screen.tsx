@@ -41,7 +41,7 @@ export const AddWalletStep3Screen: React.FC<Props> = ({ route, navigation, onFin
     includeInGeneralBalance = true,
     defaultPaymentMethod, 
     currency = 'USD', 
-    helpToCollect = false 
+    helpToCollect = true 
   } = route.params;
   const saved = useRef(false); // evitar doble guardado en re-renders
 

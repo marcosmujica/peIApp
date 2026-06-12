@@ -97,7 +97,7 @@ export const AddWalletStep2Screen: React.FC<{ onFinish?: (message?: string) => v
   const [paymentMethod, setPaymentMethod] = useState(user?.defaultPaymentProcedure || '');
   const [currency, setCurrency] = useState(user?.currency || 'USD');
   const [isCurrencyModalVisible, setCurrencyModalVisible] = useState(false);
-  const [helpToCollect, setHelpToCollect] = useState(walletType !== 'personal');
+  const [helpToCollect, setHelpToCollect] = useState(true);
   const [warningThreshold, setWarningThreshold] = useState('');
   const [alertThreshold, setAlertThreshold] = useState('');
   const [members, setMembers] = useState<WalletMember[]>([]);

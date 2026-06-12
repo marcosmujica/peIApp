@@ -40,6 +40,7 @@ export function initRemoteLogging() {
         message.startsWith('[PUSH LOG]') || 
         message.startsWith('[OtpVerify LOG]') || 
         message.startsWith('[Dashboard LOG]') ||
+        message.includes('[AI-Pred]') ||
         message.startsWith('--- ENV CONFIG ---') ||
         message.includes('API_URL:') ||
         message.includes('WS_URL:');
@@ -53,6 +54,7 @@ export function initRemoteLogging() {
       if (message.startsWith('[PUSH LOG]')) context = 'PushService';
       else if (message.startsWith('[OtpVerify LOG]')) context = 'OtpVerify';
       else if (message.startsWith('[Dashboard LOG]')) context = 'DashboardScreen';
+      else if (message.includes('[AI-Pred]')) context = 'AIPrediction';
       else if (message.startsWith('--- ENV CONFIG ---') || message.includes('API_URL:') || message.includes('WS_URL:')) {
         context = 'ClientEnv';
       }
