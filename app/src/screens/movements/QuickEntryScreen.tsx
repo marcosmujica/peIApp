@@ -216,27 +216,35 @@ export const QuickEntryScreen = () => {
           </TouchableOpacity>
         </View>
 
-        <View style={styles.walletSelectorContainer}>
-          <Typography variant="labelSmall" color={Colors.textTertiary} style={{ marginLeft: 16, marginBottom: 8 }}>
-            Billetera:
-          </Typography>
-          <TouchableOpacity 
-            style={styles.walletCombo} 
-            onPress={() => setWalletModalVisible(true)}
-          >
-            <Ionicons name="wallet-outline" size={18} color={Colors.primary} />
-            <Typography variant="labelBase" style={{ flex: 1, marginLeft: 8 }}>
-              {selectedWallet?.name || 'Seleccionar billetera'}
-            </Typography>
-            <Ionicons name="chevron-down" size={18} color="#666" />
-          </TouchableOpacity>
-        </View>
-
         <ScrollView 
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
         >
-          <Typography variant="labelSmall" color={Colors.textTertiary} style={{ marginBottom: 12 }}>
+          <View style={{ marginBottom: 12 }}>
+            <View style={{ backgroundColor: '#f0fdf4', padding: 12, borderRadius: 12, borderWidth: 1, borderColor: '#dcfce7' }}>
+              <Typography variant="bodySmall" color={Colors.textSecondary} style={{ color: '#166534' }}>
+                Anota rápido tus gastos del día. Se guardarán automáticamente como pagos completados.
+              </Typography>
+            </View>
+          </View>
+
+          <View style={styles.walletSelectorContainer}>
+            <Typography variant="labelSmall" color={Colors.textTertiary} style={{ marginLeft: 16, marginBottom: 8 }}>
+              Billetera:
+            </Typography>
+            <TouchableOpacity 
+              style={styles.walletCombo} 
+              onPress={() => setWalletModalVisible(true)}
+            >
+              <Ionicons name="wallet-outline" size={18} color={Colors.primary} />
+              <Typography variant="labelBase" style={{ flex: 1, marginLeft: 8 }}>
+                {selectedWallet?.name || 'Seleccionar billetera'}
+              </Typography>
+              <Ionicons name="chevron-down" size={18} color="#666" />
+            </TouchableOpacity>
+          </View>
+
+          <Typography variant="labelSmall" color={Colors.textTertiary} style={{ marginBottom: 12, marginTop: 12 }}>
             Importes por categoría:
           </Typography>
           {categories.map(cat => {

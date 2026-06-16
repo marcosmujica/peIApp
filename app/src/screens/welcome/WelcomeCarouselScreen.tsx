@@ -1,168 +1,240 @@
-import React, { useRef, useState } from 'react';
-import { View, StyleSheet, Dimensions, ScrollView, NativeSyntheticEvent, NativeScrollEvent, TouchableOpacity, ImageBackground, StatusBar } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, StyleSheet, Dimensions, Animated, TouchableWithoutFeedback, ImageBackground, StatusBar, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '@/navigation/AuthNavigator';
-import { Colors, FontFamily, Shadows, Spacing, BorderRadius } from '@/constants/theme';
+import { Colors, FontFamily, Shadows, BorderRadius, Spacing } from '@/constants/theme';
 import { Typography } from '@/components/ui/Typography';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const { width, height } = Dimensions.get('window');
 
 type Nav = NativeStackNavigationProp<AuthStackParamList, 'WelcomeCarousel'>;
 
-interface Slide {
-    id: string;
-    title: string;
-    description: string;
-    image: any;
-}
-
-const SLIDES: Slide[] = [
+const SLIDES = [
     {
-        id: 'WE-01',
-        title: 'Ves todo en\nun solo lugar',
-        description: 'Todo lo compartido con amigos y familia, lo tuyo y el trabajo. Sin vueltas.',
+        id: '1',
+        title: 'Calma\nfinanciera',
+        description: 'Todo tu dinero organizado en un solo lugar. Simple, rápido y sin estrés.',
         image: require('../../assets/slide1_pop.jpg'),
     },
     {
-        id: 'WE-02',
-        title: 'Tu negocio y vos,\nen sintonía',
-        description: 'Sabé si estás ganando dinero real en tu local o emprendimiento. Sin Excel.',
+        id: '2',
+        title: 'Tu negocio,\nen sintonía',
+        description: 'Múltiples billeteras para separar lo personal de lo profesional.',
         image: require('../../assets/slide2_pop.jpg'),
     },
     {
-        id: 'WE-03',
-        title: 'Registrás en\nun segundo',
-        description: 'Desde cualquier lugar, mientras tomás un café. Un tap y ya tienes el control.',
+        id: '3',
+        title: 'Cuentas claras,\nsiempre',
+        description: 'Registrá tus deudas, cobros y recibí alertas antes de que venzan tus tickets.',
         image: require('../../assets/slide3_pop.jpg'),
     },
     {
-        id: 'WE-04',
-        title: 'Billeteras para\ncompartir',
-        description: 'Organizá viajes, gastos de casa o ahorros en común con quien vos quieras.',
+        id: '4',
+        title: 'Calma IA,\ntu asistente',
+        description: 'Un asistente con inteligencia artificial diseñado para ayudarte a entender y mejorar tus finanzas.',
         image: require('../../assets/slide4_pop.jpg'),
-    },
-    {
-        id: 'WE-05',
-        title: 'No más cuentas\npendientes',
-        description: 'Gestioná tus cobranzas y deudas de forma amigable. Cuentas claras, amistades largas.',
-        image: require('../../assets/slide5_pop.jpg'),
-    },
-    {
-        id: 'WE-06',
-        title: 'La paz de\nno olvidarte',
-        description: 'Te avisamos antes de que venzan tus tickets. Mantené tu historial impecable.',
-        image: require('../../assets/slide6_pop.jpg'),
     }
 ];
 
+const STORY_DURATION = 4000;
+
 export const WelcomeCarouselScreen: React.FC = () => {
   const navigation = useNavigation<Nav>();
-  const [activeIndex, setActiveIndex] = useState(0);
-  const scrollViewRef = useRef<ScrollView>(null);
+  const insets = useSafeAreaInsets();
+  
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const progressAnim = useRef(new Animated.Value(0)).current;
 
-  const onScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-    const slideSize = event.nativeEvent.layoutMeasurement.width;
-    const offset = event.nativeEvent.contentOffset.x;
-    const index = Math.round(offset / slideSize);
-    setActiveIndex(index);
-  };
+  // Manejar animación de la barra de progreso
+  useEffect(() => {
+    progressAnim.setValue(0);
+    Animated.timing(progressAnim, {
+      toValue: 1,
+      duration: STORY_DURATION,
+      useNativeDriver: false,
+    }).start(({ finished }) => {
+      if (finished) {
+        goToNextSlide();
+      }
+    });
+  }, [currentIndex]);
 
-  const handleNext = () => {
-    if (activeIndex < SLIDES.length - 1) {
-        scrollViewRef.current?.scrollTo({ x: (activeIndex + 1) * width, animated: true });
+  const goToNextSlide = () => {
+    if (currentIndex < SLIDES.length - 1) {
+      setCurrentIndex(prev => prev + 1);
     } else {
-        navigation.navigate('PhoneInput');
+      skipToLogin();
     }
   };
 
+  const goToPrevSlide = () => {
+    if (currentIndex > 0) {
+      setCurrentIndex(prev => prev - 1);
+    }
+  };
+
+  const handleTouch = (evt: any) => {
+    const x = evt.nativeEvent.locationX;
+    if (x < width / 3) {
+      goToPrevSlide();
+    } else {
+      // Avanzar al tocar al centro o derecha
+      // Paramos la animación actual que disparará el completion
+      progressAnim.stopAnimation(() => {
+        goToNextSlide();
+      });
+    }
+  };
+
+  const skipToLogin = () => {
+    navigation.navigate('PhoneInput');
+  };
+
+  const currentSlide = SLIDES[currentIndex];
+
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
       
-      <ScrollView
-          ref={scrollViewRef}
-          horizontal
-          pagingEnabled
-          showsHorizontalScrollIndicator={false}
-          onScroll={onScroll}
-          scrollEventThrottle={16}
-      >
-          {SLIDES.map((slide) => (
-              <ImageBackground 
-                key={slide.id} 
-                source={slide.image} 
-                style={styles.slide}
-                resizeMode="cover"
-              >
-                  <View style={styles.overlay}>
-                    <SafeAreaView style={styles.safeContent}>
-                        <View style={styles.header}>
-                           <Typography variant="labelSmall" color={Colors.white} style={{ opacity: 0.8 }}>peIApp</Typography>
-                           <TouchableOpacity onPress={() => navigation.navigate('PhoneInput')}>
-                              <Typography variant="labelSmall" color={Colors.white}>SALTAR</Typography>
-                           </TouchableOpacity>
-                        </View>
-
-                        <View style={styles.textContainer}>
-                            <Typography variant="headingH1" style={styles.title} color={Colors.white}>
-                                {slide.title}
-                            </Typography>
-                            <Typography variant="bodyLarge" style={styles.description} color={Colors.white}>
-                                {slide.description}
-                            </Typography>
-                        </View>
-                    </SafeAreaView>
-                  </View>
-              </ImageBackground>
-          ))}
-      </ScrollView>
-
-      {/* FOOTER FIXED OVER BACKGROUND */}
-      <View style={styles.footer}>
-          <View style={styles.dotContainer}>
-              {SLIDES.map((_, i) => (
-                  <View key={i} style={[styles.dot, activeIndex === i ? styles.activeDot : null]} />
-              ))}
+      <ImageBackground source={currentSlide.image} style={styles.imageBackground} resizeMode="cover">
+        <View style={styles.gradientOverlay}>
+          
+          {/* BARRAS DE PROGRESO TIPO STORIES */}
+          <View style={[styles.storiesHeader, { top: Math.max(insets.top, 20) }]}>
+            {SLIDES.map((_, index) => {
+              let widthValue = '0%';
+              if (index < currentIndex) {
+                widthValue = '100%';
+              }
+              
+              return (
+                <View key={index} style={styles.progressBarContainer}>
+                  {index === currentIndex ? (
+                    <Animated.View
+                      style={[
+                        styles.progressBarActive,
+                        {
+                          width: progressAnim.interpolate({
+                            inputRange: [0, 1],
+                            outputRange: ['0%', '100%'],
+                          })
+                        }
+                      ]}
+                    />
+                  ) : (
+                    <View style={[styles.progressBarActive, { width: widthValue as any }]} />
+                  )}
+                </View>
+              );
+            })}
           </View>
 
-          <TouchableOpacity 
-            style={styles.nextBtn}
-            onPress={handleNext}
-          >
-              <Typography variant="labelBase" color={Colors.primary}>
-                {activeIndex === SLIDES.length - 1 ? "Empezar ahora" : "Continuar"}
-              </Typography>
-              <Ionicons name="arrow-forward" size={18} color={Colors.primary} />
-          </TouchableOpacity>
-      </View>
+          {/* ÁREA INTERACTIVA PARA PASAR STORIES */}
+          <TouchableWithoutFeedback onPress={handleTouch}>
+            <View style={styles.touchArea} />
+          </TouchableWithoutFeedback>
+
+          {/* CONTENIDO DE TEXTO */}
+          <View style={[styles.contentContainer, { paddingBottom: Math.max(insets.bottom, 20) + 80 }]}>
+            <Typography variant="headingH1" style={styles.title} color={Colors.white}>
+              {currentSlide.title}
+            </Typography>
+            <Typography variant="bodyLarge" style={styles.description} color={Colors.white}>
+              {currentSlide.description}
+            </Typography>
+          </View>
+
+          {/* BOTÓN INFERIOR SALTAR / EMPEZAR */}
+          <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 20) }]}>
+             <TouchableOpacity style={styles.mainBtn} onPress={skipToLogin}>
+                <Typography variant="labelBase" color={Colors.textPrimary} style={{ fontWeight: 'bold' }}>
+                  {currentIndex === SLIDES.length - 1 ? 'Empezar ahora' : 'Saltar intro'}
+                </Typography>
+             </TouchableOpacity>
+          </View>
+          
+        </View>
+      </ImageBackground>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#000' },
-  slide: { width: width, height: height },
-  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', paddingHorizontal: Spacing.xl },
-  safeContent: { flex: 1, justifyContent: 'space-between' },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: Spacing.md, height: 60 },
-  textContainer: { marginBottom: 200 },
-  title: { fontSize: 44, lineHeight: 50, marginBottom: Spacing.lg, fontFamily: FontFamily.bold, color: Colors.white },
-  description: { fontSize: 18, lineHeight: 26, opacity: 0.9, color: Colors.white },
-  footer: { position: 'absolute', bottom: 50, left: 0, right: 0, paddingHorizontal: Spacing.xl },
-  dotContainer: { flexDirection: 'row', gap: 8, marginBottom: 32 },
-  dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.4)' },
-  activeDot: { width: 20, backgroundColor: Colors.white },
-  nextBtn: {
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    justifyContent: 'center', 
-    backgroundColor: Colors.white, 
-    height: 64, 
-    borderRadius: BorderRadius.button, 
-    gap: 12, 
-    ...Shadows.cardElevated
+  imageBackground: { flex: 1, width: '100%', height: '100%' },
+  gradientOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.3)', // Filtro suave para que el texto contraste
+    justifyContent: 'space-between',
   },
+  storiesHeader: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    paddingHorizontal: 8,
+    zIndex: 10,
+    gap: 4,
+  },
+  progressBarContainer: {
+    flex: 1,
+    height: 4,
+    backgroundColor: 'rgba(255,255,255,0.3)',
+    borderRadius: 2,
+    overflow: 'hidden',
+  },
+  progressBarActive: {
+    height: '100%',
+    backgroundColor: Colors.white,
+    borderRadius: 2,
+  },
+  touchArea: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 1,
+  },
+  contentContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: Spacing.xl,
+    zIndex: 5,
+    pointerEvents: 'none', // Para que los toques pasen al touchArea
+  },
+  title: {
+    fontSize: 48,
+    lineHeight: 52,
+    fontFamily: FontFamily.bold,
+    marginBottom: 16,
+    textShadowColor: 'rgba(0,0,0,0.5)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 6,
+  },
+  description: {
+    fontSize: 18,
+    lineHeight: 26,
+    opacity: 0.95,
+    textShadowColor: 'rgba(0,0,0,0.5)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
+  },
+  footer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: Spacing.xl,
+    zIndex: 10,
+  },
+  mainBtn: {
+    backgroundColor: Colors.white,
+    height: 56,
+    borderRadius: BorderRadius.button,
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...Shadows.cardElevated,
+  }
 });

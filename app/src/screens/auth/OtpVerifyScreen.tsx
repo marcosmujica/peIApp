@@ -201,8 +201,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     ...Shadows.card,
-    borderWidth: 1,
-    borderColor: 'rgba(20,51,39,0.05)'
+    borderWidth: 0,
   },
   codeInput: {
     fontSize: 34,
@@ -211,6 +210,8 @@ const styles = StyleSheet.create({
     color: Colors.primary,
     textAlign: 'center',
     width: '100%',
+    // @ts-ignore
+    outlineStyle: 'none',
   },
   resendBtn: {
     marginTop: 24,

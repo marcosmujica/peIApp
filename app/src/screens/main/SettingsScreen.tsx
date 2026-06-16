@@ -765,6 +765,8 @@ const styles = StyleSheet.create({
   },
   avatarPlaceholder: {
     backgroundColor: '#F5F5F5',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   uploadingOverlay: {
     ...StyleSheet.absoluteFillObject,

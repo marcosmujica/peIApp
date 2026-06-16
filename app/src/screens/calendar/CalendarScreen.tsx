@@ -164,7 +164,7 @@ export const CalendarScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Agenda</Text>
+        <Text style={styles.title}>Movimientos</Text>
       </View>
 
       <ScrollView

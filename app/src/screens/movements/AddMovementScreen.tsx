@@ -1855,7 +1855,7 @@ export const AddMovementScreen = () => {
                         onPress={handlePickContact}
                         disabled={!canEditAsOwner}
                       >
-                        <Text style={{ fontSize: 15, color: '#363630' }}>Destinatario</Text>
+                        <Text style={{ fontSize: 15, color: '#363630', fontFamily: FontFamily.medium, marginBottom: 2 }}>Destinatario</Text>
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                           <Text style={{ fontSize: 15, color: '#878778' }}>
                             {assignedContacts.length > 0 ? (
@@ -2038,7 +2038,7 @@ export const AddMovementScreen = () => {
                               onPress={handleProrateAmount}
                             >
                               <Ionicons name="calculator-outline" size={18} color="#363630" />
-                              <Text style={{ fontSize: 14, color: '#363630', fontFamily: FontFamily.semibold }}>Dividir importe en cuotas</Text>
+                              <Text style={{ fontSize: 14, color: '#363630', fontFamily: FontFamily.semibold }}>Dividime el importe en cuotas</Text>
                             </TouchableOpacity>
 
                             {/* RECURRENCE SUMMARY BOX */}
@@ -2085,9 +2085,9 @@ export const AddMovementScreen = () => {
                   {!isTransferOrAdjustment && (
                     <>
                       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#f2f2f0' }}>
-                        <View style={{ flex: 1 }}>
-                          <Text style={{ fontSize: 15, color: '#363630', fontFamily: FontFamily.medium }}>Asistente de cobranza</Text>
-                          <Text style={{ fontSize: 12, color: '#878778' }}>Ayudame a cobrar este ticket.</Text>
+                        <View style={{ flex: 1, paddingRight: 16 }}>
+                          <Text style={{ fontSize: 15, color: '#363630', fontFamily: FontFamily.medium, marginBottom: 2 }}>Asistente de cobranza</Text>
+                          <Text style={{ fontSize: 12, color: '#878778', lineHeight: 16 }}>Activa el seguimiento automático. Enviaremos recordatorios de pago para asegurarnos de que cobres a tiempo sin estrés.</Text>
                         </View>
                         <Switch
                           value={helpToCollect}
@@ -2097,65 +2097,83 @@ export const AddMovementScreen = () => {
                         />
                       </View>
 
-                      <TextInput
-                        style={{ fontSize: 15, color: '#363630', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#f2f2f0', minHeight: 60 }}
-                        placeholder="Instrucciones de pago"
-                        placeholderTextColor="#878778"
-                        value={paymentProcedure}
-                        onChangeText={setPaymentProcedure}
-                        editable={canEditAsOwner && (!ticketId || status === 'pending')}
-                        multiline
-                        numberOfLines={3}
-                        textAlignVertical="top"
-                      />
+                      <View style={{ paddingTop: 12, borderBottomWidth: 1, borderBottomColor: '#f2f2f0' }}>
+                        <Text style={{ fontSize: 15, color: '#363630', fontFamily: FontFamily.medium, marginBottom: 2 }}>Instrucciones de pago</Text>
+                        <TextInput
+                          style={{ fontSize: 15, color: '#363630', paddingVertical: 8, minHeight: 60, outlineStyle: 'none' } as any}
+                          placeholder="Escribe aquí..."
+                          placeholderTextColor="#c2c2c2"
+                          value={paymentProcedure}
+                          onChangeText={setPaymentProcedure}
+                          editable={canEditAsOwner && (!ticketId || status === 'pending')}
+                          multiline
+                          numberOfLines={3}
+                          textAlignVertical="top"
+                        />
+                      </View>
                     </>
                   )}
                   {type === 'income' && !isTransferOrAdjustment && (
                     <>
-                      <TextInput
-                        style={{ fontSize: 15, color: '#363630', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#f2f2f0' }}
-                        placeholder="Gastos asociados ($)"
-                        placeholderTextColor="#878778"
-                        keyboardType="numeric"
-                        value={expenses}
-                        onChangeText={(text) => setExpenses(text.replace(/[^0-9.]/g, ''))}
-                        editable={canEditAsOwner && (!ticketId || status === 'pending')}
-                      />
-                      <TextInput
-                        style={{ fontSize: 15, color: '#363630', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#f2f2f0', minHeight: 60 }}
-                        placeholder="Detalle de gastos asociados"
-                        placeholderTextColor="#878778"
-                        value={expensesDetail}
-                        onChangeText={setExpensesDetail}
-                        editable={canEditAsOwner && (!ticketId || status === 'pending')}
-                        multiline
-                        numberOfLines={3}
-                        textAlignVertical="top"
-                      />
+                      <View style={{ paddingTop: 12, borderBottomWidth: 1, borderBottomColor: '#f2f2f0' }}>
+                        <Text style={{ fontSize: 15, color: '#363630', fontFamily: FontFamily.medium, marginBottom: 2 }}>Gastos asociados ($)</Text>
+                        <TextInput
+                          style={{ fontSize: 15, color: '#363630', paddingVertical: 8, outlineStyle: 'none', textAlign: 'right', width: '100%' } as any}
+                          placeholder="0"
+                          placeholderTextColor="#c2c2c2"
+                          keyboardType="numeric"
+                          value={formatAmount(expenses)}
+                          onChangeText={(text) => {
+                            let clean = text.replace(/[^0-9,]/g, '').replace(',', '.');
+                            setExpenses(clean);
+                          }}
+                          editable={canEditAsOwner && (!ticketId || status === 'pending')}
+                        />
+                      </View>
+                      <View style={{ paddingTop: 12, borderBottomWidth: 1, borderBottomColor: '#f2f2f0' }}>
+                        <Text style={{ fontSize: 15, color: '#363630', fontFamily: FontFamily.medium, marginBottom: 2 }}>Detalle de gastos asociados</Text>
+                        <TextInput
+                          style={{ fontSize: 15, color: '#363630', paddingVertical: 8, minHeight: 60, outlineStyle: 'none' } as any}
+                          placeholder="Escribe aquí..."
+                          placeholderTextColor="#c2c2c2"
+                          value={expensesDetail}
+                          onChangeText={setExpensesDetail}
+                          editable={canEditAsOwner && (!ticketId || status === 'pending')}
+                          multiline
+                          numberOfLines={3}
+                          textAlignVertical="top"
+                        />
+                      </View>
                     </>
                   )}
-                  <TextInput
-                    style={{ fontSize: 15, color: '#363630', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#f2f2f0', minHeight: 60 }}
-                    placeholder={isOwner ? "Detalle del ticket (lo pueden ver todos)" : "Detalle del ticket"}
-                    placeholderTextColor="#878778"
-                    value={comment}
-                    onChangeText={setComment}
-                    editable={isOwner || isParticipant}
-                    multiline
-                    numberOfLines={3}
-                    textAlignVertical="top"
-                  />
+                  <View style={{ paddingTop: 12, borderBottomWidth: 1, borderBottomColor: '#f2f2f0' }}>
+                    <Text style={{ fontSize: 15, color: '#363630', fontFamily: FontFamily.medium, marginBottom: 2 }}>{isOwner ? "Detalle del ticket (lo pueden ver todos)" : "Detalle del ticket"}</Text>
+                    <TextInput
+                      style={{ fontSize: 15, color: '#363630', paddingVertical: 8, minHeight: 60, outlineStyle: 'none' } as any}
+                      placeholder="Escribe aquí..."
+                      placeholderTextColor="#c2c2c2"
+                      value={comment}
+                      onChangeText={setComment}
+                      editable={isOwner || isParticipant}
+                      multiline
+                      numberOfLines={3}
+                      textAlignVertical="top"
+                    />
+                  </View>
 
-                  <TextInput
-                    style={{ fontSize: 15, color: '#363630', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#f2f2f0', minHeight: 60 }}
-                    placeholder="Nota privada (solo tú la verás)"
-                    placeholderTextColor="#878778"
-                    value={privateNote}
-                    onChangeText={setPrivateNote}
-                    multiline
-                    numberOfLines={3}
-                    textAlignVertical="top"
-                  />
+                  <View style={{ paddingTop: 12, borderBottomWidth: 1, borderBottomColor: '#f2f2f0' }}>
+                    <Text style={{ fontSize: 15, color: '#363630', fontFamily: FontFamily.medium, marginBottom: 2 }}>Nota privada (solo tú la verás)</Text>
+                    <TextInput
+                      style={{ fontSize: 15, color: '#363630', paddingVertical: 8, minHeight: 60, outlineStyle: 'none' } as any}
+                      placeholder="Escribe aquí..."
+                      placeholderTextColor="#c2c2c2"
+                      value={privateNote}
+                      onChangeText={setPrivateNote}
+                      multiline
+                      numberOfLines={3}
+                      textAlignVertical="top"
+                    />
+                  </View>
 
                   {/* RATING SECTION */}
                   {!!ticketId && !isTransferOrAdjustment && (

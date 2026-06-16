@@ -28,12 +28,12 @@ export const WalletsSummaryScreen: React.FC<Props> = ({ route, navigation }) => 
       {
         icon: "cash-outline",
         name: "Cobros sin billetera",
-        desc: "Tu saldo centralizado para visualizar el total de tus ingresos desde un único panel.",
+        desc: "Ingresos y cobros rápidos sin asignar.",
       },
       {
         icon: "file-tray-outline",
         name: "Pagos sin Billetera",
-        desc: "Un resguardo del sistema para aquellos tickets que aún no asocies a tu negocio.",
+        desc: "Gastos y pagos rápidos sin asignar.",
       },
     ];
 
@@ -41,7 +41,7 @@ export const WalletsSummaryScreen: React.FC<Props> = ({ route, navigation }) => 
       list.push({
         icon: "person-outline",
         name: "Mi Billetera",
-        desc: "Mi billetera personal para rastrear ingresos y gastos del día a día.",
+        desc: "Tus ingresos y gastos personales del día a día.",
       });
     }
 
@@ -49,7 +49,7 @@ export const WalletsSummaryScreen: React.FC<Props> = ({ route, navigation }) => 
       list.push({
         icon: "cube-outline",
         name: "Mi negocio de productos",
-        desc: "Lista para manejar tus ventas, control y tickets relacionados a productos físicos.",
+        desc: "Gestiona ventas y cobros de tus productos físicos.",
       });
     }
 
@@ -57,7 +57,7 @@ export const WalletsSummaryScreen: React.FC<Props> = ({ route, navigation }) => 
       list.push({
         icon: "briefcase-outline",
         name: "Mi negocio de servicios",
-        desc: "El espacio ideal para registrar y administrar los honorarios de todos tus servicios prestados.",
+        desc: "Registra honorarios y cobros de tus servicios.",
       });
     }
 

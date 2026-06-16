@@ -148,25 +148,20 @@ export const PhoneInputScreen: React.FC<Props> = ({ navigation }) => {
 
         <View style={styles.footer}>
           <TouchableOpacity
-            style={styles.legalLink}
-            onPress={() => navigation.navigate("TermsAndConditions" as any)}
-          >
-            <Typography variant="labelSmall" color={Colors.textTertiary}>
-              Al continuar, aceptás nuestros <Typography variant="labelSmall" color={Colors.primary} style={{ textDecorationLine: 'underline' }}>Términos & Condiciones</Typography>
-            </Typography>
-          </TouchableOpacity>
-          {buildId ? (
-            <Typography variant="labelXSmall" color={Colors.textTertiary} style={{ textAlign: 'center', marginTop: -16, marginBottom: 12, opacity: 0.6, fontSize: 10 }}>
-              Versión: {buildId}
-            </Typography>
-          ) : null}
-
-          <TouchableOpacity
             style={[styles.mainBtn, isLoading && styles.btnDisabled]}
             onPress={handleContinue}
             disabled={isLoading}
           >
             {isLoading ? <ActivityIndicator color={Colors.white} /> : <Typography variant="labelBase" color={Colors.white}>Continuar</Typography>}
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.legalLink, { marginTop: 16, marginBottom: 0 }]}
+            onPress={() => navigation.navigate("TermsAndConditions" as any)}
+          >
+            <Typography variant="labelSmall" color={Colors.textTertiary}>
+              Al continuar, aceptás nuestros <Typography variant="labelSmall" color={Colors.primary} style={{ textDecorationLine: 'underline' }}>Términos & Condiciones</Typography>
+            </Typography>
           </TouchableOpacity>
         </View>
 
@@ -210,9 +205,10 @@ const styles = StyleSheet.create({
   content: { flex: 1, paddingHorizontal: 24, paddingTop: 40 },
   header: { marginBottom: 40 },
   title: { fontSize: 28, lineHeight: 34, marginBottom: 16, color: Colors.textPrimary, fontFamily: FontFamily.bold },
-  inputContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.white, borderRadius: BorderRadius.card, paddingHorizontal: 16, height: 72, borderWidth: 1, borderColor: 'rgba(20,51,39,0.05)', ...Shadows.card, maxWidth: 600, alignSelf: 'center', width: '100%' },
+  inputContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.white, borderRadius: BorderRadius.card, paddingHorizontal: 16, height: 72, borderWidth: 0, ...Shadows.card, maxWidth: 600, alignSelf: 'center', width: '100%' },
   countryPicker: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingRight: 12, borderRightWidth: 1, borderRightColor: Colors.surfaceMuted, minWidth: 70 },
-  phoneInput: { flex: 1, paddingLeft: 16, fontSize: 20, fontFamily: FontFamily.bold, color: Colors.textPrimary, borderWidth: 0 },
+  // @ts-ignore
+  phoneInput: { flex: 1, paddingLeft: 16, fontSize: 20, fontFamily: FontFamily.bold, color: Colors.textPrimary, borderWidth: 0, outlineStyle: 'none' },
   countryLabel: { marginTop: 12, alignItems: 'center' },
   footer: { paddingHorizontal: 24, paddingBottom: Platform.OS === 'ios' ? 20 : 40 },
   legalLink: { marginBottom: 24, alignItems: 'center' },

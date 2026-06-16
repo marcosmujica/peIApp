@@ -20,10 +20,10 @@ export const BusinessTypeScreen: React.FC<Props> = ({ navigation }) => {
   const completeOnboarding = useAuthStore((s) => s.completeOnboarding);
 
   const OPTIONS = [
-    { id: "none", label: "No tengo negocio" },
-    { id: "products", label: "Vendo productos" },
-    { id: "services", label: "Brindo servicios" },
-    { id: "both", label: "Vendo productos y servicios" },
+    { id: "none", label: "Solo para mis finanzas personales" },
+    { id: "products", label: "Para mi negocio de venta de productos" },
+    { id: "services", label: "Para mis servicios profesionales" },
+    { id: "both", label: "Para mis productos y servicios" },
   ];
 
   const handleFinish = async () => {
@@ -38,7 +38,7 @@ export const BusinessTypeScreen: React.FC<Props> = ({ navigation }) => {
 
       // Instead of completing onboarding, simply navigate to the new Summary screen
       setTimeout(() => {
-          navigation.navigate("WalletsSummary", { businessType: selectedType });
+        navigation.navigate("WalletsSummary", { businessType: selectedType });
       }, 2500);
 
     } catch (e) {
@@ -65,46 +65,45 @@ export const BusinessTypeScreen: React.FC<Props> = ({ navigation }) => {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
       <View className="flex-1 px-6 pt-6 pb-10 justify-between">
-      <View>
-        <Text className="text-3xl font-bold text-neutral-900 mb-8">
-          ¿Qué tipo de negocio tienes?
-        </Text>
+        <View>
+          <Text className="text-3xl font-bold text-neutral-900 mb-8">
+            ¿Para qué necesitas peIApp?
+          </Text>
 
-        <View className="flex-col space-y-4 gap-4">
-          {OPTIONS.map((option) => {
-            const isSelected = selectedType === option.id;
-            return (
-              <TouchableOpacity
-                key={option.id}
-                activeOpacity={0.7}
-                onPress={() => setSelectedType(option.id)}
-              >
-                <Card
-                  style={{
-                    backgroundColor: isSelected ? Colors.primary : Colors.background,
-                    borderColor: isSelected ? Colors.primary : Colors.border,
-                  }}
+          <View className="flex-col space-y-4 gap-4">
+            {OPTIONS.map((option) => {
+              const isSelected = selectedType === option.id;
+              return (
+                <TouchableOpacity
+                  key={option.id}
+                  activeOpacity={0.7}
+                  onPress={() => setSelectedType(option.id)}
                 >
-                  <Text
-                    className={`text-lg font-medium ${
-                      isSelected ? "text-white" : "text-neutral-900"
-                    }`}
+                  <Card
+                    style={{
+                      backgroundColor: isSelected ? Colors.primary : Colors.background,
+                      borderColor: isSelected ? Colors.primary : Colors.border,
+                    }}
                   >
-                    {option.label}
-                  </Text>
-                </Card>
-              </TouchableOpacity>
-            );
-          })}
+                    <Text
+                      className={`text-lg font-medium ${isSelected ? "text-white" : "text-neutral-900"
+                        }`}
+                    >
+                      {option.label}
+                    </Text>
+                  </Card>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
         </View>
-      </View>
 
-      <Button
-        label="Finalizar y entrar a peIApp"
-        onPress={handleFinish}
-        disabled={!selectedType || isLoading}
-        loading={isLoading}
-      />
+        <Button
+          label="Finalizar y entrar a peIApp"
+          onPress={handleFinish}
+          disabled={!selectedType || isLoading}
+          loading={isLoading}
+        />
       </View>
     </SafeAreaView>
   );

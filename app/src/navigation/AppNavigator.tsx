@@ -30,7 +30,7 @@ export const AppNavigator: React.FC = () => {
       ) : user?.needsOnboarding ? (
         <OnboardingNavigator />
       ) : (
-        <RootNavigator initialRoute={justFinishedOnboarding ? 'Settings' : undefined} />
+        <RootNavigator initialRoute={justFinishedOnboarding ? 'MainTabs' : undefined} />
       )}
     </NavigationContainer>
   );

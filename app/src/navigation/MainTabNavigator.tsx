@@ -55,9 +55,9 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
           // Apply Figma labels over internal route names
           if (route.name === 'Historial') label = 'Tickets';
           if (route.name === 'Contactos') label = 'Contactos';
-          if (route.name === 'Calendario') label = 'Agenda';
+          if (route.name === 'Calendario') label = 'Movimientos';
           if (route.name === 'Menu') label = 'Más';
-            
+
           const isFocused = state.index === index;
 
           const onPress = async () => {
@@ -66,7 +66,7 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
               target: route.key,
               canPreventDefault: true,
             });
-            
+
             if (!event.defaultPrevented) {
               if (route.name === 'Billeteras') {
                 navigation.navigate('Billeteras', { screen: 'WalletsMain' });
@@ -115,9 +115,9 @@ export const MainTabNavigator: React.FC = () => {
       <Tab.Screen name="Billeteras" component={WalletsNavigator} />
       <Tab.Screen name="Historial" component={HistoryScreen} />
       <Tab.Screen name="Calendario" component={CalendarScreen} />
-      <Tab.Screen 
-        name="Menu" 
-        component={MoreMenuScreen} 
+      <Tab.Screen
+        name="Menu"
+        component={MoreMenuScreen}
       />
     </Tab.Navigator>
   );

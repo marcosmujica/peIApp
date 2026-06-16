@@ -308,13 +308,7 @@ export const DashboardScreen: React.FC = () => {
         </View>
 
         <View className="flex-row items-center gap-3">
-          <TouchableOpacity
-            className="w-10 h-10 rounded-full bg-white items-center justify-center"
-            style={{ borderWidth: 1, borderColor: '#eceae3', ...Shadows.card }}
-            onPress={() => navigation.navigate('Settings')}
-          >
-            <Ionicons name="settings-outline" size={20} color={Colors.textSecondary} />
-          </TouchableOpacity>
+
           <TouchableOpacity
             className="w-10 h-10 rounded-full items-center justify-center"
             style={{ backgroundColor: Colors.accent, ...Shadows.card }}
@@ -502,7 +496,8 @@ export const DashboardScreen: React.FC = () => {
             </TouchableOpacity>
           </View>
           {/* PENDING SUMMARY TIMELINE CONSOLIDATED */}
-          <View className="mb-2 mt-2">
+          {tickets.length > 0 && (
+            <View className="mb-2 mt-2">
             <View className="px-4 mb-4">
               <Text style={{ fontSize: 12, fontFamily: FontFamily.bold, color: Colors.textTertiary, textTransform: 'uppercase', letterSpacing: 0.5 }}>
                 Línea de tiempo • Pendientes
@@ -700,6 +695,7 @@ export const DashboardScreen: React.FC = () => {
               </ScrollView>
             </View>
           </View>
+          )}
 
           <View className="flex-col gap-0">
             {groupedTickets.length > 0 ? groupedTickets.map(([dateKey, items]) => (

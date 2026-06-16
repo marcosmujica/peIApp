@@ -37,6 +37,13 @@ export const MoreMenuScreen: React.FC = () => {
       subtitle: 'Información clara para tomar mejores decisiones',
       icon: 'play-circle',
       onPress: () => navigation.navigate('Videos')
+    },
+    {
+      id: 'settings',
+      title: 'Configuración',
+      subtitle: 'Ajustes de la cuenta y preferencias',
+      icon: 'settings',
+      onPress: () => navigation.navigate('Settings')
     }
   ];
 
