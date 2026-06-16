@@ -13,17 +13,17 @@ async function runTests() {
 
     // 2. Test send (Push)
     console.log('\nTesting /send (Push expected if user has push_enabled)...');
-    const sendRes = await axios.post(`${BASE_URL}/send`, { 
-      userId: '59896739775', 
-      content: 'Hello from PeiApp!' 
+    const sendRes = await axios.post(`${BASE_URL}/send`, {
+      userId: '59896739775',
+      content: 'Hello from PeIApp!'
     });
     console.log('Result:', sendRes.data);
 
     // 3. Test send (SMS for unknown user)
     console.log('\nTesting /send (SMS expected for unknown user)...');
-    const unknownRes = await axios.post(`${BASE_URL}/send`, { 
-      userId: '99999999', 
-      content: 'Hello stranger!' 
+    const unknownRes = await axios.post(`${BASE_URL}/send`, {
+      userId: '99999999',
+      content: 'Hello stranger!'
     });
     console.log('Result:', unknownRes.data);
 

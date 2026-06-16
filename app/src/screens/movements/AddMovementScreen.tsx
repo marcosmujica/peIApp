@@ -307,7 +307,7 @@ export const AddMovementScreen = () => {
     try {
       const userName = user?.displayName || user?.phoneNumber || 'Un usuario';
       const shareUrl = `${WEB_SHARE_URL}/t/${sid}`;
-      const message = `${userName} te envió un ticket de PeIApp.\n\nPodés ver los detalles, postergar la fecha o cargar un pago acá:\n${shareUrl}\n\n¡Mejorá tus finanzas grátis con PeiApp! www.peiapp.tech`;
+      const message = `${userName} te envió un ticket de PeIApp.\n\nPodés ver los detalles, postergar la fecha o cargar un pago acá:\n${shareUrl}\n\n¡Mejorá tus finanzas grátis con PeIApp! www.peiapp.tech`;
 
       await Share.share({
         message,
@@ -471,10 +471,10 @@ export const AddMovementScreen = () => {
 
           let wId = t.walletId;
           if (!wId && wallets.length > 0) {
-            const systemWallet = wallets.find(w => 
-              (w.type === 'mycollects' || w.name.toLowerCase().startsWith(SYSTEM_WALLET_NAME.toLowerCase())) 
+            const systemWallet = wallets.find(w =>
+              (w.type === 'mycollects' || w.name.toLowerCase().startsWith(SYSTEM_WALLET_NAME.toLowerCase()))
               && w.currency === t.currency
-            ) || wallets.find(w => 
+            ) || wallets.find(w =>
               w.type === 'mycollects' || w.name.toLowerCase().startsWith(SYSTEM_WALLET_NAME.toLowerCase())
             );
             if (systemWallet) wId = systemWallet.id;
@@ -1570,28 +1570,7 @@ export const AddMovementScreen = () => {
                     maxLength={15}
                   />
                 </View>
-                {isEdit && (
-                  (amount !== originalAmount && originalAmount !== null) ||
-                  (initialAmount !== null && Number(amount) !== initialAmount)
-                ) && (
-                    <View style={{ marginTop: 12, paddingHorizontal: 16, paddingVertical: 10, backgroundColor: '#F0F9FF', borderRadius: 16, borderWidth: 1, borderColor: '#BAE6FD', alignSelf: 'center', width: '90%' }}>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                        <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: '#BAE6FD', alignItems: 'center', justifyContent: 'center' }}>
-                          <Ionicons name="information-circle" size={16} color="#0369A1" />
-                        </View>
-                        <View style={{ flex: 1 }}>
-                          <Text style={{ fontSize: 12, color: '#0369A1', fontFamily: FontFamily.medium }}>
-                            {amount !== originalAmount
-                              ? `Estás cambiando el importe (antes $${Number(originalAmount).toLocaleString('es-AR')}).`
-                              : `Este ticket fue modificado anteriormente (inicialmente $${Number(initialAmount).toLocaleString('es-AR')}).`}
-                          </Text>
-                          <Text style={{ fontSize: 11, color: '#0369A1', opacity: 0.8, marginTop: 2 }}>
-                            Al guardar se registrará en el historial de auditoría.
-                          </Text>
-                        </View>
-                      </View>
-                    </View>
-                  )}
+
 
                 {ticketId && amountPaid > 0 && status === 'pending' && (
                   <View style={{
@@ -1639,6 +1618,54 @@ export const AddMovementScreen = () => {
                     </View>
                   </View>
                 )}
+
+
+
+
+                <TextInput
+                  style={{ width: '100%', fontSize: 15, fontFamily: FontFamily.regular, color: '#878778', textAlign: 'center', marginTop: 8 }}
+                  placeholder="Agregar un detalle"
+                  placeholderTextColor="#878778"
+                  value={description}
+                  onChangeText={setDescription}
+                  onBlur={() => triggerRubroPrediction()}
+                  editable={status !== 'cancelled' && status !== 'completed'}
+                />
+
+                <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 8, marginTop: 32 }}>
+                  <TouchableOpacity
+                    style={{ borderStyle: 'solid', borderWidth: 1, borderColor: '#e7e7e4', borderRadius: 100, paddingHorizontal: 16, paddingVertical: 8 }}
+                    onPress={() => setDateOptionsModalVisible(true)}
+                    disabled={!canEditAsOwner || status === 'cancelled' || status === 'completed'}
+                  >
+                    <Text style={{ fontSize: 15, color: '#878778' }}>
+                      Vence el {date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+
+                {isEdit && (
+                  (amount !== originalAmount && originalAmount !== null) ||
+                  (initialAmount !== null && Number(amount) !== initialAmount)
+                ) && (
+                    <View style={{ marginTop: 12, paddingHorizontal: 16, paddingVertical: 10, backgroundColor: '#F0F9FF', borderRadius: 16, borderWidth: 1, borderColor: '#BAE6FD', alignSelf: 'center', width: '90%' }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                        <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: '#BAE6FD', alignItems: 'center', justifyContent: 'center' }}>
+                          <Ionicons name="information-circle" size={16} color="#0369A1" />
+                        </View>
+                        <View style={{ flex: 1 }}>
+                          <Text style={{ fontSize: 12, color: '#0369A1', fontFamily: FontFamily.medium }}>
+                            {amount !== originalAmount
+                              ? `Estás cambiando el importe (antes $${Number(originalAmount).toLocaleString('es-AR')}).`
+                              : `Este ticket fue modificado anteriormente (inicialmente $${Number(initialAmount).toLocaleString('es-AR')}).`}
+                          </Text>
+                          <Text style={{ fontSize: 11, color: '#0369A1', opacity: 0.8, marginTop: 2 }}>
+                            Al guardar se registrará en el historial de auditoría.
+                          </Text>
+                        </View>
+                      </View>
+                    </View>
+                  )}
 
                 {isEdit && initialDueDate && (
                   new Date(date).toISOString().split('T')[0] !== new Date(initialDueDate).toISOString().split('T')[0]
@@ -1699,29 +1726,6 @@ export const AddMovementScreen = () => {
                     </View>
                   );
                 })()}
-
-
-                <TextInput
-                  style={{ width: '100%', fontSize: 15, fontFamily: FontFamily.regular, color: '#878778', textAlign: 'center', marginTop: 8 }}
-                  placeholder="Agregar un detalle"
-                  placeholderTextColor="#878778"
-                  value={description}
-                  onChangeText={setDescription}
-                  onBlur={() => triggerRubroPrediction()}
-                  editable={status !== 'cancelled' && status !== 'completed'}
-                />
-
-                <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 8, marginTop: 32 }}>
-                  <TouchableOpacity
-                    style={{ borderStyle: 'solid', borderWidth: 1, borderColor: '#e7e7e4', borderRadius: 100, paddingHorizontal: 16, paddingVertical: 8 }}
-                    onPress={() => setDateOptionsModalVisible(true)}
-                    disabled={!canEditAsOwner || status === 'cancelled' || status === 'completed'}
-                  >
-                    <Text style={{ fontSize: 15, color: '#878778' }}>
-                      Vence el {date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
 
                 {/* Opposite User Info (if editing) */}
                 {(() => {
@@ -1844,7 +1848,7 @@ export const AddMovementScreen = () => {
 
                 {/* Other details in info tab */}
                 <View style={{ width: '100%', marginTop: 16 }}>
-                  {(!ticketId || (canEditAsOwner && status === 'pending')) && (
+                  {(!ticketId) && (
                     <View style={{ borderBottomWidth: 1, borderBottomColor: '#f2f2f0' }}>
                       <TouchableOpacity
                         style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 12 }}

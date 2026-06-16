@@ -110,7 +110,7 @@ export const TransactionItem: React.FC<TransactionItemProps> = ({
             </Text>
           ) : null}
           {status && (
-            <Text style={[styles.statusText, { color: status === 'overdue' ? Colors.destructive : status === 'cancelled' ? Colors.destructive : (status === 'completed' ? Colors.primary : Colors.textTertiary) }]}>
+            <Text style={[styles.statusText, { color: status === 'overdue' ? Colors.alertsWarning : status === 'cancelled' ? Colors.destructive : (status === 'completed' ? Colors.primary : Colors.textTertiary) }]}>
               • {status === 'completed' ? 'PAGADO' : status === 'cancelled' ? 'CANCELADO' : status === 'overdue' ? `ATRASADO ${overdueDays ? `(${overdueDays}d)` : ''}` : 'PENDIENTE'}
             </Text>
           )}

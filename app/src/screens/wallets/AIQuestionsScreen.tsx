@@ -27,14 +27,14 @@ const DEFAULT_FALLBACK_QUESTIONS = [
   "¿Cómo puedo mejorar el balance de esta billetera?",
   "¿Cuáles fueron mis mayores gastos este mes?",
   "Resumen de cobros pendientes para los próximos 7 días",
-  "¿Cómo funcionan las transferencias en PeiApp?",
+  "¿Cómo funcionan las transferencias en PeIApp?",
   "Consejos para ahorrar en esta categoría"
 ];
 
 const ExpandableText: React.FC<{ text: string }> = ({ text }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const shouldTruncate = text.length > 80;
-  
+
   const displayText = isExpanded ? text : (shouldTruncate ? text.substring(0, 80) + '...' : text);
 
   return (
@@ -74,10 +74,10 @@ export const AIQuestionsScreen: React.FC<Props> = ({ route, navigation }) => {
 
   const handleAsk = async (text: string) => {
     if (!text.trim() || !wallet || isLoading) return;
-    
+
     setIsLoading(true);
     setQuestion('');
-    
+
     const answer = await aiApi.askWallet({
       walletData: {
         name: wallet.name,
@@ -145,12 +145,12 @@ export const AIQuestionsScreen: React.FC<Props> = ({ route, navigation }) => {
         <View style={{ width: 40 }} />
       </View>
 
-      <KeyboardAvoidingView 
+      <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1 }}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
       >
-        <ScrollView 
+        <ScrollView
           ref={scrollViewRef}
           style={styles.content}
           contentContainerStyle={{ padding: 20, paddingBottom: 100 }}
@@ -162,13 +162,13 @@ export const AIQuestionsScreen: React.FC<Props> = ({ route, navigation }) => {
             <View style={styles.suggestionsGrid}>
               {(() => {
                 const typeQuestions = wallet?.type ? WALLET_AI_QUESTIONS_MAP[wallet.type] : null;
-                const questionsToShow = (wallet?.aiQuestions && wallet.aiQuestions.length > 0) 
-                  ? wallet.aiQuestions 
+                const questionsToShow = (wallet?.aiQuestions && wallet.aiQuestions.length > 0)
+                  ? wallet.aiQuestions
                   : (typeQuestions || DEFAULT_FALLBACK_QUESTIONS);
-                
+
                 return questionsToShow.map((q, idx) => (
-                  <TouchableOpacity 
-                    key={idx} 
+                  <TouchableOpacity
+                    key={idx}
                     style={styles.suggestionBtn}
                     onPress={() => handleAsk(q)}
                     disabled={isLoading}
@@ -197,18 +197,18 @@ export const AIQuestionsScreen: React.FC<Props> = ({ route, navigation }) => {
                         <Ionicons name="trash-outline" size={16} color={Colors.textTertiary} />
                       </TouchableOpacity>
                     </View>
-                  <View style={styles.answerRow}>
-                    <View style={styles.aiIcon}>
-                      <Ionicons name="sparkles" size={14} color={Colors.white} />
+                    <View style={styles.answerRow}>
+                      <View style={styles.aiIcon}>
+                        <Ionicons name="sparkles" size={14} color={Colors.white} />
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <ExpandableText text={item.answer} />
+                      </View>
                     </View>
-                    <View style={{ flex: 1 }}>
-                      <ExpandableText text={item.answer} />
-                    </View>
+                    <Typography variant="labelXSmall" color="secondary" style={{ alignSelf: 'flex-end', marginTop: 8 }}>
+                      {new Date(item.timestamp).toLocaleString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+                    </Typography>
                   </View>
-                  <Typography variant="labelXSmall" color="secondary" style={{ alignSelf: 'flex-end', marginTop: 8 }}>
-                    {new Date(item.timestamp).toLocaleString('es-ES', { hour: '2-digit', minute: '2-digit' })}
-                  </Typography>
-                </View>
                 );
               })}
             </View>
@@ -225,8 +225,8 @@ export const AIQuestionsScreen: React.FC<Props> = ({ route, navigation }) => {
             multiline
             maxLength={200}
           />
-          <TouchableOpacity 
-            style={[styles.sendBtn, (!question.trim() || isLoading) && styles.sendBtnDisabled]} 
+          <TouchableOpacity
+            style={[styles.sendBtn, (!question.trim() || isLoading) && styles.sendBtnDisabled]}
             onPress={() => handleAsk(question)}
             disabled={!question.trim() || isLoading}
           >

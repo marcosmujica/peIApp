@@ -12,7 +12,7 @@ const mainDb = new Pool({
 async function run() {
   const token = 'ExponentPushToken[0xlrXiA51a1B18ikOisieJ]';
   const result = await mainDb.query('SELECT user_id FROM users WHERE notification_id = $1', [token]);
-  
+
   if (result.rows.length === 0) {
     console.log('No user found with that token.');
     process.exit(1);
@@ -27,7 +27,7 @@ async function run() {
     body: JSON.stringify({
       userId: userId,
       title: 'Notificación de Prueba',
-      content: 'Esta es una notificación de prueba enviada desde PeiApp.'
+      content: 'Esta es una notificación de prueba enviada desde PeIApp.'
     })
   });
 

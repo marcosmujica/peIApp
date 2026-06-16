@@ -26,27 +26,27 @@ export const TermsAndConditionsScreen: React.FC = () => {
 
         <Typography variant="headingH4" style={styles.sectionTitle}>1. Aceptación de los Términos</Typography>
         <Typography variant="bodyBase" color="secondary" style={styles.paragraph}>
-          Al descargar o utilizar la aplicación PeiApp, estos términos se aplicarán automáticamente a usted; por lo tanto, debe asegurarse de leerlos cuidadosamente antes de usar la aplicación. No está permitido copiar ni modificar la aplicación, ninguna parte de la aplicación o nuestras marcas comerciales de ninguna manera.
+          Al descargar o utilizar la aplicación PeIApp, estos términos se aplicarán automáticamente a usted; por lo tanto, debe asegurarse de leerlos cuidadosamente antes de usar la aplicación. No está permitido copiar ni modificar la aplicación, ninguna parte de la aplicación o nuestras marcas comerciales de ninguna manera.
         </Typography>
 
         <Typography variant="headingH4" style={styles.sectionTitle}>2. Uso de la Aplicación</Typography>
         <Typography variant="bodyBase" color="secondary" style={styles.paragraph}>
-          PeiApp almacena y procesa los datos personales que nos ha proporcionado para prestar nuestro servicio. Es su responsabilidad mantener su teléfono y el acceso a la aplicación seguros. Le recomendamos que no libere o realice jailbreak a su teléfono, ya que podría hacer que su teléfono sea vulnerable a malware/virus/programas maliciosos y comprometer las funciones de seguridad de PeiApp.
+          PeIApp almacena y procesa los datos personales que nos ha proporcionado para prestar nuestro servicio. Es su responsabilidad mantener su teléfono y el acceso a la aplicación seguros. Le recomendamos que no libere o realice jailbreak a su teléfono, ya que podría hacer que su teléfono sea vulnerable a malware/virus/programas maliciosos y comprometer las funciones de seguridad de PeIApp.
         </Typography>
 
         <Typography variant="headingH4" style={styles.sectionTitle}>3. Privacidad y Datos</Typography>
         <Typography variant="bodyBase" color="secondary" style={styles.paragraph}>
-          Su privacidad es importante para nosotros. Los datos financieros registrados en PeiApp se almacenan de forma cifrada y se utilizan únicamente para proporcionarle reportes y análisis de su actividad financiera. No compartimos sus datos con terceros con fines publicitarios.
+          Su privacidad es importante para nosotros. Los datos financieros registrados en PeIApp se almacenan de forma cifrada y se utilizan únicamente para proporcionarle reportes y análisis de su actividad financiera. No compartimos sus datos con terceros con fines publicitarios.
         </Typography>
 
         <Typography variant="headingH4" style={styles.sectionTitle}>4. Cargos y Servicios</Typography>
         <Typography variant="bodyBase" color="secondary" style={styles.paragraph}>
-          Ciertas funciones de la aplicación pueden requerir una suscripción activa o el pago de tarifas por servicios premium. Usted será notificado claramente antes de incurrir en cualquier cargo. PeiApp se reserva el derecho de modificar sus tarifas notificando con 30 días de antelación.
+          Ciertas funciones de la aplicación pueden requerir una suscripción activa o el pago de tarifas por servicios premium. Usted será notificado claramente antes de incurrir en cualquier cargo. PeIApp se reserva el derecho de modificar sus tarifas notificando con 30 días de antelación.
         </Typography>
 
         <Typography variant="headingH4" style={styles.sectionTitle}>5. Responsabilidad Limitada</Typography>
         <Typography variant="bodyBase" color="secondary" style={styles.paragraph}>
-          PeiApp es una herramienta de gestión financiera. No somos responsables por pérdidas financieras resultantes de decisiones tomadas basadas en la información proporcionada por la aplicación, ni por errores en el ingreso manual de datos por parte del usuario.
+          PeIApp es una herramienta de gestión financiera. No somos responsables por pérdidas financieras resultantes de decisiones tomadas basadas en la información proporcionada por la aplicación, ni por errores en el ingreso manual de datos por parte del usuario.
         </Typography>
 
         <Typography variant="headingH4" style={styles.sectionTitle}>6. Cambios en los Términos</Typography>

@@ -102,6 +102,7 @@ export const ContactSelectorModal: React.FC<ContactSelectorProps> = ({ visible, 
             <ActivityIndicator size="large" color="#171717" style={{ marginTop: 40 }} />
           ) : (
             <FlatList
+              keyboardShouldPersistTaps="handled"
               data={filtered}
               keyExtractor={(item) => item.id || Math.random().toString()}
               contentContainerStyle={styles.list}

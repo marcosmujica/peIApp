@@ -1,4 +1,4 @@
-# PeiApp — AGENTS.md
+# PeIApp — AGENTS.md
 
 > Guía para agentes de IA que trabajan en este repositorio. Define la estructura, reglas y contexto necesarios para contribuir correctamente.
 
@@ -6,7 +6,7 @@
 
 ## Descripción del Proyecto
 
-**PeiApp** es una plataforma financiera para emprendedores y pequeños negocios de Latinoamérica. Permite gestionar ingresos, gastos, cobros y pagos mediante billeteras digitales, tickets financieros, links de cobro públicos (PeiLinks), chat en tiempo real, clasificación AI de rubros y reportes automáticos.
+**PeIApp** es una plataforma financiera para emprendedores y pequeños negocios de Latinoamérica. Permite gestionar ingresos, gastos, cobros y pagos mediante billeteras digitales, tickets financieros, links de cobro públicos (PeiLinks), chat en tiempo real, clasificación AI de rubros y reportes automáticos.
 
 ---
 

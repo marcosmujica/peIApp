@@ -1,12 +1,12 @@
-# PeiApp — Reglas del Sistema Core
+# PeIApp — Reglas del Sistema Core
 
-> **Propósito**: Este documento describe con precisión total la arquitectura, estructura, entidades, endpoints, lógica de negocio y convenciones del sistema PeiApp. Con esta información se puede reconstruir el sistema completo desde cero.
+> **Propósito**: Este documento describe con precisión total la arquitectura, estructura, entidades, endpoints, lógica de negocio y convenciones del sistema PeIApp. Con esta información se puede reconstruir el sistema completo desde cero.
 
 ---
 
 ## 1. Visión General del Producto
 
-**PeiApp** es una aplicación financiera personal/empresarial para gestión de ingresos, gastos, cobros y pagos. Está orientada a emprendedores y pequeños negocios de Latinoamérica (Uruguay, Argentina, Brasil).
+**PeIApp** es una aplicación financiera personal/empresarial para gestión de ingresos, gastos, cobros y pagos. Está orientada a emprendedores y pequeños negocios de Latinoamérica (Uruguay, Argentina, Brasil).
 
 ### Funcionalidades Core
 - Gestión de billeteras (wallets) personales, de negocio y compartidas
@@ -539,7 +539,7 @@ Es un clon del `server/` con las mismas entidades y módulos, pero su único pro
 - Servicio Express.js standalone en Node.js puro (sin TypeScript)
 - Archivo único: `index.js`
 - Se conecta a 2 bases de datos PostgreSQL:
-  - `mainDb`: Base principal de PeiApp (solo lectura de usuarios)
+  - `mainDb`: Base principal de PeIApp (solo lectura de usuarios)
   - `notifDb`: Base de notificaciones (`peiapp_notifications`)
 - Mantiene un cache en memoria de usuarios (`Map`)
 

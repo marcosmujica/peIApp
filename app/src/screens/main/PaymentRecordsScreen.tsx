@@ -223,7 +223,6 @@ export const PaymentRecordsScreen: React.FC = () => {
         <View style={styles.logBody}>
           {!!item.comment && (
             <View style={{ marginBottom: 12 }}>
-              <Typography variant="labelXSmall" color="tertiary" uppercase style={{ marginBottom: 2 }}>Detalle del pago:</Typography>
               <Typography variant="bodySmall" color="secondary">{item.comment}</Typography>
             </View>
           )}

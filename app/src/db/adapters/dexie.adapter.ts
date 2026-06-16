@@ -2,7 +2,7 @@ import Dexie, { Table } from "dexie";
 import { ILocalDB, SyncQueueItem } from "../ILocalDB";
 import { generateId } from "@/utils/id";
 
-class PeiAppDexie extends Dexie {
+class PeIAppDexie extends Dexie {
   sync_queue!: Table<SyncQueueItem, string>;
 
   constructor() {
@@ -14,10 +14,10 @@ class PeiAppDexie extends Dexie {
 }
 
 export class DexieAdapter implements ILocalDB {
-  private dexie: PeiAppDexie;
+  private dexie: PeIAppDexie;
 
   constructor() {
-    this.dexie = new PeiAppDexie();
+    this.dexie = new PeIAppDexie();
   }
 
   async init(): Promise<void> {

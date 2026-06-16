@@ -55,7 +55,7 @@ export class CronService {
     const now = new Date();
     // Format: HH:00
     const currentHour = `${now.getHours().toString().padStart(2, '0')}:00`;
-    
+
     await this.processReportsForHour(currentHour);
     this.writeToLog('--- FIN DE CRON DE REPORTES DIARIOS ---');
   }
@@ -63,7 +63,7 @@ export class CronService {
   async processReportsForHour(hour: string) {
     this.writeToLog(`Procesando reportes para la hora: ${hour}`);
     this.logger.log(`Processing reports for hour: ${hour}`);
-    
+
     const users = await this.usersService.findForDailyReport(hour);
     this.writeToLog(`Usuarios encontrados para esta hora: ${users.length}`);
     this.logger.log(`Found ${users.length} users for this hour.`);
@@ -73,10 +73,10 @@ export class CronService {
       try {
         const summary = await this.ticketsService.getFinancialSummary(user.userId);
         this.writeToLog(`Resumen obtenido: Overdue=${summary.overdue.count}, Today=${summary.today.count}, Next7=${summary.next7Days.count}`);
-        
+
         // Build the message
-        let message = `📊 Reporte PeiApp: `;
-        
+        let message = `📊 Reporte PeIApp: `;
+
         const hasOverdue = summary.overdue.incomes > 0 || summary.overdue.expenses > 0;
         const hasToday = summary.today.incomes > 0 || summary.today.expenses > 0;
         const hasNext7 = summary.next7Days.incomes > 0 || summary.next7Days.expenses > 0;
@@ -154,7 +154,7 @@ export class CronService {
           if (targetDetail) {
             const baseUrl = this.configService.get<string>('WEB_SHARE_URL') || 'http://localhost:5173';
             const publicLink = ticket.shortId ? `\nLink para ver/editar: ${baseUrl}/t/${ticket.shortId}` : '';
-            
+
             const fullMessage = `${messageTitle}\n${messageBody}${publicLink}`;
 
             // 1. Enviar notificación
@@ -202,7 +202,7 @@ export class CronService {
     threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
 
     const users = await this.usersService.findAllActiveUsers();
-    
+
     for (const user of users) {
       try {
         // Buscar si el usuario tiene algún ticket como owner creado en los últimos 3 días
@@ -216,7 +216,7 @@ export class CronService {
         // Si no tiene ningún ticket nuevo en 3 días, enviar motivación
         if (recentTicketsCount === 0) {
           const message = `🌟 ¡Te extrañamos, ${user.displayName || 'emprendedor'}! Mantener al día tus ingresos y gastos es clave para tener el control de tus finanzas. Anímate a registrar tus movimientos y descubre el poder de una buena gestión. 💪📈`;
-          
+
           await this.notificationsService.sendNotification(user.userId, message, 'Consejo peIApp');
           this.writeToLog(`Notificación de inactividad enviada a ${user.userId}`);
         }

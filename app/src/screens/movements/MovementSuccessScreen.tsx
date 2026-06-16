@@ -32,9 +32,9 @@ export const MovementSuccessScreen: React.FC = () => {
     if (!shortId) return;
     try {
       const userName = user?.displayName || user?.phoneNumber || 'Un usuario';
-      const shareUrl = `${WEB_SHARE_URL}/t/${shortId}`; 
-      const message = `${userName} te envió un ticket de PeiApp.\n\nPodés ver los detalles, postergar la fecha o cargar un pago acá:\n${shareUrl}\n\n¡Mejorá tus finanzas con PeiApp! www.peiapp.tech`;
-      
+      const shareUrl = `${WEB_SHARE_URL}/t/${shortId}`;
+      const message = `${userName} te envió un ticket de PeIApp.\n\nPodés ver los detalles, postergar la fecha o cargar un pago acá:\n${shareUrl}\n\n¡Mejorá tus finanzas con PeIApp! www.peiapp.tech`;
+
       await Share.share({
         message,
         url: shareUrl,
@@ -97,8 +97,8 @@ export const MovementSuccessScreen: React.FC = () => {
       {/* Helper Text */}
       <View style={styles.helperTextContainer}>
         <Text style={styles.helperText}>
-          {status === 'pending' 
-            ? (isIncome ? 'Cuando te paguen, lo marcamos como cobrado. También podés generar un peilink para que te transfieran directo.' : 'Cuando lo pagues, lo marcamos como pagado.') 
+          {status === 'pending'
+            ? (isIncome ? 'Cuando te paguen, lo marcamos como cobrado. También podés generar un peilink para que te transfieran directo.' : 'Cuando lo pagues, lo marcamos como pagado.')
             : `El ${isIncome ? 'cobro' : 'pago'} ya se encuentra registrado y confirmado en la billetera.`}
         </Text>
       </View>
@@ -107,8 +107,8 @@ export const MovementSuccessScreen: React.FC = () => {
 
       {/* Action Buttons */}
       <View style={styles.footer}>
-        <TouchableOpacity 
-          style={styles.btnPrimary} 
+        <TouchableOpacity
+          style={styles.btnPrimary}
           onPress={() => navigation.navigate('Inicio', { screen: 'DashboardScreen' })}
         >
           <Text style={styles.btnPrimaryText}>Volver al inicio</Text>
@@ -116,8 +116,8 @@ export const MovementSuccessScreen: React.FC = () => {
         </TouchableOpacity>
 
         {shortId && (
-          <TouchableOpacity 
-            style={[styles.btnSecondary, { backgroundColor: Colors.primary + '10', borderColor: Colors.primary }]} 
+          <TouchableOpacity
+            style={[styles.btnSecondary, { backgroundColor: Colors.primary + '10', borderColor: Colors.primary }]}
             onPress={handleShare}
           >
             <Ionicons name="share-social-outline" size={20} color={Colors.primary} style={{ marginRight: 8 }} />
@@ -125,8 +125,8 @@ export const MovementSuccessScreen: React.FC = () => {
           </TouchableOpacity>
         )}
 
-        <TouchableOpacity 
-          style={styles.btnSecondary} 
+        <TouchableOpacity
+          style={styles.btnSecondary}
           onPress={() => navigation.goBack()}
         >
           <Ionicons name="refresh" size={20} color="#171717" style={{ marginRight: 8 }} />

@@ -1,17 +1,17 @@
 ---
 name: peiapp-system
 description: >
-  Skill para reconstruir, mantener y operar el sistema PeiApp completo: una plataforma financiera
+  Skill para reconstruir, mantener y operar el sistema PeIApp completo: una plataforma financiera
   con API NestJS, WebSocket server, servicio de notificaciones, app Expo/React Native y web pública
   de tickets. Incluye todas las instrucciones necesarias para recrear el sistema desde cero.
 ---
 
-# PeiApp System Skill
+# PeIApp System Skill
 
 ## Objetivo
 
 Esta skill contiene toda la información necesaria para:
-1. **Reconstruir** el sistema PeiApp completo desde cero
+1. **Reconstruir** el sistema PeIApp completo desde cero
 2. **Mantener** el sistema existente siguiendo las convenciones establecidas
 3. **Operar** todos los servicios en desarrollo y producción
 
@@ -19,7 +19,7 @@ Esta skill contiene toda la información necesaria para:
 
 ## Resumen del Sistema
 
-PeiApp es una plataforma financiera para emprendedores y pequeños negocios de Latinoamérica que gestiona ingresos, gastos, cobros y pagos.
+PeIApp es una plataforma financiera para emprendedores y pequeños negocios de Latinoamérica que gestiona ingresos, gastos, cobros y pagos.
 
 ### Componentes (5 proyectos)
 
