@@ -3246,6 +3246,7 @@ const styles = StyleSheet.create({
     alignSelf: 'stretch',
   },
   amountInput: {
+    width: '100%',
     fontSize: 40,
     fontFamily: FontFamily.bold,
     color: '#171717',

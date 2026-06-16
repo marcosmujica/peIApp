@@ -224,7 +224,7 @@ export class TicketsService {
     const qb = this.ticketDetailRepo.createQueryBuilder('detail')
       .leftJoinAndSelect('detail.ticket', 'ticket')
       .leftJoinAndSelect('ticket.owner', 'owner')
-      .leftJoinAndMapOne('ticket.otherParticipant', TicketDetail, 'other', 'other.ticketId = detail.ticketId AND other.userId != :userId', { userId })
+      .leftJoinAndMapOne('ticket.otherParticipant', TicketDetail, 'other', 'other.ticketId = detail.ticketId AND other.userId != :userId AND other.role != \'member\'', { userId })
       .leftJoinAndMapOne('ticket.otherUserObj', User, 'u', 'u.userId = other.userId')
       .where('detail.userId = :userId', { userId });
 
@@ -295,7 +295,7 @@ export class TicketsService {
     const qb = this.ticketDetailRepo.createQueryBuilder('detail')
       .leftJoinAndSelect('detail.ticket', 'ticket')
       .leftJoinAndSelect('ticket.owner', 'owner')
-      .leftJoinAndMapOne('ticket.otherParticipant', TicketDetail, 'other', 'other.ticketId = detail.ticketId AND other.userId != detail.userId')
+      .leftJoinAndMapOne('ticket.otherParticipant', TicketDetail, 'other', 'other.ticketId = detail.ticketId AND other.userId != detail.userId AND other.role != \'member\'')
       .leftJoinAndMapOne('ticket.otherUserObj', User, 'u', 'u.userId = other.userId');
 
     if (isUnassignedWallet && userId) {
@@ -303,9 +303,10 @@ export class TicketsService {
         .orWhere('(detail.walletId IS NULL AND detail.userId = :userId)', { userId });
     } else if (userId) {
       qb.where('detail.walletId = :walletId', { walletId })
-        .andWhere('detail.userId = :userId', { userId });
+        .andWhere('(detail.userId = :userId OR detail.role = :ownerRole)', { userId, ownerRole: 'owner_id' });
     } else {
-      qb.where('detail.walletId = :walletId', { walletId });
+      qb.where('detail.walletId = :walletId', { walletId })
+        .andWhere('detail.role = :ownerRole', { ownerRole: 'owner_id' });
     }
 
     const details = await qb.orderBy('ticket.createdAt', 'DESC').getMany();
@@ -927,7 +928,7 @@ export class TicketsService {
     }
 
     // 3. Set participants
-    const allParticipants = new Set(walletMembers);
+    const allParticipants = new Set<string>();
     allParticipants.add(ownerId);
     let recipientPhone: string | null = null;
     if (data.toUser) {
