@@ -387,7 +387,7 @@ export const WalletDetailsScreen: React.FC<Props> = ({ route, navigation }) => {
           </TouchableOpacity>
           <View style={styles.headerTitleContainer}>
             <Typography variant="headingH3" style={styles.headerTitle} numberOfLines={1}>{walletName || 'Billetera'}</Typography>
-            <Typography variant="captionBase" color="secondary">
+            <Typography variant="captionBase" color="secondary" numberOfLines={1} ellipsizeMode="tail">
               {CURRENCY_NAMES[screenCurrency] || 'Moneda'} ({screenCurrency})
             </Typography>
           </View>

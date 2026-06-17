@@ -75,7 +75,7 @@ export class CronService {
         this.writeToLog(`Resumen obtenido: Overdue=${summary.overdue.count}, Today=${summary.today.count}, Next7=${summary.next7Days.count}`);
 
         // Build the message
-        let message = `📊 Reporte PeIApp: `;
+        let message = `Reporte PeIApp: `;
 
         const hasOverdue = summary.overdue.incomes > 0 || summary.overdue.expenses > 0;
         const hasToday = summary.today.incomes > 0 || summary.today.expenses > 0;
@@ -85,13 +85,13 @@ export class CronService {
           message += '¡Todo al día! No tienes pagos pendientes para hoy ni para la semana.';
         } else {
           if (hasOverdue) {
-            message += `⚠️ ATRASADOS: Cobrar $${summary.overdue.incomes.toLocaleString('es-AR')} / Pagar $${summary.overdue.expenses.toLocaleString('es-AR')}. `;
+            message += `ATRASADOS: Cobrar $${summary.overdue.incomes.toLocaleString('es-AR')} / Pagar $${summary.overdue.expenses.toLocaleString('es-AR')}. `;
           }
           if (hasToday) {
-            message += `📅 HOY: Cobrar $${summary.today.incomes.toLocaleString('es-AR')} / Pagar $${summary.today.expenses.toLocaleString('es-AR')}. `;
+            message += `HOY: Cobrar $${summary.today.incomes.toLocaleString('es-AR')} / Pagar $${summary.today.expenses.toLocaleString('es-AR')}. `;
           }
           if (hasNext7) {
-            message += `📈 PRÓX. 7 DÍAS: Cobrar $${summary.next7Days.incomes.toLocaleString('es-AR')} / Pagar $${summary.next7Days.expenses.toLocaleString('es-AR')}.`;
+            message += `PRÓX. 7 DÍAS: Cobrar $${summary.next7Days.incomes.toLocaleString('es-AR')} / Pagar $${summary.next7Days.expenses.toLocaleString('es-AR')}.`;
           }
         }
 
@@ -134,15 +134,15 @@ export class CronService {
 
         if (diffDays === 1) {
           alertWeight = 'medium';
-          messageTitle = '🔔 Recordatorio de Pago (Próximo)';
+          messageTitle = 'Recordatorio de Pago (Próximo)';
           messageBody = `Mañana vence el ticket "${ticket.description || 'Sin descripción'}".`;
         } else if (diffDays === 0) {
           alertWeight = 'high';
-          messageTitle = '📢 ¡Día de Pago! (Hoy)';
+          messageTitle = '¡Día de Pago! (Hoy)';
           messageBody = `Hoy vence el ticket "${ticket.description || 'Sin descripción'}". Por favor, realiza el pago a la brevedad.`;
         } else if (diffDays === -2) {
           alertWeight = 'critical';
-          messageTitle = '⚠️ ¡PAGO ATRASADO! (2 días)';
+          messageTitle = '¡PAGO ATRASADO! (2 días)';
           messageBody = `El ticket "${ticket.description || 'Sin descripción'}" venció hace 2 días. Es importante regularizar tu situación hoy mismo.`;
         }
 
@@ -215,7 +215,7 @@ export class CronService {
 
         // Si no tiene ningún ticket nuevo en 3 días, enviar motivación
         if (recentTicketsCount === 0) {
-          const message = `🌟 ¡Te extrañamos, ${user.displayName || 'emprendedor'}! Mantener al día tus ingresos y gastos es clave para tener el control de tus finanzas. Anímate a registrar tus movimientos y descubre el poder de una buena gestión. 💪📈`;
+          const message = `¡Te extrañamos, ${user.displayName || 'emprendedor'}! Mantener al día tus ingresos y gastos es clave para tener el control de tus finanzas. Anímate a registrar tus movimientos y descubre el poder de una buena gestión.`;
 
           await this.notificationsService.sendNotification(user.userId, message, 'Consejo peIApp');
           this.writeToLog(`Notificación de inactividad enviada a ${user.userId}`);

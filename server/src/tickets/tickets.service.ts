@@ -351,7 +351,7 @@ export class TicketsService {
     });
     const saved = await this.chatRepo.save(chat);
 
-    const lastMsgText = message || (attachmentType === 'image' ? '📸 Imagen' : '📄 Archivo');
+    const lastMsgText = message || (attachmentType === 'image' ? 'Imagen' : 'Archivo');
     await this.ticketRepo.update(ticketId, {
       lastChatMessage: lastMsgText,
       lastChatMessageTimestamp: saved.createdAt,
@@ -470,7 +470,7 @@ export class TicketsService {
         const chatMsg = manager.create(TicketChat, {
           ticketId,
           senderId: dbUserId,
-          message: `Pago recibido${data.isPublic ? ' ví­a Web' : ''}: ${amountStr} (${data.paymentMethod})${data.description ? ` - ${data.description}` : ''}${ticket.status === 'completed' ? '\nðŸ Ticket COMPLETADO' : ''}`,
+          message: `Pago recibido${data.isPublic ? ' vía Web' : ''}: ${amountStr} (${data.paymentMethod})${data.description ? ` - ${data.description}` : ''}${ticket.status === 'completed' ? '\nTicket COMPLETADO' : ''}`,
           senderName: data.isPublic ? 'Invitado Web' : 'Sistema',
           attachmentUrl: data.attachmentUrl,
           attachmentType: data.attachmentUrl ? 'image' : undefined
@@ -727,7 +727,7 @@ export class TicketsService {
       const chat = manager.create(TicketChat, {
         ticketId: ticket.ticketId,
         senderId: ticket.ownerId,
-        message: `ðŸš« Ticket CANCELADO vía Web. ${reason ? `Motivo: ${reason}` : ''}`,
+        message: `Ticket CANCELADO vía Web. ${reason ? `Motivo: ${reason}` : ''}`,
         senderName: 'Sistema',
       });
       const savedChat = await manager.save(chat);
