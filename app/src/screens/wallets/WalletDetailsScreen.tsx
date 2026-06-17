@@ -23,6 +23,7 @@ import { RootStackParamList } from '@/navigation/RootNavigator';
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback } from 'react';
 import { useUIStore } from '@/store/ui.store';
+import { useRecentWalletsStore } from '@/store/recent-wallets.store';
 import { Typography } from '@/components/ui/Typography';
 import { TransactionItem } from '@/components/ui/TransactionItem';
 import { Badge } from '@/components/ui/Badge';
@@ -64,6 +65,7 @@ export const WalletDetailsScreen: React.FC<Props> = ({ route, navigation }) => {
   const { walletId, walletName: initialWalletName, walletType = 'Negocio', currency = 'USD', showToast, toastMessage } = route.params;
   const { user } = useAuthStore();
   const { getContactName, loadContacts } = useContactsStore();
+  const addRecentWallet = useRecentWalletsStore(state => state.addRecentWallet);
 
   const [wallet, setWallet] = useState<LocalWallet | null>(null);
   const [walletName, setWalletName] = useState(initialWalletName);
@@ -286,7 +288,8 @@ export const WalletDetailsScreen: React.FC<Props> = ({ route, navigation }) => {
     useCallback(() => {
       loadData();
       loadContacts();
-    }, [loadData, loadContacts])
+      addRecentWallet(walletId);
+    }, [loadData, loadContacts, walletId, addRecentWallet])
   );
 
   useEffect(() => {

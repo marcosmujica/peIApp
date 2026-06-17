@@ -8,7 +8,7 @@ function App() {
       <header className="container">
         <nav className="navbar">
           <div className="navbar-brand">
-            <span role="img" aria-label="leaf">🌿</span> PeIApp
+            <img src="/favicon.png" alt="PeIApp Logo" className="app-logo" /> PeIApp
           </div>
           <div className="navbar-nav">
             <a href="#features" className="nav-link">Beneficios</a>
@@ -107,7 +107,7 @@ function App() {
       <footer className="footer">
         <div className="container footer-content">
           <div className="footer-logo">
-            <span role="img" aria-label="leaf">🌿</span> PeIApp
+            <img src="/favicon.png" alt="PeIApp Logo" className="app-logo" /> PeIApp
           </div>
           <div className="footer-text">
             © {new Date().getFullYear()} PeIApp. Todos los derechos reservados.

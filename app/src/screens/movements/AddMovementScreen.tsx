@@ -1849,35 +1849,52 @@ export const AddMovementScreen = () => {
                 {/* Other details in info tab */}
                 <View style={{ width: '100%', marginTop: 16 }}>
                   {(!ticketId) && (
-                    <View style={{ borderBottomWidth: 1, borderBottomColor: '#f2f2f0' }}>
+                    <View style={{ marginTop: 12, marginBottom: 16, borderBottomWidth: 1, borderBottomColor: '#f2f2f0', paddingBottom: 16 }}>
+                      <Text style={{ fontSize: 15, color: '#363630', fontFamily: FontFamily.medium, marginBottom: 8 }}>
+                        {type === 'income' ? '¿Quién te paga?' : '¿A quién le debes?'}
+                      </Text>
                       <TouchableOpacity
-                        style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 12 }}
+                        style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          padding: 12,
+                          backgroundColor: '#f2f2f0',
+                          borderRadius: 12
+                        }}
                         onPress={handlePickContact}
                         disabled={!canEditAsOwner}
                       >
-                        <Text style={{ fontSize: 15, color: '#363630', fontFamily: FontFamily.medium, marginBottom: 2 }}>Destinatario</Text>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                          <Text style={{ fontSize: 15, color: '#878778' }}>
-                            {assignedContacts.length > 0 ? (
-                              assignedContacts.length === 1
-                                ? assignedContacts[0].name
-                                : (assignedListName ? `${assignedListName} (${assignedContacts.length})` : `${assignedContacts.length} destinatarios`)
-                            ) : 'Elegir'}
-                          </Text>
-                          <Ionicons name="chevron-forward" size={16} color="#b7b7ae" />
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 }}>
+                          <View style={{
+                            width: 32, height: 32, borderRadius: 16,
+                            backgroundColor: assignedContacts.length > 0 ? '#363630' : '#e7e7e4',
+                            alignItems: 'center', justifyContent: 'center'
+                          }}>
+                            <Ionicons name={assignedContacts.length > 1 ? "people" : "person"} size={16} color={assignedContacts.length > 0 ? "#fff" : "#878778"} />
+                          </View>
+                          <View style={{ flex: 1 }}>
+                            <Text style={{ fontSize: 15, color: assignedContacts.length > 0 ? '#363630' : '#878778', fontFamily: FontFamily.medium }}>
+                              {assignedContacts.length > 0 ? (
+                                assignedContacts.length === 1
+                                  ? assignedContacts[0].name
+                                  : (assignedListName ? `${assignedListName} (${assignedContacts.length})` : `${assignedContacts.length} destinatarios`)
+                              ) : 'Seleccionar contacto...'}
+                            </Text>
+                          </View>
                         </View>
+                        <Ionicons name={assignedContacts.length > 0 ? "pencil" : "chevron-forward"} size={18} color="#878778" />
                       </TouchableOpacity>
 
                       {(assignedContacts.length > 0) && (
-                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingBottom: 12 }}>
-                          {assignedContacts.length >= 1 ? (
+                        <View style={{ flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', marginTop: 12, gap: 16 }}>
+                          {assignedContacts.length >= 1 && (
                             <TouchableOpacity onPress={openNativeContacts}>
-                              <Text style={{ fontSize: 13, color: '#3a9e76', fontFamily: FontFamily.semibold }}>Ver / Editar lista ({assignedContacts.length})</Text>
+                              <Text style={{ fontSize: 13, color: '#3a9e76', fontFamily: FontFamily.semibold }}>Ver lista ({assignedContacts.length})</Text>
                             </TouchableOpacity>
-                          ) : <View />}
-
+                          )}
                           <TouchableOpacity onPress={handleClearSelection}>
-                            <Text style={{ fontSize: 12, color: '#c05050', fontFamily: FontFamily.medium }}>Limpiar selección</Text>
+                            <Text style={{ fontSize: 13, color: '#c05050', fontFamily: FontFamily.medium }}>Quitar contacto</Text>
                           </TouchableOpacity>
                         </View>
                       )}
@@ -1993,9 +2010,9 @@ export const AddMovementScreen = () => {
 
                         {isRecurring && (
                           <View style={{ marginTop: 12, gap: 12 }}>
-                            <View style={{ flexDirection: 'row', gap: 12 }}>
+                            <View style={{ flexDirection: 'row', gap: 12, alignItems: 'flex-start' }}>
                               <View style={{ flex: 1 }}>
-                                <Text style={{ fontSize: 13, color: '#878778', marginBottom: 6 }}>Cantidad de veces</Text>
+                                <Text style={{ fontSize: 13, color: '#878778', marginBottom: 6 }} numberOfLines={1} adjustsFontSizeToFit>Cant. de veces</Text>
                                 <TextInput
                                   style={{ backgroundColor: '#f2f2f0', borderRadius: 12, padding: 12, fontSize: 14, color: '#363630' }}
                                   keyboardType="numeric"
@@ -2004,12 +2021,12 @@ export const AddMovementScreen = () => {
                                 />
                               </View>
                               <View style={{ flex: 2 }}>
-                                <Text style={{ fontSize: 13, color: '#878778', marginBottom: 6 }}>Frecuencia</Text>
+                                <Text style={{ fontSize: 13, color: '#878778', marginBottom: 6 }} numberOfLines={1} adjustsFontSizeToFit>Frecuencia</Text>
                                 <TouchableOpacity
                                   style={{ backgroundColor: '#f2f2f0', borderRadius: 12, padding: 12, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}
                                   onPress={() => setIsRecurrenceModalVisible(true)}
                                 >
-                                  <Text style={{ fontSize: 14, color: '#363630' }}>
+                                  <Text style={{ fontSize: 14, color: '#363630', flex: 1 }} numberOfLines={1} adjustsFontSizeToFit>
                                     {recurrenceFrequency === 'weekly' ? '1 vez por semana' :
                                       recurrenceFrequency === 'biweekly' ? '1 vez cada 15 días' :
                                         recurrenceFrequency === 'monthly' ? '1 vez por mes' :
@@ -2017,7 +2034,7 @@ export const AddMovementScreen = () => {
                                             recurrenceFrequency === 'semi-annually' ? '1 vez cada 6 meses' :
                                               recurrenceFrequency === 'yearly' ? '1 vez por año' : 'Seleccionar'}
                                   </Text>
-                                  <Ionicons name="chevron-down" size={16} color="#878778" />
+                                  <Ionicons name="chevron-down" size={16} color="#878778" style={{ marginLeft: 4 }} />
                                 </TouchableOpacity>
                               </View>
                             </View>

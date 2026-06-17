@@ -16,6 +16,7 @@ import { getRubroIcon, getRubroLabel } from '@/constants/rubros';
 
 import { processWalletsWithTickets, calculatePendingSummary, PendingSummary } from '@/utils/walletCalculations';
 import { normalizeUrl } from '@/utils/url.util';
+import { useRecentWalletsStore } from '@/store/recent-wallets.store';
 
 /**
  * DASHBOARD FINA V2 - CALMA FINANCIERA
@@ -25,6 +26,8 @@ export const DashboardScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const { user } = useAuthStore();
   const { loadContacts } = useContactsStore();
+  const recentWallets = useRecentWalletsStore(state => state.recentWallets);
+  const loadRecentWallets = useRecentWalletsStore(state => state.loadRecentWallets);
   const [tickets, setTickets] = useState<LocalTicket[]>([]);
   const [wallets, setWallets] = useState<LocalWallet[]>([]);
   const [refreshing, setRefreshing] = useState(false);
@@ -89,6 +92,7 @@ export const DashboardScreen: React.FC = () => {
   useFocusEffect(useCallback(() => {
     loadData();
     loadContacts();
+    loadRecentWallets();
     // Auto-register for push notifications if missing
     const checkPushToken = async () => {
       const { user, token, updateUser } = useAuthStore.getState();
@@ -256,6 +260,16 @@ export const DashboardScreen: React.FC = () => {
 
   const sortedWallets = useMemo(() => {
     return [...wallets].sort((a, b) => {
+      const indexA = recentWallets.findIndex(w => w.id === a.id);
+      const indexB = recentWallets.findIndex(w => w.id === b.id);
+      
+      const isRecentA = indexA !== -1;
+      const isRecentB = indexB !== -1;
+
+      if (isRecentA && isRecentB) return indexA - indexB;
+      if (isRecentA) return -1;
+      if (isRecentB) return 1;
+
       const isNegA = (a.balance || 0) < 0;
       const isNegB = (b.balance || 0) < 0;
       const overdueA = (a as any).overdueCount || 0;
@@ -264,7 +278,7 @@ export const DashboardScreen: React.FC = () => {
       if (overdueA !== overdueB) return overdueB - overdueA;
       return a.name.localeCompare(b.name);
     });
-  }, [wallets]);
+  }, [wallets, recentWallets]);
 
   const navigateToHistory = (group: any, currency?: string) => {
     const params: any = { filter: group.filter, currency };
@@ -418,14 +432,8 @@ export const DashboardScreen: React.FC = () => {
 
               <View style={{ gap: 10 }}>
                 {insights.map((insight, idx) => (
-                  <TouchableOpacity
+                  <View
                     key={insight.id}
-                    onPress={() => {
-                      if (insight.walletId) {
-                        navigation.navigate('Billeteras', { screen: 'WalletDetails', params: { walletId: insight.walletId } } as any);
-                      }
-                    }}
-                    activeOpacity={0.7}
                     style={{
                       flexDirection: 'row',
                       alignItems: 'center',
@@ -443,10 +451,7 @@ export const DashboardScreen: React.FC = () => {
                     }}>
                       {insight.text}
                     </Text>
-                    {insight.walletId && (
-                      <Ionicons name="chevron-forward" size={14} color="#a8a69e" />
-                    )}
-                  </TouchableOpacity>
+                  </View>
                 ))}
               </View>
             </View>
@@ -460,7 +465,7 @@ export const DashboardScreen: React.FC = () => {
               onPress={() => navigation.navigate('Billeteras')}
               className="flex-row items-center gap-2 active:opacity-70"
             >
-              <Text className="text-xl font-['PlusJakarta-Medium'] text-[#1a1a1a]">Mis billeteras</Text>
+              <Text className="text-xl font-['PlusJakarta-Medium'] text-[#1a1a1a]">Billeteras Recientes</Text>
               <Ionicons name="chevron-forward" size={16} color="#1a1a1a" />
             </TouchableOpacity>
           </View>
@@ -498,203 +503,203 @@ export const DashboardScreen: React.FC = () => {
           {/* PENDING SUMMARY TIMELINE CONSOLIDATED */}
           {tickets.length > 0 && (
             <View className="mb-2 mt-2">
-            <View className="px-4 mb-4">
-              <Text style={{ fontSize: 12, fontFamily: FontFamily.bold, color: Colors.textTertiary, textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                Línea de tiempo • Pendientes
-              </Text>
-            </View>
+              <View className="px-4 mb-4">
+                <Text style={{ fontSize: 12, fontFamily: FontFamily.bold, color: Colors.textTertiary, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                  Línea de tiempo • Pendientes
+                </Text>
+              </View>
 
-            <View className="relative">
-              {/* Connecting Line */}
-              <View
-                style={{
-                  position: 'absolute',
-                  top: 18,
-                  left: 40,
-                  right: 40,
-                  height: 2,
-                  backgroundColor: '#eceae3',
-                  zIndex: 0
-                }}
-              />
+              <View className="relative">
+                {/* Connecting Line */}
+                <View
+                  style={{
+                    position: 'absolute',
+                    top: 18,
+                    left: 40,
+                    right: 40,
+                    height: 2,
+                    backgroundColor: '#eceae3',
+                    zIndex: 0
+                  }}
+                />
 
-              {/* Scroll Buttons */}
-              <TouchableOpacity
-                onPress={() => scrollTimeline('left')}
-                style={{
-                  position: 'absolute',
-                  left: 4,
-                  top: '30%',
-                  zIndex: 10,
-                  backgroundColor: 'rgba(255,255,255,0.9)',
-                  width: 32,
-                  height: 32,
-                  borderRadius: 16,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  borderWidth: 1,
-                  borderColor: '#eceae3',
-                  ...Shadows.card
-                }}
-              >
-                <Ionicons name="chevron-back" size={20} color={Colors.textPrimary} />
-              </TouchableOpacity>
+                {/* Scroll Buttons */}
+                <TouchableOpacity
+                  onPress={() => scrollTimeline('left')}
+                  style={{
+                    position: 'absolute',
+                    left: 4,
+                    top: '30%',
+                    zIndex: 10,
+                    backgroundColor: 'rgba(255,255,255,0.9)',
+                    width: 32,
+                    height: 32,
+                    borderRadius: 16,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderWidth: 1,
+                    borderColor: '#eceae3',
+                    ...Shadows.card
+                  }}
+                >
+                  <Ionicons name="chevron-back" size={20} color={Colors.textPrimary} />
+                </TouchableOpacity>
 
-              <TouchableOpacity
-                onPress={() => scrollTimeline('right')}
-                style={{
-                  position: 'absolute',
-                  right: 4,
-                  top: '30%',
-                  zIndex: 10,
-                  backgroundColor: 'rgba(255,255,255,0.9)',
-                  width: 32,
-                  height: 32,
-                  borderRadius: 16,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  borderWidth: 1,
-                  borderColor: '#eceae3',
-                  ...Shadows.card
-                }}
-              >
-                <Ionicons name="chevron-forward" size={20} color={Colors.textPrimary} />
-              </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => scrollTimeline('right')}
+                  style={{
+                    position: 'absolute',
+                    right: 4,
+                    top: '30%',
+                    zIndex: 10,
+                    backgroundColor: 'rgba(255,255,255,0.9)',
+                    width: 32,
+                    height: 32,
+                    borderRadius: 16,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderWidth: 1,
+                    borderColor: '#eceae3',
+                    ...Shadows.card
+                  }}
+                >
+                  <Ionicons name="chevron-forward" size={20} color={Colors.textPrimary} />
+                </TouchableOpacity>
 
-              <ScrollView
-                ref={timelineRef}
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                onScroll={(e) => {
-                  scrollX.current = e.nativeEvent.contentOffset.x;
-                }}
-                scrollEventThrottle={16}
-                contentContainerStyle={{ paddingHorizontal: 36, gap: 12, paddingBottom: 8 }}
-              >
-                {[
-                  { key: 'overdue', label: 'Atrasado', color: '#c05050', filter: 'overdue', icon: 'alert-circle' },
-                  { key: 'today', label: 'Hoy', color: Colors.primary, filter: 'pending', dateRange: 'today', icon: 'today' },
-                  { key: 'next7Days', label: 'Próx. 7 días', color: '#6366f1', filter: 'pending', dateRange: 'week', icon: 'calendar' },
-                  { key: 'restOfMonth', label: 'Resto del mes', color: '#8b5cf6', filter: 'pending', dateRange: 'restOfMonth', icon: 'hourglass' },
-                ].map((group, i) => {
-                  const summaryEntries = Object.entries(pendingSummary);
-                  const currenciesData = summaryEntries
-                    .map(([curr, sum]) => ({ currency: curr, data: (sum as any)[group.key] }))
-                    .filter(c => c.data && c.data.count > 0);
+                <ScrollView
+                  ref={timelineRef}
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  onScroll={(e) => {
+                    scrollX.current = e.nativeEvent.contentOffset.x;
+                  }}
+                  scrollEventThrottle={16}
+                  contentContainerStyle={{ paddingHorizontal: 36, gap: 12, paddingBottom: 8 }}
+                >
+                  {[
+                    { key: 'overdue', label: 'Atrasado', color: '#c05050', filter: 'overdue', icon: 'alert-circle' },
+                    { key: 'today', label: 'Hoy', color: Colors.primary, filter: 'pending', dateRange: 'today', icon: 'today' },
+                    { key: 'next7Days', label: 'Próx. 7 días', color: '#6366f1', filter: 'pending', dateRange: 'week', icon: 'calendar' },
+                    { key: 'restOfMonth', label: 'Resto del mes', color: '#8b5cf6', filter: 'pending', dateRange: 'restOfMonth', icon: 'hourglass' },
+                  ].map((group, i) => {
+                    const summaryEntries = Object.entries(pendingSummary);
+                    const currenciesData = summaryEntries
+                      .map(([curr, sum]) => ({ currency: curr, data: (sum as any)[group.key] }))
+                      .filter(c => c.data && c.data.count > 0);
 
-                  const hasData = currenciesData.length > 0;
-                  const totalTickets = currenciesData.reduce((acc, c) => acc + c.data.count, 0);
+                    const hasData = currenciesData.length > 0;
+                    const totalTickets = currenciesData.reduce((acc, c) => acc + c.data.count, 0);
 
-                  return (
-                    <TouchableOpacity
-                      key={i}
-                      onPress={() => navigateToHistory(group)}
-                      activeOpacity={0.7}
-                      style={{ width: 160, alignItems: 'center' }}
-                    >
-                      {/* Node Dot */}
-                      <View
-                        style={{
-                          width: 36,
-                          height: 36,
-                          borderRadius: 18,
-                          backgroundColor: 'white',
-                          borderWidth: 2,
-                          borderColor: hasData ? group.color : '#eceae3',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          zIndex: 1,
-                          marginBottom: 12,
-                          ...Platform.select({
-                            web: { boxShadow: '0px 1px 2px rgba(0, 0, 0, 0.1)' },
-                            default: {
-                              shadowColor: "#000",
-                              shadowOffset: { width: 0, height: 1 },
-                              shadowOpacity: 0.1,
-                              shadowRadius: 2,
-                              elevation: 2
-                            }
-                          })
-                        }}
+                    return (
+                      <TouchableOpacity
+                        key={i}
+                        onPress={() => navigateToHistory(group)}
+                        activeOpacity={0.7}
+                        style={{ width: 160, alignItems: 'center' }}
                       >
-                        <Ionicons
-                          name={group.icon as any}
-                          size={18}
-                          color={hasData ? group.color : '#a8a69e'}
-                        />
-                      </View>
+                        {/* Node Dot */}
+                        <View
+                          style={{
+                            width: 36,
+                            height: 36,
+                            borderRadius: 18,
+                            backgroundColor: 'white',
+                            borderWidth: 2,
+                            borderColor: hasData ? group.color : '#eceae3',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            zIndex: 1,
+                            marginBottom: 12,
+                            ...Platform.select({
+                              web: { boxShadow: '0px 1px 2px rgba(0, 0, 0, 0.1)' },
+                              default: {
+                                shadowColor: "#000",
+                                shadowOffset: { width: 0, height: 1 },
+                                shadowOpacity: 0.1,
+                                shadowRadius: 2,
+                                elevation: 2
+                              }
+                            })
+                          }}
+                        >
+                          <Ionicons
+                            name={group.icon as any}
+                            size={18}
+                            color={hasData ? group.color : '#a8a69e'}
+                          />
+                        </View>
 
-                      {/* Info Card */}
-                      <View
-                        style={{
-                          backgroundColor: '#f8f7f2',
-                          padding: 14,
-                          borderRadius: 24,
-                          borderWidth: 1,
-                          borderColor: hasData ? group.color + '20' : '#eceae3',
-                          width: '100%',
-                        }}
-                      >
-                        <Text style={{ fontSize: 14, fontFamily: FontFamily.bold, color: Colors.textSecondary, textAlign: 'center', marginBottom: 12 }}>
-                          {group.label}
-                        </Text>
+                        {/* Info Card */}
+                        <View
+                          style={{
+                            backgroundColor: '#f8f7f2',
+                            padding: 14,
+                            borderRadius: 24,
+                            borderWidth: 1,
+                            borderColor: hasData ? group.color + '20' : '#eceae3',
+                            width: '100%',
+                          }}
+                        >
+                          <Text style={{ fontSize: 14, fontFamily: FontFamily.bold, color: Colors.textSecondary, textAlign: 'center', marginBottom: 12 }}>
+                            {group.label}
+                          </Text>
 
-                        {hasData ? (
-                          <View style={{ gap: 12 }}>
-                            {currenciesData.map((c, cIdx) => {
-                              const netAmount = c.data.incomes - c.data.expenses;
-                              return (
-                                <View key={c.currency} style={{ gap: 4 }}>
-                                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <Text style={{ fontSize: 12, fontFamily: FontFamily.bold, color: Colors.textTertiary }}>{c.currency}</Text>
-                                    <Text style={{
-                                      fontSize: 15,
-                                      fontFamily: FontFamily.bold,
-                                      color: netAmount < 0 ? '#c05050' : Colors.textPrimary
-                                    }}>
-                                      ${Math.abs(netAmount).toLocaleString('es-AR')}
-                                    </Text>
-                                  </View>
-
-                                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', opacity: 0.8 }}>
-                                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                                      <Ionicons name="arrow-up" size={10} color={Colors.primary} />
-                                      <Text style={{ fontSize: 12, fontFamily: FontFamily.bold, color: Colors.primary }}>
-                                        ${Math.abs(c.data.incomes).toLocaleString('es-AR')}
+                          {hasData ? (
+                            <View style={{ gap: 12 }}>
+                              {currenciesData.map((c, cIdx) => {
+                                const netAmount = c.data.incomes - c.data.expenses;
+                                return (
+                                  <View key={c.currency} style={{ gap: 4 }}>
+                                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                                      <Text style={{ fontSize: 12, fontFamily: FontFamily.bold, color: Colors.textTertiary }}>{c.currency}</Text>
+                                      <Text style={{
+                                        fontSize: 15,
+                                        fontFamily: FontFamily.bold,
+                                        color: netAmount < 0 ? '#c05050' : Colors.textPrimary
+                                      }}>
+                                        ${Math.abs(netAmount).toLocaleString('es-AR')}
                                       </Text>
                                     </View>
-                                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                                      <Ionicons name="arrow-down" size={10} color="#c05050" />
-                                      <Text style={{ fontSize: 12, fontFamily: FontFamily.bold, color: '#c05050' }}>
-                                        ${Math.abs(c.data.expenses).toLocaleString('es-AR')}
-                                      </Text>
-                                    </View>
-                                  </View>
-                                  {cIdx < currenciesData.length - 1 && (
-                                    <View style={{ height: 1, backgroundColor: '#eceae3', marginTop: 4 }} />
-                                  )}
-                                </View>
-                              );
-                            })}
-                          </View>
-                        ) : (
-                          <Text style={{ fontSize: 10, color: '#a8a69e', textAlign: 'center' }}>Sin movimientos</Text>
-                        )}
 
-                        {hasData && (
-                          <View style={{ marginTop: 12, paddingTop: 8, borderTopWidth: 1, borderTopColor: '#eceae3', alignItems: 'center' }}>
-                            <Text style={{ fontSize: 10, color: '#a8a69e' }}>
-                              {totalTickets} tickets
-                            </Text>
-                          </View>
-                        )}
-                      </View>
-                    </TouchableOpacity>
-                  );
-                })}
-              </ScrollView>
+                                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', opacity: 0.8 }}>
+                                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                                        <Ionicons name="arrow-up" size={10} color={Colors.primary} />
+                                        <Text style={{ fontSize: 12, fontFamily: FontFamily.bold, color: Colors.primary }}>
+                                          ${Math.abs(c.data.incomes).toLocaleString('es-AR')}
+                                        </Text>
+                                      </View>
+                                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                                        <Ionicons name="arrow-down" size={10} color="#c05050" />
+                                        <Text style={{ fontSize: 12, fontFamily: FontFamily.bold, color: '#c05050' }}>
+                                          ${Math.abs(c.data.expenses).toLocaleString('es-AR')}
+                                        </Text>
+                                      </View>
+                                    </View>
+                                    {cIdx < currenciesData.length - 1 && (
+                                      <View style={{ height: 1, backgroundColor: '#eceae3', marginTop: 4 }} />
+                                    )}
+                                  </View>
+                                );
+                              })}
+                            </View>
+                          ) : (
+                            <Text style={{ fontSize: 10, color: '#a8a69e', textAlign: 'center' }}>Sin movimientos</Text>
+                          )}
+
+                          {hasData && (
+                            <View style={{ marginTop: 12, paddingTop: 8, borderTopWidth: 1, borderTopColor: '#eceae3', alignItems: 'center' }}>
+                              <Text style={{ fontSize: 10, color: '#a8a69e' }}>
+                                {totalTickets} tickets
+                              </Text>
+                            </View>
+                          )}
+                        </View>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </ScrollView>
+              </View>
             </View>
-          </View>
           )}
 
           <View className="flex-col gap-0">

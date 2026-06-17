@@ -134,12 +134,19 @@ button {
 }
 
 .navbar-brand {
-  font-size: 24px;
+  font-size: 36px;
   font-weight: 700;
   color: var(--color-primary);
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
+}
+
+.app-logo {
+  width: 1.2em;
+  height: 1.2em;
+  object-fit: contain;
+  border-radius: 4px;
 }
 
 .navbar-nav {
@@ -352,9 +359,12 @@ button {
 }
 
 .footer-logo {
-  font-size: 20px;
+  font-size: 28px;
   font-weight: 700;
   color: var(--color-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .footer-text {
