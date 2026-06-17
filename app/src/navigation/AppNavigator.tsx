@@ -12,7 +12,7 @@ import { PostHogProvider, usePostHog } from 'posthog-react-native';
 const MainNavigator: React.FC = () => {
   const { token, user, isLoading, hydrate, justFinishedOnboarding } = useAuthStore();
   const posthog = usePostHog();
-  const routeNameRef = useRef<string | undefined>();
+  const routeNameRef = useRef<string | undefined>(undefined);
 
   useEffect(() => {
     hydrate();
@@ -69,6 +69,7 @@ export const AppNavigator: React.FC = () => {
       autocapture={{
         captureTouches: true,
         captureLifecycleEvents: true,
+        captureScreens: false,
       }}
     >
       <MainNavigator />
