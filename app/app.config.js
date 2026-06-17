@@ -61,7 +61,8 @@ export default {
       "expo-image",
       "expo-secure-store",
       "expo-sharing",
-      "expo-sqlite"
+      "expo-sqlite",
+      "expo-localization"
     ],
     // 3. Pasar las variables cargadas para que la App las use en el código
     extra: {
