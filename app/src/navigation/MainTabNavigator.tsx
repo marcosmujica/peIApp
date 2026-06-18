@@ -55,7 +55,7 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
           // Apply Figma labels over internal route names
           if (route.name === 'Historial') label = 'Tickets';
           if (route.name === 'Contactos') label = 'Contactos';
-          if (route.name === 'Calendario') label = 'Movimientos';
+          if (route.name === 'Calendario') label = 'Movs.';
           if (route.name === 'Menu') label = 'Más';
 
           const isFocused = state.index === index;

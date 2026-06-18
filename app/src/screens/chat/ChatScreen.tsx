@@ -1062,9 +1062,9 @@ const styles = StyleSheet.create({
     borderColor: '#7465b5',
   },
   messageText: {
-    fontSize: 15,
+    fontSize: 13,
     fontFamily: FontFamily.regular,
-    lineHeight: 20,
+    lineHeight: 18,
   },
   messageTextMe: {
     color: '#FFFFFF',
