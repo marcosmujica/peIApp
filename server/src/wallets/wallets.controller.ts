@@ -92,30 +92,20 @@ export class WalletsController {
       const nonSystemWallets = userWallets.filter(w => !['mycollects', 'mypays', 'mymoney'].includes(w.type));
 
       if (nonSystemWallets.length === 0) {
-        // 1. Always create System Wallets if they don't exist
-        const hasMyCollects = userWallets.find(w => w.type === 'mycollects');
-        if (!hasMyCollects) {
-          await this.walletsService.create(userId, SYSTEM_WALLET_NAME, 'mycollects' as any, currency, undefined, false);
-        }
-        
-        const hasMyPays = userWallets.find(w => w.type === 'mypays');
-        if (!hasMyPays) {
-          await this.walletsService.create(userId, 'Pagos sin Billetera', 'mypays' as any, currency, undefined, false);
-        }
+        // 1. Siempre crear la billetera de sistema principal
+        const systemWallet = await this.walletsService.create(userId, `Mi Billetera (${currency})`, 'my_wallet' as any, currency, undefined, true);
+        defaultWalletId = systemWallet.walletId;
 
-        // 2. Create specific wallets based on businessType
-        if (businessType === 'none') {
-          const w = await this.walletsService.create(userId, 'Mi Billetera', 'personal' as any, currency, undefined, true);
-          defaultWalletId = w.walletId;
-        } else if (businessType === 'services') {
-          const w = await this.walletsService.create(userId, 'Mi Negocio de Servicios', 'negocio_servicios' as any, currency, undefined, true);
+        // 2. Crear billeteras de negocio si corresponde
+        if (businessType === 'services') {
+          const w = await this.walletsService.create(userId, `Mi Negocio de Servicios (${currency})`, 'negocio_servicios' as any, currency, undefined, true);
           defaultWalletId = w.walletId;
         } else if (businessType === 'products') {
-          const w = await this.walletsService.create(userId, 'Mi Negocio de Productos', 'negocio_productos' as any, currency, undefined, true);
+          const w = await this.walletsService.create(userId, `Mi Negocio de Productos (${currency})`, 'negocio_productos' as any, currency, undefined, true);
           defaultWalletId = w.walletId;
         } else if (businessType === 'both') {
-          const w1 = await this.walletsService.create(userId, 'Mi Negocio de Productos', 'negocio_productos' as any, currency, undefined, true);
-          await this.walletsService.create(userId, 'Mi Negocio de Servicios', 'negocio_servicios' as any, currency, undefined, true);
+          const w1 = await this.walletsService.create(userId, `Mi Negocio de Productos (${currency})`, 'negocio_productos' as any, currency, undefined, true);
+          await this.walletsService.create(userId, `Mi Negocio de Servicios (${currency})`, 'negocio_servicios' as any, currency, undefined, true);
           defaultWalletId = w1.walletId;
         }
       } else {

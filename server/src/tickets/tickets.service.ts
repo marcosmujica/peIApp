@@ -962,19 +962,18 @@ export class TicketsService {
       let userWalletId = isWalletMember ? data.walletId : (isReceiver ? data.toWalletId : null);
 
       if (!userWalletId) {
-        const targetType = userType === 'income' ? 'mycollects' : 'mypays';
         const targetCurrency = savedTicket.currency || 'USD';
         
         let systemWallet = await manager.findOne(Wallet, {
-          where: { ownerId: userId, type: targetType as any, currency: targetCurrency }
+          where: { ownerId: userId, type: 'my_wallet' as any, currency: targetCurrency }
         });
         
         if (!systemWallet) {
-          const targetName = userType === 'income' ? SYSTEM_WALLET_NAME : SYSTEM_EXPENSES_WALLET_NAME;
+          const targetName = `Mi Billetera (${targetCurrency})`;
           const newWallet = await this.walletsService.create(
             userId,
             targetName,
-            targetType as any,
+            'my_wallet' as any,
             targetCurrency,
             undefined,
             false,

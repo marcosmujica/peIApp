@@ -252,6 +252,7 @@ export const EditRecurringTicketScreen: React.FC = () => {
   const [pickerVisible, setPickerVisible] = useState(false);
   const [rubroPickerVisible, setRubroPickerVisible] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [infoModalContent, setInfoModalContent] = useState<{title: string, description: string} | null>(null);
 
   const isIncome = item.type === 'income';
   const currencyName = CURRENCY_NAMES[item.currency] ?? item.currency;
@@ -379,13 +380,14 @@ export const EditRecurringTicketScreen: React.FC = () => {
             />
           </View>
 
-          {/* â”€â”€ Descripción â”€â”€ */}
+          {/* ── Descripción ── */}
           <TextInput
-            style={styles.descriptionInput}
-            placeholder="Agregar un detalle"
+            style={[styles.descriptionInput, Platform.OS === 'web' && { outlineStyle: 'none' } as any]}
+            placeholder="Agregar una descripcion del Ticket"
             placeholderTextColor="#878778"
             value={description}
             onChangeText={setDescription}
+            underlineColorAndroid="transparent"
           />
 
           {/* â”€â”€ Pill frecuencia (info) â”€â”€ */}
@@ -459,8 +461,15 @@ export const EditRecurringTicketScreen: React.FC = () => {
           {/* â”€â”€ Asistente de cobranza â”€â”€ */}
           <View style={styles.row}>
             <View style={{ flex: 1 }}>
-              <Text style={styles.rowLabel}>Asistente de cobranza</Text>
-              <Text style={styles.rowSub}>Ayudame a cobrar este ticket.</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <Text style={styles.rowLabel}>Asistente de cobranza</Text>
+                <TouchableOpacity
+                  style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: '#e5e5e5', alignItems: 'center', justifyContent: 'center' }}
+                  onPress={() => setInfoModalContent({ title: 'Asistente de cobranza', description: 'Ayudame a cobrar este ticket.' })}
+                >
+                  <Ionicons name="information" size={14} color="#363630" />
+                </TouchableOpacity>
+              </View>
             </View>
             <Switch
               value={helpToCollect}
@@ -587,6 +596,36 @@ export const EditRecurringTicketScreen: React.FC = () => {
         </View>
       </Modal>
 
+      {/* ── Info Modal ── */}
+      <Modal
+        visible={!!infoModalContent}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setInfoModalContent(null)}
+      >
+        <TouchableOpacity
+          style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', padding: 24 }}
+          activeOpacity={1}
+          onPress={() => setInfoModalContent(null)}
+        >
+          <TouchableOpacity activeOpacity={1} style={{ backgroundColor: '#fff', borderRadius: 24, padding: 24, width: '100%', maxWidth: 400, alignItems: 'center' }}>
+            <View style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: '#e5e5e5', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
+              <Ionicons name="information" size={24} color="#363630" />
+            </View>
+            <Text style={{ fontSize: 18, color: '#363630', fontFamily: FontFamily.bold, textAlign: 'center', marginBottom: 8 }}>{infoModalContent?.title}</Text>
+            <Text style={{ fontSize: 15, color: '#878778', fontFamily: FontFamily.regular, textAlign: 'center', marginBottom: 24, lineHeight: 22 }}>
+              {infoModalContent?.description}
+            </Text>
+            <TouchableOpacity
+              style={{ backgroundColor: '#196342', borderRadius: 100, width: '100%', paddingVertical: 14, alignItems: 'center' }}
+              onPress={() => setInfoModalContent(null)}
+            >
+              <Text style={{ color: '#fff', fontSize: 15, fontFamily: FontFamily.bold }}>Entendido</Text>
+            </TouchableOpacity>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
+
     </SafeAreaView>
   );
 };
@@ -627,8 +666,9 @@ const styles = StyleSheet.create({
   },
 
   descriptionInput: {
-    width: '100%', fontSize: 15, fontFamily: FontFamily.regular,
-    color: '#878778', textAlign: 'center', paddingVertical: 8, marginBottom: 4,
+    width: '100%', fontSize: 18, fontFamily: FontFamily.bold,
+    color: '#363630', textAlign: 'center', paddingVertical: 8, marginBottom: 4,
+    borderWidth: 0,
   },
 
   pillRow: { flexDirection: 'row', justifyContent: 'center', marginTop: 24 },

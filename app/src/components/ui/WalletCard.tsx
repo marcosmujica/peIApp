@@ -214,12 +214,12 @@ export const WalletCard: React.FC<WalletCardProps> = ({
           
           <View className="flex-col items-end gap-1">
             <View className="flex-row items-center gap-1">
-              <Ionicons name="arrow-up" size={14} color="#16a34a" />
-              <Text className="text-[15px] font-['PlusJakarta-Medium'] text-[#16a34a]">${new Intl.NumberFormat('es-AR').format(pendingIncomes || 0)}</Text>
+              <Ionicons name="arrow-up" size={14} color="#dc2626" />
+              <Text className="text-[15px] font-['PlusJakarta-Medium'] text-[#dc2626]">${new Intl.NumberFormat('es-AR').format(pendingExpenses || 0)}</Text>
             </View>
             <View className="flex-row items-center gap-1">
-              <Ionicons name="arrow-down" size={14} color="#dc2626" />
-              <Text className="text-[15px] font-['PlusJakarta-Medium'] text-[#dc2626]">${new Intl.NumberFormat('es-AR').format(pendingExpenses || 0)}</Text>
+              <Ionicons name="arrow-down" size={14} color="#16a34a" />
+              <Text className="text-[15px] font-['PlusJakarta-Medium'] text-[#16a34a]">${new Intl.NumberFormat('es-AR').format(pendingIncomes || 0)}</Text>
             </View>
           </View>
         </View>

@@ -262,7 +262,7 @@ export const DashboardScreen: React.FC = () => {
     return [...wallets].sort((a, b) => {
       const indexA = recentWallets.findIndex(w => w.id === a.id);
       const indexB = recentWallets.findIndex(w => w.id === b.id);
-      
+
       const isRecentA = indexA !== -1;
       const isRecentB = indexB !== -1;
 
@@ -663,15 +663,15 @@ export const DashboardScreen: React.FC = () => {
 
                                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', opacity: 0.8 }}>
                                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                                        <Ionicons name="arrow-up" size={10} color={Colors.primary} />
-                                        <Text style={{ fontSize: 12, fontFamily: FontFamily.bold, color: Colors.primary }}>
-                                          ${Math.abs(c.data.incomes).toLocaleString('es-AR')}
+                                        <Ionicons name="arrow-up" size={10} color="#c05050" />
+                                        <Text style={{ fontSize: 12, fontFamily: FontFamily.bold, color: '#c05050' }}>
+                                          ${Math.abs(c.data.expenses).toLocaleString('es-AR')}
                                         </Text>
                                       </View>
                                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                                        <Ionicons name="arrow-down" size={10} color="#c05050" />
-                                        <Text style={{ fontSize: 12, fontFamily: FontFamily.bold, color: '#c05050' }}>
-                                          ${Math.abs(c.data.expenses).toLocaleString('es-AR')}
+                                        <Ionicons name="arrow-down" size={10} color={Colors.primary} />
+                                        <Text style={{ fontSize: 12, fontFamily: FontFamily.bold, color: Colors.primary }}>
+                                          ${Math.abs(c.data.incomes).toLocaleString('es-AR')}
                                         </Text>
                                       </View>
                                     </View>

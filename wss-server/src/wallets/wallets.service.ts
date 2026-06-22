@@ -38,15 +38,6 @@ export class WalletsService {
   async create(ownerId: string, name: string, type: WalletType, currency = 'USD', defaultPaymentMethod?: string, helpToCollect = false, warningThreshold = 0, alertThreshold = 0, defaultTransactionType?: "income" | "expense", includeInGeneralBalance = true, manager?: EntityManager) {
     const isBusiness = type.includes('negocio') || type === 'business';
     const calculatedDefault = defaultTransactionType || (isBusiness ? 'income' : 'expense');
-    
-    // Si es tipo mycollects o mypays, le agregamos la sigla de la moneda al nombre
-    if (type === 'mycollects' || type === 'mypays') {
-      const suffix = ` (${currency.toUpperCase()})`;
-      if (!name.endsWith(suffix)) {
-        const baseName = name.replace(/\s*\([A-Za-z]{3}\)$/, '');
-        name = `${baseName}${suffix}`;
-      }
-    }
 
     const walletRepo = manager ? manager.getRepository(Wallet) : this.walletRepo;
     const memberRepo = manager ? manager.getRepository(WalletMember) : this.memberRepo;

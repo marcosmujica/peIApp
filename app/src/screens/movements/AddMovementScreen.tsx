@@ -198,6 +198,7 @@ export const AddMovementScreen = () => {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [isCustomDateActive, setIsCustomDateActive] = useState(false);
   const [status, setStatus] = useState<'pending' | 'completed' | 'cancelled'>('pending');
+  const [infoModalContent, setInfoModalContent] = useState<{ title: string, description: string } | null>(null);
   const [generatePeilink, setGeneratePeilink] = useState(true);
   const [helpToCollect, setHelpToCollect] = useState(false);
 
@@ -1623,8 +1624,8 @@ export const AddMovementScreen = () => {
 
 
                 <TextInput
-                  style={{ width: '100%', fontSize: 15, fontFamily: FontFamily.regular, color: '#878778', textAlign: 'center', marginTop: 8 }}
-                  placeholder="Agregar un detalle"
+                  style={{ width: '100%', fontSize: 18, fontFamily: FontFamily.bold, color: '#363630', textAlign: 'center', marginTop: 8 }}
+                  placeholder="Agregar una descripción del Ticket"
                   placeholderTextColor="#878778"
                   value={description}
                   onChangeText={setDescription}
@@ -1850,9 +1851,17 @@ export const AddMovementScreen = () => {
                 <View style={{ width: '100%', marginTop: 16 }}>
                   {(!ticketId) && (
                     <View style={{ marginTop: 12, marginBottom: 16, borderBottomWidth: 1, borderBottomColor: '#f2f2f0', paddingBottom: 16 }}>
-                      <Text style={{ fontSize: 15, color: '#363630', fontFamily: FontFamily.medium, marginBottom: 8 }}>
-                        {type === 'income' ? '¿Quién te paga?' : '¿A quién le debes?'}
-                      </Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+                        <Text style={{ fontSize: 15, color: '#363630', fontFamily: FontFamily.medium }}>
+                          {type === 'income' ? '¿Quién te paga?' : '¿A quién le debes?'} (opcional)
+                        </Text>
+                        <TouchableOpacity
+                          style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: '#e5e5e5', alignItems: 'center', justifyContent: 'center' }}
+                          onPress={() => setInfoModalContent({ title: 'Contacto (Opcional)', description: 'Seleccionar un contacto es opcional. Te ayuda a llevar un mejor registro y organizar todos los tickets asociados a una persona en particular.' })}
+                        >
+                          <Ionicons name="information" size={14} color="#363630" />
+                        </TouchableOpacity>
+                      </View>
                       <TouchableOpacity
                         style={{
                           flexDirection: 'row',
@@ -1908,14 +1917,21 @@ export const AddMovementScreen = () => {
                       <View style={{ paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#f2f2f0' }}>
                         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                           <View style={{ flex: 1 }}>
-                            <Text style={{ fontSize: 15, color: '#363630', fontFamily: FontFamily.semibold }}>¿Ya se {type === 'income' ? 'cobró' : 'pagó'}?</Text>
-                            <Text style={{ fontSize: 12, color: '#878778' }}>Marca esto si la transacción ya se completó</Text>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                              <Text style={{ fontSize: 15, color: '#363630', fontFamily: FontFamily.semibold }}>¿Ya se {type === 'income' ? 'cobró' : 'pagó'}?</Text>
+                              <TouchableOpacity
+                                style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: '#e5e5e5', alignItems: 'center', justifyContent: 'center' }}
+                                onPress={() => setInfoModalContent({ title: '¿Ya se completó?', description: 'Marca esto si la transacción ya se completó' })}
+                              >
+                                <Ionicons name="information" size={14} color="#363630" />
+                              </TouchableOpacity>
+                            </View>
                           </View>
                           <Switch
                             value={isAlreadyPaid}
                             onValueChange={setIsAlreadyPaid}
-                            trackColor={{ false: '#f2f2f0', true: '#363630' }}
-                            thumbColor="#fff"
+                            trackColor={{ false: '#f2f2f0', true: '#3a9e76' }}
+                            thumbColor={Platform.OS === 'android' ? (isAlreadyPaid ? '#3a9e76' : '#f4f3f4') : undefined}
                           />
                         </View>
 
@@ -1997,14 +2013,21 @@ export const AddMovementScreen = () => {
                       <View style={{ width: '100%', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#f2f2f0' }}>
                         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                           <View style={{ flex: 1 }}>
-                            <Text style={{ fontSize: 15, color: '#363630', fontFamily: FontFamily.medium }}>Repetir ticket o Pago en cuotas</Text>
-                            <Text style={{ fontSize: 12, color: '#878778' }}>Repetir este ticket periódicamente o ingresar un pago en cuotas.</Text>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                              <Text style={{ fontSize: 15, color: '#363630', fontFamily: FontFamily.medium }}>Repetir ticket o Pago en cuotas</Text>
+                              <TouchableOpacity
+                                style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: '#e5e5e5', alignItems: 'center', justifyContent: 'center' }}
+                                onPress={() => setInfoModalContent({ title: 'Repetición', description: 'Repetir este ticket periódicamente o ingresar un pago en cuotas.' })}
+                              >
+                                <Ionicons name="information" size={14} color="#363630" />
+                              </TouchableOpacity>
+                            </View>
                           </View>
                           <Switch
                             value={isRecurring}
                             onValueChange={setIsRecurring}
-                            trackColor={{ true: '#363630' }}
-                            thumbColor="#fff"
+                            trackColor={{ false: '#f2f2f0', true: '#3a9e76' }}
+                            thumbColor={Platform.OS === 'android' ? (isRecurring ? '#3a9e76' : '#f4f3f4') : undefined}
                           />
                         </View>
 
@@ -2103,13 +2126,20 @@ export const AddMovementScreen = () => {
                     <>
                       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#f2f2f0' }}>
                         <View style={{ flex: 1, paddingRight: 16 }}>
-                          <Text style={{ fontSize: 15, color: '#363630', fontFamily: FontFamily.medium, marginBottom: 2 }}>Asistente de cobranza</Text>
-                          <Text style={{ fontSize: 12, color: '#878778', lineHeight: 16 }}>Activa el seguimiento automático. Enviaremos recordatorios de pago para asegurarnos de que cobres a tiempo sin estrés.</Text>
+                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                            <Text style={{ fontSize: 15, color: '#363630', fontFamily: FontFamily.medium, marginBottom: 2 }}>Asistente de cobranza</Text>
+                            <TouchableOpacity
+                              style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: '#e5e5e5', alignItems: 'center', justifyContent: 'center' }}
+                              onPress={() => setInfoModalContent({ title: 'Asistente de cobranza', description: 'Activa el seguimiento automático. Enviaremos recordatorios de pago para asegurarnos de que cobres a tiempo sin estrés.' })}
+                            >
+                              <Ionicons name="information" size={14} color="#363630" />
+                            </TouchableOpacity>
+                          </View>
                         </View>
                         <Switch
                           value={helpToCollect}
                           onValueChange={setHelpToCollect}
-                          trackColor={{ true: '#3a9e76' }}
+                          trackColor={{ false: '#f2f2f0', true: '#3a9e76' }}
                           thumbColor={Platform.OS === 'android' ? (helpToCollect ? '#3a9e76' : '#f4f3f4') : undefined}
                         />
                       </View>
@@ -2386,7 +2416,7 @@ export const AddMovementScreen = () => {
             <Ionicons name="pricetag-outline" size={20} color={activeTab === 'info' ? '#fff' : '#363630'} />
           </TouchableOpacity>
           <TouchableOpacity style={{ backgroundColor: activeTab === 'attach' ? '#363630' : '#fff', borderRadius: 100, width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#eceae3' }} onPress={() => setActiveTab('attach')}>
-            <Ionicons name="attach-outline" size={20} color={activeTab === 'attach' ? '#fff' : (attachmentUri ? "#3a9e76" : "#363630")} />
+            <Ionicons name="camera-outline" size={20} color={activeTab === 'attach' ? '#fff' : (attachmentUri ? "#3a9e76" : "#363630")} />
           </TouchableOpacity>
           {!!ticketId && (
             <>
@@ -2492,7 +2522,7 @@ export const AddMovementScreen = () => {
                                 style={{ marginLeft: 'auto', flexDirection: 'row', alignItems: 'center', gap: 4 }}
                                 onPress={() => handleViewAttachment(item.attachmentUrl)}
                               >
-                                <Ionicons name="attach-outline" size={14} color="#3a9e76" />
+                                <Ionicons name="camera-outline" size={14} color="#3a9e76" />
                                 <Text style={{ fontSize: 11, color: '#3a9e76', fontFamily: FontFamily.semibold }}>Ver Adjunto</Text>
                               </TouchableOpacity>
                             )}
@@ -3199,6 +3229,37 @@ export const AddMovementScreen = () => {
         onClose={() => setScannerVisible(false)}
         onScan={handleScanQR}
       />
+
+      {/* ── Info Modal ── */}
+      <Modal
+        visible={!!infoModalContent}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setInfoModalContent(null)}
+      >
+        <TouchableOpacity
+          style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', padding: 24 }}
+          activeOpacity={1}
+          onPress={() => setInfoModalContent(null)}
+        >
+          <TouchableOpacity activeOpacity={1} style={{ backgroundColor: '#fff', borderRadius: 24, padding: 24, width: '100%', maxWidth: 400, alignItems: 'center' }}>
+            <View style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: '#e5e5e5', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
+              <Ionicons name="information" size={24} color="#363630" />
+            </View>
+            <Text style={{ fontSize: 18, color: '#363630', fontFamily: FontFamily.bold, textAlign: 'center', marginBottom: 8 }}>{infoModalContent?.title}</Text>
+            <Text style={{ fontSize: 15, color: '#878778', fontFamily: FontFamily.regular, textAlign: 'center', marginBottom: 24, lineHeight: 22 }}>
+              {infoModalContent?.description}
+            </Text>
+            <TouchableOpacity
+              style={{ backgroundColor: '#196342', borderRadius: 100, width: '100%', paddingVertical: 14, alignItems: 'center' }}
+              onPress={() => setInfoModalContent(null)}
+            >
+              <Text style={{ color: '#fff', fontSize: 15, fontFamily: FontFamily.bold }}>Entendido</Text>
+            </TouchableOpacity>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
+
     </SafeAreaView>
   );
 };

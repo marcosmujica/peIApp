@@ -141,6 +141,8 @@ export const SettingsScreen: React.FC = () => {
 
   const [modalVisible, setModalVisible] = useState(false);
   const [modalType, setModalType] = useState<'country' | 'currency' | 'gender' | 'age' | 'theme'>('country');
+  const [infoModalContent, setInfoModalContent] = useState<{title: string, description: string} | null>(null);
+
 
   const currentYear = new Date().getFullYear();
   const selectedYear = age ? (currentYear - parseInt(age)).toString() : 'Seleccionar';
@@ -489,54 +491,74 @@ export const SettingsScreen: React.FC = () => {
             )}
 
             <View style={styles.switchRow}>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.switchLabel}>Avisos</Text>
-                <Text style={styles.switchDescription}>Recibir alertas de movimientos en tiempo real</Text>
+              <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <Text style={[styles.switchLabel, { marginBottom: 0 }]}>Avisos</Text>
+                <TouchableOpacity
+                  style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: '#e5e5e5', alignItems: 'center', justifyContent: 'center' }}
+                  onPress={() => setInfoModalContent({ title: 'Avisos', description: 'Recibir alertas de movimientos en tiempo real' })}
+                >
+                  <Ionicons name="information" size={14} color="#363630" />
+                </TouchableOpacity>
               </View>
               <Switch
                 value={pushEnabled}
                 onValueChange={setPushEnabled}
-                trackColor={{ false: '#E5E5E5', true: '#171717' }}
-                thumbColor={Platform.OS === 'ios' ? '#FFFFFF' : pushEnabled ? '#FFFFFF' : '#F5F5F5'}
+                trackColor={{ false: '#f2f2f0', true: '#3a9e76' }}
+                thumbColor={Platform.OS === 'android' ? (pushEnabled ? '#3a9e76' : '#f4f3f4') : undefined}
               />
             </View>
 
             <View style={styles.switchRow}>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.switchLabel}>Reportes diarios</Text>
-                <Text style={styles.switchDescription}>Recibir un resumen de tu actividad cada día</Text>
+              <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <Text style={[styles.switchLabel, { marginBottom: 0 }]}>Reportes diarios</Text>
+                <TouchableOpacity
+                  style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: '#e5e5e5', alignItems: 'center', justifyContent: 'center' }}
+                  onPress={() => setInfoModalContent({ title: 'Reportes diarios', description: 'Recibir un resumen de tu actividad cada día' })}
+                >
+                  <Ionicons name="information" size={14} color="#363630" />
+                </TouchableOpacity>
               </View>
               <Switch
                 value={dailyReportsEnabled}
                 onValueChange={setDailyReportsEnabled}
-                trackColor={{ false: '#E5E5E5', true: '#171717' }}
-                thumbColor={Platform.OS === 'ios' ? '#FFFFFF' : dailyReportsEnabled ? '#FFFFFF' : '#F5F5F5'}
+                trackColor={{ false: '#f2f2f0', true: '#3a9e76' }}
+                thumbColor={Platform.OS === 'android' ? (dailyReportsEnabled ? '#3a9e76' : '#f4f3f4') : undefined}
               />
             </View>
 
             <View style={styles.switchRow}>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.switchLabel}>Reportes mensuales</Text>
-                <Text style={styles.switchDescription}>Recibir un resumen detallado cada mes</Text>
+              <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <Text style={[styles.switchLabel, { marginBottom: 0 }]}>Reportes mensuales</Text>
+                <TouchableOpacity
+                  style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: '#e5e5e5', alignItems: 'center', justifyContent: 'center' }}
+                  onPress={() => setInfoModalContent({ title: 'Reportes mensuales', description: 'Recibir un resumen detallado cada mes' })}
+                >
+                  <Ionicons name="information" size={14} color="#363630" />
+                </TouchableOpacity>
               </View>
               <Switch
                 value={monthlyReportsEnabled}
                 onValueChange={setMonthlyReportsEnabled}
-                trackColor={{ false: '#E5E5E5', true: '#171717' }}
-                thumbColor={Platform.OS === 'ios' ? '#FFFFFF' : monthlyReportsEnabled ? '#FFFFFF' : '#F5F5F5'}
+                trackColor={{ false: '#f2f2f0', true: '#3a9e76' }}
+                thumbColor={Platform.OS === 'android' ? (monthlyReportsEnabled ? '#3a9e76' : '#f4f3f4') : undefined}
               />
             </View>
 
             <View style={styles.switchRow}>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.switchLabel}>Pagos y cobros</Text>
-                <Text style={styles.switchDescription}>Notificarme cuando se registre un pago o cobro</Text>
+              <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <Text style={[styles.switchLabel, { marginBottom: 0 }]}>Pagos y cobros</Text>
+                <TouchableOpacity
+                  style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: '#e5e5e5', alignItems: 'center', justifyContent: 'center' }}
+                  onPress={() => setInfoModalContent({ title: 'Pagos y cobros', description: 'Notificarme cuando se registre un pago o cobro' })}
+                >
+                  <Ionicons name="information" size={14} color="#363630" />
+                </TouchableOpacity>
               </View>
               <Switch
                 value={transactionNotificationsEnabled}
                 onValueChange={setTransactionNotificationsEnabled}
-                trackColor={{ false: '#E5E5E5', true: '#171717' }}
-                thumbColor={Platform.OS === 'ios' ? '#FFFFFF' : transactionNotificationsEnabled ? '#FFFFFF' : '#F5F5F5'}
+                trackColor={{ false: '#f2f2f0', true: '#3a9e76' }}
+                thumbColor={Platform.OS === 'android' ? (transactionNotificationsEnabled ? '#3a9e76' : '#f4f3f4') : undefined}
               />
             </View>
           </View>
@@ -674,6 +696,36 @@ export const SettingsScreen: React.FC = () => {
             />
           </View>
         </View>
+      </Modal>
+
+      {/* ── Info Modal ── */}
+      <Modal
+        visible={!!infoModalContent}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setInfoModalContent(null)}
+      >
+        <TouchableOpacity
+          style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', padding: 24 }}
+          activeOpacity={1}
+          onPress={() => setInfoModalContent(null)}
+        >
+          <TouchableOpacity activeOpacity={1} style={{ backgroundColor: '#fff', borderRadius: 24, padding: 24, width: '100%', maxWidth: 400, alignItems: 'center' }}>
+            <View style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: '#e5e5e5', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
+              <Ionicons name="information" size={24} color="#363630" />
+            </View>
+            <Text style={{ fontSize: 18, color: '#363630', fontFamily: FontFamily.bold, textAlign: 'center', marginBottom: 8 }}>{infoModalContent?.title}</Text>
+            <Text style={{ fontSize: 15, color: '#878778', fontFamily: FontFamily.regular, textAlign: 'center', marginBottom: 24, lineHeight: 22 }}>
+              {infoModalContent?.description}
+            </Text>
+            <TouchableOpacity
+              style={{ backgroundColor: '#196342', borderRadius: 100, width: '100%', paddingVertical: 14, alignItems: 'center' }}
+              onPress={() => setInfoModalContent(null)}
+            >
+              <Text style={{ color: '#fff', fontSize: 15, fontFamily: FontFamily.bold }}>Entendido</Text>
+            </TouchableOpacity>
+          </TouchableOpacity>
+        </TouchableOpacity>
       </Modal>
     </SafeAreaView>
   );

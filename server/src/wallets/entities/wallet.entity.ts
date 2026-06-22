@@ -10,7 +10,7 @@ import { WalletPanel } from "./wallet-panel.entity";
 import { WalletCategory } from "./wallet-category.entity";
 import { WalletMember } from "./wallet-member.entity";
 
-export type WalletType = "personal" | "business" | "shared" | "mymoney" | "mypays" | "mycollects" | "products" | "otro" | "negocio_productos" | "negocio_servicios" | "compartido" | "community";
+export type WalletType = "my_wallet" | "personal" | "business" | "shared" | "mymoney" | "mypays" | "mycollects" | "products" | "otro" | "negocio_productos" | "negocio_servicios" | "compartido" | "community";
 
 @Entity("wallets")
 export class Wallet {

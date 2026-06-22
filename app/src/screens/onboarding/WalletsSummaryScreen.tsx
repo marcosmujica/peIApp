@@ -24,26 +24,13 @@ export const WalletsSummaryScreen: React.FC<Props> = ({ route, navigation }) => 
   }, []);
 
   const getWalletsToDisplay = () => {
-    const list = [
-      {
-        icon: "cash-outline",
-        name: "Cobros sin billetera",
-        desc: "Ingresos y cobros rápidos sin asignar.",
-      },
-      {
-        icon: "file-tray-outline",
-        name: "Pagos sin Billetera",
-        desc: "Gastos y pagos rápidos sin asignar.",
-      },
-    ];
+    const list: any[] = [];
 
-    if (businessType === "none") {
-      list.push({
-        icon: "person-outline",
-        name: "Mi Billetera",
-        desc: "Tus ingresos y gastos personales del día a día.",
-      });
-    }
+    list.push({
+      icon: "person-outline",
+      name: "Mi Billetera",
+      desc: "Tus ingresos y gastos personales del día a día.",
+    });
 
     if (businessType === "products" || businessType === "both") {
       list.push({

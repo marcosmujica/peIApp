@@ -88,7 +88,7 @@ export const WalletSettingsScreen: React.FC<Props> = ({ route, navigation }) => 
     if (!membersList) return [];
     return membersList.map(m => {
       const isMe = (user?.phoneNumber && (cleanPhone(m.userId) === cleanPhone(user.phoneNumber) || (m.phone && cleanPhone(m.phone) === cleanPhone(user.phoneNumber)))) ||
-                   (user?.id && m.userId === user.id);
+        (user?.id && m.userId === user.id);
       if (isMe) {
         return { ...m, role: 'owner' };
       }
@@ -111,6 +111,7 @@ export const WalletSettingsScreen: React.FC<Props> = ({ route, navigation }) => 
   const [isListModalVisible, setListModalVisible] = useState(false);
   const [contactsList, setContactsList] = useState<ContactInfo[]>([]);
   const [contactSearchText, setContactSearchText] = useState('');
+  const [infoModalContent, setInfoModalContent] = useState<{ title: string, description: string } | null>(null);
 
   // State for creating a new distribution list
   const [newListLabel, setNewListLabel] = useState('');
@@ -143,7 +144,7 @@ export const WalletSettingsScreen: React.FC<Props> = ({ route, navigation }) => 
           const isOwnerPhone = user?.phoneNumber && m.role !== 'owner' && (cleanPhone(m.userId) === cleanPhone(user.phoneNumber) || (m.phone && cleanPhone(m.phone) === cleanPhone(user.phoneNumber)));
           return !isOwnerPhone;
         });
-        
+
         // Eliminar duplicados locales
         const seenLocal = new Set();
         const uniqueLocal = cleanedLocalMembers.filter(m => {
@@ -177,7 +178,7 @@ export const WalletSettingsScreen: React.FC<Props> = ({ route, navigation }) => 
               });
 
               const merged = [...cleanedServerMembers, ...localOnly];
-              
+
               // Eliminar duplicados en el merge
               const seenMerge = new Set();
               return merged.filter(m => {
@@ -193,7 +194,7 @@ export const WalletSettingsScreen: React.FC<Props> = ({ route, navigation }) => 
               const isOwnerPhone = user?.phoneNumber && m.role !== 'owner' && (cleanPhone(m.userId) === cleanPhone(user.phoneNumber) || (m.phone && cleanPhone(m.phone) === cleanPhone(user.phoneNumber)));
               return !isOwnerPhone;
             });
-            
+
             const seenServerClean = new Set();
             const uniqueServerClean = finalServerCleaned.filter(m => {
               const key = getMemberUniqueKey(m);
@@ -445,7 +446,7 @@ export const WalletSettingsScreen: React.FC<Props> = ({ route, navigation }) => 
         });
 
       const mergedMembers = [...currentOwners, ...newFromContacts];
-      
+
       const seenConfirm = new Set();
       const uniqueConfirmed = mergedMembers.filter(m => {
         const key = getMemberUniqueKey(m);
@@ -572,9 +573,14 @@ export const WalletSettingsScreen: React.FC<Props> = ({ route, navigation }) => 
 
             <View style={styles.section}>
               <View style={styles.optionRow}>
-                <View style={styles.optionInfo}>
-                  <Text style={styles.optionTitle}>Dinero disponible</Text>
-                  <Text style={styles.optionCaption}>El dinero de esta billetera lo puedo usar en cualquier momento</Text>
+                <View style={[styles.optionInfo, { flexDirection: 'row', alignItems: 'center', gap: 6 }]}>
+                  <Text style={[styles.optionTitle, { marginBottom: 0 }]}>Dinero disponible</Text>
+                  <TouchableOpacity
+                    style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: '#e5e5e5', alignItems: 'center', justifyContent: 'center' }}
+                    onPress={() => setInfoModalContent({ title: 'Dinero disponible', description: 'El dinero de esta billetera lo puedo usar en cualquier momento' })}
+                  >
+                    <Ionicons name="information" size={14} color="#363630" />
+                  </TouchableOpacity>
                 </View>
                 <Switch
                   value={includeInGeneralBalance}
@@ -587,9 +593,14 @@ export const WalletSettingsScreen: React.FC<Props> = ({ route, navigation }) => 
 
             {/* Default Transaction Type */}
             <View style={styles.section}>
-              <View style={[styles.optionInfo, { marginBottom: 12 }]}>
-                <Text style={styles.optionTitle}>Movimiento por defecto</Text>
-                <Text style={styles.optionCaption}>Predefinido cada vez que ingreso un ticket a esta billetera</Text>
+              <View style={[styles.optionInfo, { marginBottom: 12, flexDirection: 'row', alignItems: 'center', gap: 6 }]}>
+                <Text style={[styles.optionTitle, { marginBottom: 0 }]}>Movimiento por defecto</Text>
+                <TouchableOpacity
+                  style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: '#e5e5e5', alignItems: 'center', justifyContent: 'center' }}
+                  onPress={() => setInfoModalContent({ title: 'Movimiento por defecto', description: 'Predefinido cada vez que ingreso un ticket a esta billetera' })}
+                >
+                  <Ionicons name="information" size={14} color="#363630" />
+                </TouchableOpacity>
               </View>
               <View style={styles.transactionTypeRow}>
                 <TouchableOpacity
@@ -622,8 +633,15 @@ export const WalletSettingsScreen: React.FC<Props> = ({ route, navigation }) => 
             </View>
 
             <View style={styles.section}>
-              <Text style={[styles.label, { marginTop: 12 }]}>Procedimiento de pago o cobro por defecto</Text>
-              <Text style={styles.inputSubtitle}>Instrucciones que verán mis contactos de como se hace el pago.</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 12 }}>
+                <Text style={[styles.label, { marginTop: 0 }]}>Procedimiento de pago o cobro por defecto</Text>
+                <TouchableOpacity
+                  style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: '#e5e5e5', alignItems: 'center', justifyContent: 'center' }}
+                  onPress={() => setInfoModalContent({ title: 'Procedimiento de pago o cobro por defecto', description: 'Instrucciones que verán mis contactos de como se hace el pago.' })}
+                >
+                  <Ionicons name="information" size={14} color="#363630" />
+                </TouchableOpacity>
+              </View>
               <TextInput
                 style={[styles.input, { height: 80, textAlignVertical: 'top', paddingTop: 12, marginTop: 8 }]}
                 value={defaultPaymentMethod}
@@ -636,9 +654,14 @@ export const WalletSettingsScreen: React.FC<Props> = ({ route, navigation }) => 
 
             <View style={styles.section}>
               <View style={[styles.optionRow, { marginTop: 12 }]}>
-                <View style={styles.optionInfo}>
-                  <Text style={styles.optionTitle}>Asistente de cobranza</Text>
-                  <Text style={styles.optionCaption}>Usar procedimientos para ayudarme a recordar y cobrar</Text>
+                <View style={[styles.optionInfo, { flexDirection: 'row', alignItems: 'center', gap: 6 }]}>
+                  <Text style={[styles.optionTitle, { marginBottom: 0 }]}>Asistente de cobranza por defecto</Text>
+                  <TouchableOpacity
+                    style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: '#e5e5e5', alignItems: 'center', justifyContent: 'center' }}
+                    onPress={() => setInfoModalContent({ title: 'Asistente de cobranza', description: 'Usar procedimientos para ayudarme a recordar y cobrar los tickets' })}
+                  >
+                    <Ionicons name="information" size={14} color="#363630" />
+                  </TouchableOpacity>
                 </View>
                 <Switch
                   value={helpToCollect}
@@ -830,8 +853,15 @@ export const WalletSettingsScreen: React.FC<Props> = ({ route, navigation }) => 
           <View>
             {/* Categories Selection */}
             <View style={styles.section}>
-              <Text style={styles.label}>Categorías y Rubros</Text>
-              <Text style={styles.inputSubtitle}>Activa o desactiva los rubros que deseas ver en esta billetera.</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <Text style={styles.label}>Categorías y Rubros</Text>
+                <TouchableOpacity
+                  style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: '#e5e5e5', alignItems: 'center', justifyContent: 'center' }}
+                  onPress={() => setInfoModalContent({ title: 'Categorías y Rubros', description: 'Activa o desactiva los rubros que deseas ver en esta billetera.' })}
+                >
+                  <Ionicons name="information" size={14} color="#363630" />
+                </TouchableOpacity>
+              </View>
               <TouchableOpacity
                 style={[styles.actionBtn, { marginTop: 16 }]}
                 onPress={() => navigation.navigate('WalletCategories', { walletId })}
@@ -1048,6 +1078,36 @@ export const WalletSettingsScreen: React.FC<Props> = ({ route, navigation }) => 
             />
           </KeyboardAvoidingView>
         </SafeAreaView>
+      </Modal>
+
+      {/* ── Info Modal ── */}
+      <Modal
+        visible={!!infoModalContent}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setInfoModalContent(null)}
+      >
+        <TouchableOpacity
+          style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', padding: 24 }}
+          activeOpacity={1}
+          onPress={() => setInfoModalContent(null)}
+        >
+          <TouchableOpacity activeOpacity={1} style={{ backgroundColor: '#fff', borderRadius: 24, padding: 24, width: '100%', maxWidth: 400, alignItems: 'center' }}>
+            <View style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: '#e5e5e5', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
+              <Ionicons name="information" size={24} color="#363630" />
+            </View>
+            <Text style={{ fontSize: 18, color: '#363630', fontFamily: FontFamily.bold, textAlign: 'center', marginBottom: 8 }}>{infoModalContent?.title}</Text>
+            <Text style={{ fontSize: 15, color: '#878778', fontFamily: FontFamily.regular, textAlign: 'center', marginBottom: 24, lineHeight: 22 }}>
+              {infoModalContent?.description}
+            </Text>
+            <TouchableOpacity
+              style={{ backgroundColor: '#196342', borderRadius: 100, width: '100%', paddingVertical: 14, alignItems: 'center' }}
+              onPress={() => setInfoModalContent(null)}
+            >
+              <Text style={{ color: '#fff', fontSize: 15, fontFamily: FontFamily.bold }}>Entendido</Text>
+            </TouchableOpacity>
+          </TouchableOpacity>
+        </TouchableOpacity>
       </Modal>
     </SafeAreaView>
   );

@@ -12,6 +12,7 @@ import {
   Modal,
   FlatList,
   TouchableWithoutFeedback,
+  Text,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -26,15 +27,39 @@ import { Button } from '@/components/ui/Button';
 import { Typography } from '@/components/ui/Typography';
 import { Colors, BorderRadius, Shadows, Spacing, FontFamily } from '@/constants/theme';
 
-const formatThousands = (val: string) => {
-  const numeric = val.replace(/[^0-9]/g, '');
-  if (!numeric) return '';
-  return numeric.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+const CURRENCY_NAMES: Record<string, string> = {
+  ARS: 'Peso Argentino',
+  USD: 'Dólar Estadounidense',
+  UYU: 'Peso Uruguayo',
+  CLP: 'Peso Chileno',
+  BRL: 'Real Brasileño',
+  EUR: 'Euro',
+  COP: 'Peso Colombiano',
+  MXN: 'Peso Mexicano',
+  PEN: 'Sol',
+  VES: 'Bolívar',
+  BOB: 'Boliviano',
+  CRC: 'Colón Costarricense',
+  CUP: 'Peso Cubano',
+  DOP: 'Peso Dominicano',
+  GTQ: 'Quetzal',
+  HNL: 'Lempira',
+  NIO: 'Córdoba',
+  PAB: 'Balboa',
+  PYG: 'Guaraní',
 };
 
-const parseThousands = (val: string) => {
-  return parseFloat(val.replace(/\./g, '')) || 0;
+const formatAmount = (val: string) => {
+  if (!val) return '';
+  const [int, dec] = val.split('.');
+  const formattedInt = int.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  return dec !== undefined ? `${formattedInt},${dec}` : formattedInt;
 };
+
+const parseAmount = (val: string) => {
+  return parseFloat(val.replace(/\./g, '').replace(',', '.')) || 0;
+};
+
 
 export const QuickEntryScreen = () => {
   const navigation = useNavigation<any>();
@@ -94,15 +119,16 @@ export const QuickEntryScreen = () => {
   }, [selectedWallet]);
 
   const handleAmountChange = (rubroId: string, value: string) => {
+    let clean = value.replace(/[^0-9,]/g, '').replace(',', '.');
     setAmounts(prev => ({
       ...prev,
-      [rubroId]: formatThousands(value)
+      [rubroId]: clean
     }));
   };
 
   const handleSave = async () => {
     if (isSavingRef.current) return;
-    const activeEntries = Object.entries(amounts).filter(([_, val]) => val && parseThousands(val) > 0);
+    const activeEntries = Object.entries(amounts).filter(([_, val]) => val && parseAmount(val) > 0);
     
     if (activeEntries.length === 0) {
       Alert.alert('Nada que guardar', 'Ingresa al menos un importe en alguna categoría.');
@@ -120,7 +146,7 @@ export const QuickEntryScreen = () => {
 
     try {
       for (const [rubroId, value] of activeEntries) {
-        const parsedAmount = parseThousands(value);
+        const parsedAmount = parseAmount(value);
         const categoryLabel = getRubroLabel(rubroId, 'expense');
         
         const createDto = {
@@ -245,7 +271,7 @@ export const QuickEntryScreen = () => {
           </View>
 
           <Typography variant="labelSmall" color={Colors.textTertiary} style={{ marginBottom: 12, marginTop: 12 }}>
-            Importes por categoría:
+            Importes por categoría en <Text style={{ fontFamily: FontFamily.bold, color: Colors.textPrimary }}>{selectedWallet?.currency ? (CURRENCY_NAMES[selectedWallet.currency] || selectedWallet.currency) : 'Dólar Estadounidense'}</Text>:
           </Typography>
           {categories.map(cat => {
             if (cat.isSeparator) {
@@ -262,14 +288,17 @@ export const QuickEntryScreen = () => {
                   <Ionicons name={cat.icon as any} size={20} color="#666" style={{ marginRight: 10 }} />
                   <Typography variant="labelBase">{cat.label}</Typography>
                 </View>
-                <TextInput
-                  style={styles.input}
-                  placeholder="0"
-                  keyboardType="numeric"
-                  value={amounts[cat.id] ? '$' + amounts[cat.id] : ''}
-                  onChangeText={(val) => handleAmountChange(cat.id, val)}
-                  placeholderTextColor="#999"
-                />
+                <View style={styles.inputContainer}>
+                  <Text style={styles.currencyPrefix}>{selectedWallet?.currency || 'USD'}</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="0"
+                    keyboardType="numeric"
+                    value={amounts[cat.id] ? formatAmount(amounts[cat.id]) : ''}
+                    onChangeText={(val) => handleAmountChange(cat.id, val)}
+                    placeholderTextColor="#999"
+                  />
+                </View>
               </View>
             );
           })}
@@ -311,19 +340,33 @@ const styles = StyleSheet.create({
   walletCombo: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F3F4F6', marginHorizontal: 16, paddingHorizontal: 16, paddingVertical: 12, borderRadius: 12, borderWidth: 1, borderColor: '#E5E7EB' },
   scrollContent: { padding: 16, paddingBottom: 40 },
   categoryRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, backgroundColor: 'white', padding: 12, borderRadius: 16, borderWidth: 1, borderColor: '#EEE', ...Shadows.card },
-  categoryInfo: { flexDirection: 'row', alignItems: 'center', flex: 1 },
+  categoryInfo: { flexDirection: 'row', alignItems: 'center', flex: 1, flexShrink: 1, paddingRight: 8 },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: 160,
+    flexShrink: 0,
+    height: 48,
+    backgroundColor: '#F5F5F6',
+    borderRadius: 12,
+    paddingHorizontal: 12,
+  },
+  currencyPrefix: {
+    fontSize: 16,
+    color: '#666',
+    fontFamily: FontFamily.medium,
+    marginRight: 4,
+  },
   input: { 
-    width: 150, 
-    height: 48, 
-    backgroundColor: '#F5F5F6', 
-    borderRadius: 12, 
-    paddingHorizontal: 16, 
-    paddingRight: 12,
+    flex: 1,
+    height: '100%',
     textAlign: 'right', 
     fontSize: 20, 
     color: '#000000', 
     fontFamily: FontFamily.bold,
     borderWidth: 0,
+    minWidth: 0,
+    overflow: 'hidden',
     // @ts-ignore
     outlineStyle: 'none'
   },

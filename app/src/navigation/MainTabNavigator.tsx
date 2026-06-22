@@ -1,6 +1,7 @@
 import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { View, Text, TouchableOpacity, StyleSheet, Platform } from "react-native";
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors, FontFamily, Spacing } from "@/constants/theme";
 import { Ionicons } from '@expo/vector-icons';
 
@@ -46,9 +47,11 @@ const IconMenu = ({ focused }: { focused: boolean }) => (
 );
 
 function CustomTabBar({ state, descriptors, navigation }: any) {
+  const insets = useSafeAreaInsets();
+
   return (
     <View style={styles.tabBarContainer}>
-      <View style={styles.tabBar}>
+      <View style={[styles.tabBar, { paddingBottom: Math.max(insets.bottom, 16) }]}>
         {state.routes.map((route: any, index: number) => {
           const { options } = descriptors[route.key];
           let label = options.tabBarLabel ?? route.name;
@@ -131,7 +134,6 @@ const styles = StyleSheet.create({
   tabBar: {
     flexDirection: "row",
     backgroundColor: '#f2f2f0',
-    paddingBottom: Platform.OS === "ios" ? 40 : 28,
     paddingTop: 16,
     paddingHorizontal: Spacing.sm,
     alignItems: "center",
